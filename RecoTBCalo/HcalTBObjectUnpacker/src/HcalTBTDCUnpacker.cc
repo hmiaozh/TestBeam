@@ -214,22 +214,34 @@ void HcalTBTDCUnpacker::reconstructTiming(const std::vector<Hit>& hits,
 }
 
 const int HcalTBTDCUnpacker::WC_CHANNELIDS[PLANECOUNT*3] = { 
-                                                     12, 13, 14, // WCA LR plane 
-						     10, 11, 14, // WCA UD plane
-						     22, 23, 24, // WCB LR plane
-						     20, 21, 24, // WCB UD plane
-						     32, 33, 34, // WCC LR plane
-						     30, 31, 34, // WCC UD plane
-						     101, 102, 104, // WCD LR plane
-						     107, 108, 110, // WCD UD plane
-						     113, 114, 116, // WCE LR plane
-						     97, 98, 99, // WCE UD plane 
-						    42, 43, -1, // WCF LR plane (was WC1)
-						    44, 60, -1, // WCF UD plane (was WC1)
-						    40, 41, -1, // WCG LR plane (was WC2)
-						    45, 61, -1, // WCG UD plane (was WC2)
-						    52, 53, -1, // WCH LR plane (was WC3)
-						    54, 62, -1  // WCH UD plane (was WC3)
+  // Apparently correct values determined by Viktor Khristenko, James Wetzel, etc
+  113, 114, 116,  //WCA LR plane: 
+  97, 98, 99,	 //WCA UD plane: 
+  2, 4, 1,	 //WCB LR plane: 
+  93, 94, 3,	 //WCB UD plane: 
+  32, 33, 34,	 //WCC LR plane: 
+  30, 31, 35,	 //WCC UD plane: 
+  22, 23, 24,	 //WCD LR plane: 
+  20, 95, 21,	 //WCD UD plane: 
+  12, 13, 14,	 //WCE LR plane: 
+  10, 11, 15,	 //WCE UD plane: 
+  // Apparently wrong values used before Oct 18, 2014
+  //12, 13, 14, // WCA LR plane 
+  //10, 11, 14, // WCA UD plane
+  //22, 23, 24, // WCB LR plane
+  //20, 21, 24, // WCB UD plane
+  //32, 33, 34, // WCC LR plane
+  //30, 31, 34, // WCC UD plane
+  //101, 102, 104, // WCD LR plane
+  //107, 108, 110, // WCD UD plane
+  //113, 114, 116, // WCE LR plane
+  //97, 98, 99, // WCE UD plane 
+  42, 43, -1, // WCF LR plane (was WC1)
+  44, 60, -1, // WCF UD plane (was WC1)
+  40, 41, -1, // WCG LR plane (was WC2)
+  45, 61, -1, // WCG UD plane (was WC2)
+  52, 53, -1, // WCH LR plane (was WC3)
+  54, 62, -1  // WCH UD plane (was WC3)
 };
 
 static const double TDC_OFFSET_CONSTANT = 12000;

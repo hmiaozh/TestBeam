@@ -229,11 +229,14 @@ void HcalDigiDump::analyze(edm::Event const& e, edm::EventSetup const& c) {
     std::vector<edm::Handle<QIE10DigiCollection> >::iterator i;
     for (i=qie10s.begin(); i!=qie10s.end(); i++) {
       const QIE10DigiCollection& c=*(*i);
+
+      cout << "QIE10 Digis: " << i->provenance()->branchName() << endl;  //JRD
       
       for (int j=0; j < c.size(); j++)
 	cout << c[j] << std::endl;
     }
   } catch (...) {
+    cout << "no QIE10 Digis." << endl;  //JRD
   }
 
   try {
@@ -241,11 +244,14 @@ void HcalDigiDump::analyze(edm::Event const& e, edm::EventSetup const& c) {
     std::vector<edm::Handle<QIE11DigiCollection> >::iterator i;
     for (i=qie11s.begin(); i!=qie11s.end(); i++) {
       const QIE11DigiCollection& c=*(*i);
+
+      cout << "QIE11 Digis: " << i->provenance()->branchName() << endl;  //JRD
       
       for (int j=0; j < c.size(); j++)
 	cout << c[j] << std::endl;
     }
   } catch (...) {
+    cout << "no QIE11 Digis." << endl;  //JRD
   }
 
   cout << endl;    
