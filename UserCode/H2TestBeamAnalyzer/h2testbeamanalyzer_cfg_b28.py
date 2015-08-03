@@ -29,7 +29,7 @@ process.source = cms.Source("HcalTBSource",
 #		'file:/afs/cern.ch/work/v/vkhriste/CMSSW/CMSSW_6_0_1/src/UserCode/H2TestBeamAnalyzer/data_H2_TB/HTB_007385.root' 
 #		'file:/data/spool/HTB_' + runNumber + '.root'
 #		'file:/afs/cern.ch/user/j/jhirsch/HTB_007480.root'
-		'file:./HTBqc_000000.root'
+		'file:./HTBqc_000008-2.root'
 	)
 )
 
