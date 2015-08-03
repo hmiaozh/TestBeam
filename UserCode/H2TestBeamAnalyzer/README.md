@@ -7,6 +7,7 @@ This is meant for machines wich access to CMSSW (e.g. lxplus)
 ```
 cmsrel CMSSW_7_5_0
 cd CMSSW_7_5_0/src
+# DO NOT DO cmsenv !!!
 git init
 ## use the ssh repo link if you are going to make commits 
 git remote add origin https://github.com/BaylorCMS/cmssw.git
@@ -16,14 +17,24 @@ echo "EventFilter/HcalRawToDigi/" >> .git/info/sparse-checkout
 echo "RecoTBCalo/HcalTBObjectUnpacker/" >> .git/info/sparse-checkout
 echo "UserCode/" >> .git/info/sparse-checkout
 ## uncomment branch you are interested in
-#git pull origin HcalTestBeam
-git pull origin HcalTestBeamQIE11
+## this will make a new branch in your local repo with the same name as the remote
+#git pull origin HcalTestBeam:HcalTestBeam
+git pull origin HcalTestBeamQIE11:HcalTestBeamQIE11
+git checkout HcalTestBeam
+#git checkout HcalTestBeamQIE11
 ```
 
 If you want to bring your checkout up to date with the main repo, just repeat the last step
 ```
 #git pull origin HcalTestBeam
 git pull origin HcalTestBeamQIE11
+```
+
+**DO NOT do cmsenv if you want to pull or push to/from the central repository.** 
+For reasons unknown to us, sourcing CMSSW breaks git. If you know why this happens please let us know...
+If you do want to use it from withing CMSSW, do
+```
+env -i git <your favourite git command>
 ```
 
 ## Instructions on how to use the code
@@ -108,6 +119,3 @@ As above, the plots can be prepared for web viewing via
 ./makeHtml.py tb_plots_run8
 ```
 
-Note: SOI still to be debugged
-
-I am a model of a modern major general ...
