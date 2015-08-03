@@ -107,3 +107,5 @@ As above, the plots can be prepared for web viewing via
 ```
 ./makeHtml.py tb_plots_run8
 ```
+
+Note: SOI still to be debugged
