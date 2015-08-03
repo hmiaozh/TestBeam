@@ -8,6 +8,7 @@ import ROOT
 import array
 import time
 from tb_utils import *
+from tb_chanmap import *
 from math import exp, sqrt, log
 
 #######################
@@ -51,7 +52,10 @@ ROOT.gROOT.SetBatch()
 ROOT.gROOT.SetStyle("Plain")
 #ROOT.gStyle.SetOptStat(111111111)
 ROOT.gStyle.SetOptStat(0)
-ROOT.gStyle.SetOptTitle(0)
+ROOT.gStyle.SetOptTitle(1)
+ROOT.gStyle.SetTitleX(0.55)
+ROOT.gStyle.SetTitleY(0.97)
+ROOT.gStyle.SetTitleAlign(23)
 ROOT.gStyle.SetPalette(1)
 ROOT.gStyle.SetNdivisions(405,"x");
 #ROOT.gStyle.SetEndErrorSize(0.)
@@ -68,8 +72,10 @@ NCont = 255
 #green = [ 1.00, 0.00, 0.81, 1.00, 0.20, 0.00]
 #blue  = [ 0.00, 0.51, 1.00, 0.12, 0.00, 0.00]
 
-stops  = [ 0.00, 0.34, 0.61, 0.84, 1.00 ]
-red    = [ 0.00, 0.00, 0.87, 1.00, 0.51 ]
+#stops  = [ 0.00, 0.34, 0.61, 0.84, 1.00 ]
+#red    = [ 0.00, 0.00, 0.87, 1.00, 0.51 ]
+stops  = [ 0.00, 0.08, 0.40, 0.84, 1.00 ]
+red    = [ 0.00, 0.00, 0.77, 1.00, 1.00 ]
 green  = [ 0.00, 0.81, 1.00, 0.20, 0.00 ]
 blue   = [ 0.51, 1.00, 0.12, 0.00, 0.00 ]
 
@@ -207,6 +213,10 @@ pstyle[ 6, "col"] = 46
 pstyle[12, "col"] = 28
 pstyle[24, "col"] = 3
 
+depth_color_table = {}
+depth_color_table[1] = 1
+depth_color_table[2] = 2
+depth_color_table[3] = 4
 
 tfile = ROOT.TFile(infile)
 
@@ -233,7 +243,18 @@ hist = {}
 
 # Make energy plots
 for ichan in chanList:
-    hist["avgpulse", ichan] = tfile.Get("AvgPulse_"+str(chanmap[ichan]))
+    ieta = chanmap[ichan][0]
+    iphi = chanmap[ichan][1]
+    depth = chanmap[ichan][2]
+    label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
+    hist["avgpulse", ichan] = tfile.Get("AvgPulse_"+label)
+    hist["e_4TS_PS", ichan] = tfile.Get("Energy_"+label) 
+
+for depth in [1,2,3]:
+    hist["e_4TS_etaphi",depth] = tfile.Get("Energy_Avg_depth"+str(depth))
+    hist["occupancy_event_etaphi",depth] = tfile.Get("Occ_Event_depth_"+str(depth)) 
+
+
 #    hist["e_wcC"   , ichan] = tfile.Get("h_e_wcC_chan"   +str(ichan))
 #    hist["e_wcC_x" , ichan] = tfile.Get("h_e_wcC_x_chan" +str(ichan))
 #    hist["e_wcC_y" , ichan] = tfile.Get("h_e_wcC_y_chan" +str(ichan))
@@ -296,35 +317,159 @@ for ichan in chanList:
 #
 #if doPE : sys.exit()    
 
+##################################
+# Plot Occupancy in eta-phi
+##################################
+cname = "a_occupancy_etaphi"
+#ROOT.gStyle.SetOptTitle(1)
+canv = ROOT.TCanvas(cname, cname, 800, 360)
+pad = canv.GetPad(0)
+setPadPasMargin(pad,0.13)
+pad.SetTopMargin(0.2)
 
+for depth in [1,2,3]:
+    setHist2D(hist["occupancy_event_etaphi",depth], "X", "Y", "", 0, 0, 0, 0.9, 0.4, 0.1)
+    #hist["e_4TS_etaphi",depth].GetListOfFunctions().Add(palette,"br")
+    hist["occupancy_event_etaphi",depth].GetXaxis().SetTitle("ieta")
+    hist["occupancy_event_etaphi",depth].GetXaxis().CenterTitle(True)
+    hist["occupancy_event_etaphi",depth].GetXaxis().SetNdivisions(16)
+    hist["occupancy_event_etaphi",depth].GetYaxis().SetNdivisions(6)
+    hist["occupancy_event_etaphi",depth].GetYaxis().SetTitle("iphi")
+    hist["occupancy_event_etaphi",depth].GetYaxis().CenterTitle(True)
+    hist["occupancy_event_etaphi",depth].SetTitle("Fraction of Events with a hit in each ieta,iphi for depth "+str(depth))
+    hist["occupancy_event_etaphi",depth].Draw("COLZ ")
+
+    for end in [".pdf", ".gif"]:
+        canv.SaveAs(outdir+cname+"_depth"+str(depth)+end)
+
+##################################
+# Plot Average energy in eta-phi
+##################################
+cname = "b_energy_etaphi"
+#ROOT.gStyle.SetOptTitle(1)
+canv = ROOT.TCanvas(cname, cname, 800, 360)
+pad = canv.GetPad(0)
+setPadPasMargin(pad,0.13)
+pad.SetTopMargin(0.2)
+
+for depth in [1,2,3]:
+    setHist2D(hist["e_4TS_etaphi",depth], "X", "Y", "", 0, 0, 0, 0.9, 0.4, 0.1)
+    #hist["e_4TS_etaphi",depth].GetListOfFunctions().Add(palette,"br")
+    hist["e_4TS_etaphi",depth].GetXaxis().SetTitle("ieta")
+    hist["e_4TS_etaphi",depth].GetXaxis().CenterTitle(True)
+    hist["e_4TS_etaphi",depth].GetXaxis().SetNdivisions(16)
+    hist["e_4TS_etaphi",depth].GetYaxis().SetNdivisions(6)
+    hist["e_4TS_etaphi",depth].GetYaxis().SetTitle("iphi")
+    hist["e_4TS_etaphi",depth].GetYaxis().CenterTitle(True)
+    hist["e_4TS_etaphi",depth].SetTitle("Average Energy per event in each ieta,iphi for depth "+str(depth))
+    hist["e_4TS_etaphi",depth].Draw("COLZ ")
+
+    for end in [".pdf", ".gif"]:
+        canv.SaveAs(outdir+cname+"_depth"+str(depth)+end)
+
+ROOT.gStyle.SetOptTitle(0)
 
 ##################################
 # Plot pulse shape comparison
 ##################################
-cname = "avgPulseShape"
+cname = "c_avgPulseShape"
 canv = ROOT.TCanvas(cname, cname, 400, 424)
 pad = canv.GetPad(0)
 setPadPasMargin(pad)
-for ichan in chanList:
-    setHist(hist["avgpulse", ichan], "Time sample", "Average ADC", 0, (0.,50.), 1.3, pstyle[22, "col"])
-    hist["avgpulse", ichan].GetXaxis().SetNdivisions(10,1)
-    hist["avgpulse", ichan].Draw()
-#    if ichan == chanList[0]: hist["avgpulse", ichan].Draw()
-#    else: hist["avgpulse", ichan].Draw("same")
 
-    textsize = 0.03; legx0 = 0.3; legx1 = 0.8; legy0 = 0.83; legy1 = 0.87
+etaphipairs = {}
+for ichan in chanList:
+    ieta = chanmap[ichan][0]
+    iphi = chanmap[ichan][1]
+    depth = chanmap[ichan][2]
+    if not etaphipairs.has_key((ieta,iphi)): etaphipairs[ieta,iphi] = []
+    etaphipairs[ieta,iphi].append(depth)
+    
+for etaphi in etaphipairs.keys():
+
+    number_of_depths = len(etaphipairs[etaphi])
+    textsize = 0.03; legx0 = 0.3; legx1 = 0.80; legy0 = 0.86 - 0.03*number_of_depths; legy1 = 0.89
     leg = ROOT.TLegend(legx0, legy0, legx1, legy1)
     leg.SetFillColor(0)
     leg.SetTextSize(textsize)
     leg.SetColumnSeparation(0.0)
     leg.SetEntrySeparation(0.1)
     leg.SetMargin(0.2)
-        #for ichan in chanList:
-    leg.AddEntry(hist["avgpulse", ichan], "ieta="+str(chanmap[ichan][0])+"  "+"iphi="+str(chanmap[ichan][1])+"  "+"idepth="+str(chanmap[ichan][2]))
+    
+    first = True
+    for depth in sorted(etaphipairs[etaphi]):
+        ieta = etaphi[0]
+        iphi = etaphi[1]
+        ichan = chanmap[(ieta,iphi,depth)]
+                
+        setHist(hist["avgpulse", ichan], "Time sample", "Charge (fC)", 0, (0.,180.), 1.3, depth_color_table[depth])
+        hist["avgpulse", ichan].GetXaxis().SetNdivisions(10,1)
+        if first:
+            hist["avgpulse", ichan].Draw("hist")
+            first = False
+        else:
+            hist["avgpulse", ichan].Draw("hist same")
+
+        leg.AddEntry(hist["avgpulse", ichan], "ieta="+str(ieta)+"  "+"iphi="+str(iphi)+"  "+"depth="+str(depth))
+        leg.Draw()
+        
+    for end in [".pdf", ".gif"]:
+        canv.SaveAs(outdir+cname+"_ieta"+str(ieta)+"_iphi"+str(iphi)+end)
+
+
+##################################
+# Plot Energy Spectra
+##################################
+cname = "d_energy"
+ROOT.gStyle.SetOptStat(1110)
+canv = ROOT.TCanvas(cname, cname, 400, 424)
+pad = canv.GetPad(0)
+setPadPasMargin(pad)
+pad.SetLogy()
+
+for ichan in chanList:
+    ieta = chanmap[ichan][0]
+    iphi = chanmap[ichan][1]
+    depth = chanmap[ichan][2]
+
+    setHist(hist["e_4TS_PS", ichan], "Energy (uncalibrated)", "# Events", 0, 0, 1.3, pstyle[22, "col"])
+    #hist["energy", ichan].GetXaxis().SetNdivisions(10,1)
+    max_x_bin = hist["e_4TS_PS", ichan].FindLastBinAbove(0)
+    use_max = 1000
+    if max_x_bin < 500: use_max = 500
+    if max_x_bin < 100: use_max = 100
+    if use_max == 1000: hist["e_4TS_PS", ichan].Rebin(10)
+    if use_max == 500: hist["e_4TS_PS", ichan].Rebin(5)
+    
+    hist["e_4TS_PS", ichan].GetXaxis().SetRangeUser(1,use_max)
+    hist["e_4TS_PS", ichan].SetStats(True)
+    hist["e_4TS_PS", ichan].Draw()
+    pad.Update()
+    hist["e_4TS_PS", ichan].FindObject("stats").SetX1NDC(0.7)
+    hist["e_4TS_PS", ichan].FindObject("stats").SetX2NDC(0.95)
+    hist["e_4TS_PS", ichan].FindObject("stats").SetY1NDC(0.8)
+    hist["e_4TS_PS", ichan].FindObject("stats").SetY2NDC(0.90)
+    hist["e_4TS_PS", ichan].Draw()
+    
+
+    textsize = 0.03; legx0 = 0.23; legx1 = 0.68; legy0 = 0.82; legy1 = 0.88
+    leg = ROOT.TLegend(legx0, legy0, legx1, legy1)
+    leg.SetFillColor(0)
+    leg.SetTextSize(textsize)
+    leg.SetColumnSeparation(0.0)
+    leg.SetEntrySeparation(0.1)
+    leg.SetMargin(0.2)
+
+    leg.AddEntry(hist["e_4TS_PS", ichan], "ieta="+str(ieta)+"  "+"iphi="+str(iphi)+"  "+"depth="+str(depth))
     leg.Draw()
         
     for end in [".pdf", ".gif"]:
-        canv.SaveAs(outdir+cname+"_ieta"+str(chanmap[ichan][0])+"_iphi"+str(chanmap[ichan][1])+"_idepth"+str(chanmap[ichan][2])+end)
+        canv.SaveAs(outdir+cname+"_ieta"+str(ieta)+"_iphi"+str(iphi)+"_depth"+str(depth)+end)
+
+ROOT.gStyle.SetOptStat(0)
+
+
+
 
 ########################################
 ## Plot energy in bins of WC C position

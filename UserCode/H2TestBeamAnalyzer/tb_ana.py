@@ -4,6 +4,7 @@ print "Importing modules"
 import sys
 import optparse
 from tb_utils import *
+from tb_chanmap import *
 import os
 import ROOT
 import array
@@ -78,8 +79,6 @@ ROOT.gStyle.SetNumberContours(NCont)
 ###############
 # Choose
 ################
-# TS to sum
-ts_list = [4,5,6,7]
 # Number of standard deviations for WC residuals cut
 sigma_thold = 1.
 # Channel to use as reference tile counter, currently 2x10 SCSN-81
@@ -228,10 +227,21 @@ hist = {}
 #hist["dy_AE", "clean"] = ROOT.TH1F("h_dy_AE_clean", "h_dy_AE_clean", 400, -100., 100.)
 
 for ichan in chanList:
-    hist["avgpulse", ichan] = ROOT.TH1F("AvgPulse_"+str(chanmap[ichan]), "AvgPulse_"+str(chanmap[ichan]), 10, -0.5, 9.5)
+    ieta = chanmap[ichan][0]
+    iphi = chanmap[ichan][1]
+    depth = chanmap[ichan][2]
+    label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
+    hist["avgpulse", ichan] = ROOT.TProfile("AvgPulse_"+label, "AvgPulse_"+label, 10, -0.5, 9.5, 0., 500.)
     for its in range(10):
-        hist["energy", ichan, its] = ROOT.TH1F("Energy_"+str(chanmap[ichan])+"_ts"+str(its),
-                                               "Energy_"+str(chanmap[ichan])+"_ts"+str(its), 3000, 0., 3000.)
+        hist["charge", ichan, its] = ROOT.TH1F("Charge_"+label+"_ts"+str(its),
+                                               "Charge_"+label+"_ts"+str(its), 1500, 0., 1500.)
+
+    hist["e_4TS_noPS", ichan] = ROOT.TH1F("Energy_noPS_"+label,"Energy_noPS_"+label, 1000, 0., 1000.)                                          
+    hist["e_4TS_PS", ichan] = ROOT.TH1F("Energy_"+label,"Energy_"+label, 1000, 0., 1000.)                                          
+
+for depth in [1,2,3]:
+    hist["e_4TS_etaphi",depth] = ROOT.TProfile2D("Energy_Avg_depth"+str(depth),"Average Energy per event in each ieta,iphi for depth "+str(depth), 16, 14.5, 30.5, 6, 1.5, 7.5, 0., 500.)
+    hist["occupancy_event_etaphi",depth] = ROOT.TH2F("Occ_Event_depth_"+str(depth),"Fraction of Events with a hit in each ieta,iphi for depth "+str(depth), 16, 14.5, 30.5, 6, 1.5, 7.5) 
 
 # Plot average 4TS energy sum (z-axis) in plane of track coords from WC C
 #for ichan in chanList:
@@ -245,19 +255,18 @@ for ichan in chanList:
 #                                              4002,  -0.5, 2000.5)
 
 esum = {}
-for ichan in chanList:
-    for its in range(50):
-        esum[ichan, its] = 0.
-        esum[ichan, its, "nevts"] = 0.
         
 ####################################################
 # Event Loop
 ####################################################
 
-#nevts = 10000    
-print "Processing ", nevts, "total events."
-for ievt in range(nevts):
-    if ievt % 100 == 0: print "Processing event ", ievt
+fillEplots = True
+
+print "Run %5i has %7i total events. " % (runnum, nevts)
+#nevts = 1000 #use to limit the number of events for diagnostic purposes
+print "Processing ",nevts," events."    
+for ievt in xrange(nevts):
+    if (ievt+1) % 1000 == 0: print "Processing Run %5i Event %7i" % (runnum, (ievt+1))
 
 #    #######################
 #    # WC Analysis
@@ -392,75 +401,111 @@ for ievt in range(nevts):
 
     # Find the channels 
     ########################
+    
+    # ichan is the channel number (a single integer index) defined in tb_chanmap.py
+    # corresponding to a specific ieta,iphi,depth.
+    #
+    # chanList contains a list of the channel numbers to process.
+    
+    # create chansToFind, a list of [(ieta1,iphi1,depth1), (ieta2,iphi2,depth2), ...]
+    # for processing
+    
     chansToFind = []
     for ichan in chanList: chansToFind.append(chanmap[ichan])
+    
+    # rchan is the channel number associated with (ieta,iphi,depth) in the data
+    # rchan probably doesn't equal ichan, which is just an index
+
+    # By matching (ieta,iphi,depth), we create a mapping of fchan[ichan] = rchan
+    # fchan contains the found channels    
+            
     fchan = {}
-    # ichan in root file coords
-    for ichan in range(shbhe.numChs):
-        test_chan = (shbhe.ieta[ichan], shbhe.iphi[ichan], shbhe.depth[ichan])
+    for rchan in range(shbhe.numChs):
+        test_chan = (shbhe.ieta[rchan], shbhe.iphi[rchan], shbhe.depth[rchan])
         if test_chan in chansToFind:
             chansToFind.remove(test_chan)
-            fchan[chanmap[test_chan]] = ichan
+            fchan[chanmap[test_chan]] = rchan
+    
+    # these are the (ieta,iphi,depth) that we expected to find
+    # (from chanList/chanmap) that never appeared in the data
+    
     if len(chansToFind) > 0:
         print "Did not find channels"
         print chansToFind, "."
-    #print "Exiting."
-    #sys.exit()
+        #print "Exiting."
+        #sys.exit()
         
     # Skip events with anomalously large pulses
-    ################################################
+    clean = True
+    for rchan in fchan.itervalues():
+        for its in range(2): #for now, only check lowest two ts (0-1)
+            if shbhe.pulse[rchan*50+its] > 90:
+                clean = False
+                break
+        for its in range(8,10): #for now, only check highest two ts (8-9)
+            if shbhe.pulse[rchan*50+its] > 90: 
+                clean = False
+                break
+    if not clean: continue
+
+    # Skip events with anomalous energy
+    for rchan in fchan.itervalues():
+        for its in range(10):  #ts (0-9)
+            if shbhe.pulse[rchan*50+its] > 1500:
+                clean = False
+                break
+    if not clean: continue
+
+
+    charge = {} 
+    energy = {}   
     
-#    for ichan in chanList:
-#        jchan = fchan[ichan]
-#        for its in range(3):
-#            if shbhe.pulse[jchan*50+its] > 90: 
-#                clean = False
-#                break 
-#        for its in range(7,11):
-#            if shbhe.pulse[jchan*50+its] > 90: 
-#                clean = False
-#                break
-#            
-#    # Reject events with anomalous energy
-#    if not clean: continue
-#    for ichan in chanList:
-#        for its in range(11):
-#            if shbhe.pulse[jchan*50+its] > 1500: 
-#                clean = False
-#                break
-#    # Reject events with anomalous energy
-#    if not clean: continue
-
-    # Plot energy
-    ################################################
-    # Get 4TS energy sum for later use
-    for ichan in chanList:
-        if fchan.has_key(ichan):
-            jchan = fchan[ichan]
-            esum[ichan, "4TS"] = 0.
-            for its in ts_list:
-                esum[ichan, "4TS"] += shbhe.pulse[jchan*50+its]*calib[ichan] #[row][col] -> [row*n_cols + col]
-
-    # Loop through again and fill other plots
-    for ichan in chanList:
-        if fchan.has_key(ichan):
+    for ichan,rchan in fchan.items():
         
-            jchan = fchan[ichan]
+        # Pull charges and energies for each time sample
+        for its in range(10):
+            charge[ichan,its] = shbhe.pulse[rchan*50+its]  #[row][col] -> [row*n_cols + col]
+            energy[ichan,its] = charge[ichan,its]*calib[ichan]
 
-            # Decide whether to fill plot based on position of track ("isIn") and energ in SCSN reference ("esum")
-            fillEplots = True
-            #if isIn[ichan] and not doRefTile: fillEplots = True
-            #elif doRefTile and isIn[ichan] and (esum[refchan, "4TS"]>refE[refchan] or ichan==refchan) : fillEplots = True
+        ped_ts_list = [0,1,2]   #time samples in which to sum charge for pedestals (0-2)    
+        ped_esum = 0.
+        for its in ped_ts_list:   
+            ped_esum += energy[ichan,its]
+        ped_avg = ped_esum/len(ped_ts_list)    
+        esum[ichan, "PED"] = ped_avg
 
-            # Fill pulse shape plot
+        ts_list = [4,5,6,7]   #time samples in which to sum charge for signal (4-7)
+        sig_esum = 0.
+        sig_esum_ps = 0.
+        for its in ts_list:  
+            sig_esum += energy[ichan,its]
+            sig_esum_ps += energy[ichan,its]-ped_avg  #pedestal-subtracted energy  
+        esum[ichan, "4TS_noPS"] = sig_esum
+        esum[ichan, "4TS_PS"] = sig_esum_ps          
+
+        # Fill pulse shape plot
+        if fillEplots: 
             for its in range(10):
-                esum[ichan, its] += shbhe.pulse[jchan*50+its]*calib[ichan]  #[row][col] -> [row*n_cols + col]
-                esum[ichan, its, "nevts"] += 1.
-                if fillEplots: hist["energy", ichan, its].Fill(shbhe.pulse[jchan*50+its]*calib[ichan])
+                hist["avgpulse", ichan].Fill(its,energy[ichan,its])
 
-            # Fill 4TS energy sum plot
-    #        if fillEplots: hist["e_4TS", ichan].Fill(esum[ichan, "4TS"])
+        if fillEplots: 
+            for its in range(10):
+                hist["charge", ichan, its].Fill(charge[ichan,its])
+
+        # Fill 4TS energy sum plot
+        if fillEplots: hist["e_4TS_noPS", ichan].Fill(esum[ichan, "4TS_noPS"])
+
+        # Fill 4TS pedestal-corrected energy sum plot
+        if fillEplots: hist["e_4TS_PS", ichan].Fill(esum[ichan, "4TS_PS"])
                 
+        # Fill energy profile in ieta, iphi
+        if fillEplots:            
+            ieta = chanmap[ichan][0]
+            iphi = chanmap[ichan][1]
+            depth = chanmap[ichan][2]
+            hist["e_4TS_etaphi", depth].Fill(ieta, iphi, esum[ichan, "4TS_PS"])
+            hist["occupancy_event_etaphi", depth].Fill(ieta,iphi,1./nevts)  #a bit ugly
+                                                                                                                                                                
             # Fill plot of wire chamber position for events with sufficient energy
     #        if esum[ichan, "4TS"]>25.:
     #            x = adjust["x", refchamb, runnum]*vec["x"+refchamb].at(0)
@@ -468,14 +513,6 @@ for ievt in range(nevts):
     #            hist["e_wcC"  , ichan].Fill(x,y)
     #            hist["e_wcC_x", ichan].Fill(x)
     #            hist["e_wcC_y", ichan].Fill(y)
-
-for ichan in chanList:
-    for its in range(10):
-        print "ichan : its : ADCavg = ", chanmap[ichan], ":", its, ":", esum[ichan, its]/nevts
-        frac = 0.
-        if esum[ichan, its, "nevts"] > 0:
-           frac = esum[ichan, its]/esum[ichan, its, "nevts"]
-        hist["avgpulse", ichan].SetBinContent(its+1, frac)
 
 #
 #print "Fraction of events with N hits in each WC view"
@@ -518,10 +555,11 @@ for ichan in chanList:
 #else:
 #    method = "recreate"
 
-method = "recreate"
+print "Finished Run %5i." % runnum
 
+method = "recreate"
 outtfile = ROOT.TFile(outfile,method)
-for hist in hist.values():
+for hist in sorted(hist.values()):
     outtfile.Delete(hist.GetName()+";*")
     hist.Write()
 outtfile.Close()
