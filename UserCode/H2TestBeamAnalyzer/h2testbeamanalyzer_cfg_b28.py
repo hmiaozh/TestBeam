@@ -64,7 +64,7 @@ process.hcalDigis = cms.EDProducer("HcalRawToDigi",
 process.hcalDigis.FEDs = cms.untracked.vint32(700,928)
 
 
-process.hcalAnalyzer = cms.EDAnalyzer('H2TestBeamAnalyzer',
+process.hcalAnalyzer = cms.EDAnalyzer('QIE11Analyzer',
 		OutFileName = cms.untracked.string('ana_h2_tb_run_b28.root'),
 		Verbosity = cms.untracked.int32(0)
 )
@@ -74,7 +74,7 @@ process.hcalAnalyzer = cms.EDAnalyzer('H2TestBeamAnalyzer',
 #
 process.output = cms.OutputModule(
 		'PoolOutputModule',
-		fileName = cms.untracked.string('h2testbeamanalyzer_cfg_b28.root')
+		fileName = cms.untracked.string('qie11analyzer_cfg_b28.root')
 )
 
 process.load('Configuration.Geometry.GeometryIdeal_cff')
@@ -106,7 +106,7 @@ process.es_prefer = cms.ESPrefer('HcalTextCalibrations', 'es_ascii')
 process.dump = cms.EDAnalyzer("HcalDigiDump")
 
 #process.p = cms.Path(process.tbunpack*process.hcalDigis*process.dump*process.hcalAnalyzer)
-process.p = cms.Path(process.tbunpack*process.hcalDigis*process.dump)
+process.p = cms.Path(process.tbunpack*process.hcalDigis*process.hcalAnalyzer)
 process.outpath = cms.EndPath(process.output)
 
 
