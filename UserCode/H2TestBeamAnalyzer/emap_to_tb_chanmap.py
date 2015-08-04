@@ -14,14 +14,16 @@ else:
         print "#ieta iphi depth channelId"
         for line in lines:
             line = line[:-1]
-            if i > 1:
-                n = i - 1
-                channel = line.split()
-                ieta = channel[9]
-                iphi = channel[10]
-                depth = channel[11]
-                print "chanmap[%s,%s,%s] = %s" % (ieta, iphi, depth, n)
-                reverse.append(("chanmap[%s]  = (%s,%s,%s)" % (n, ieta, iphi, depth)))
+	    line = line.split("#")[0]
+	    if len(line) > 0:
+            	if i > 1:
+                    n = i - 1
+                    channel = line.split()
+                    ieta = channel[9]
+                    iphi = channel[10]
+                    depth = channel[11]
+                    print "chanmap[%s,%s,%s] = %s" % (ieta, iphi, depth, n)
+                    reverse.append(("chanmap[%s]  = (%s,%s,%s)" % (n, ieta, iphi, depth)))
             i = i + 1
         print "\n"
         for rev in reverse:
