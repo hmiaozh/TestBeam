@@ -108,7 +108,7 @@ def getText(ip, ip2, E_base_phase=0):
 
 
 # Channel List
-chanList = range(1,73)
+chanList = range(1,105)
 
 calib = {}
 for channum in chanList:
