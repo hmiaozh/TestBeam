@@ -597,8 +597,8 @@ void HcalUnpacker::unpackUTCA(const FEDRawData& raw, const HcalElectronicsMap& e
             }
             ///////////////////////////////////////////////HE UNPACKER//////////////////////////////////////////////////////////////////////////////////////
             if (i.flavor() == 1 || i.flavor() == 0) {
-                int ifiber=((i.channelid()>>2)&0x1F);
-                int ichan=(i.channelid()&0x3);
+                int ifiber=((i.channelid()>>3)&0x1F);
+                int ichan=(i.channelid()&0x7);
                 HcalElectronicsId eid(crate,slot,ifiber,ichan, false);
                 DetId did=emap.lookup(eid);
                 // Count from current position to next header, or equal to end
@@ -633,7 +633,7 @@ void HcalUnpacker::unpackUTCA(const FEDRawData& raw, const HcalElectronicsMap& e
             }
 
             //////////////////////////////////////////////////HF UNPACKER/////////////////////////////////////////////////////////////////////
-            if (i.flavor() == 2) {
+            else if (i.flavor() == 2) {
                 int ifiber=((i.channelid()>>2)&0x1F);
                 int ichan=(i.channelid()&0x3);
                 HcalElectronicsId eid(crate,slot,ifiber,ichan, false);
