@@ -240,8 +240,8 @@ for ichan in chanList:
     hist["e_4TS_PS", ichan] = ROOT.TH1F("Energy_"+label,"Energy_"+label, 1000, 0., 1000.)                                          
 
 for depth in [1,2,3]:
-    hist["e_4TS_etaphi",depth] = ROOT.TProfile2D("Energy_Avg_depth"+str(depth),"Average Energy per event in each ieta,iphi for depth "+str(depth), 16, 14.5, 30.5, 6, 1.5, 7.5, 0., 500.)
-    hist["occupancy_event_etaphi",depth] = ROOT.TH2F("Occ_Event_depth_"+str(depth),"Fraction of Events with a hit in each ieta,iphi for depth "+str(depth), 16, 14.5, 30.5, 6, 1.5, 7.5) 
+    hist["e_4TS_etaphi",depth] = ROOT.TProfile2D("Energy_Avg_depth"+str(depth),"Average Energy per event in each ieta,iphi for depth "+str(depth), 16, 14.5, 30.5, 16, 1.5, 17.5, 0., 500.)
+    hist["occupancy_event_etaphi",depth] = ROOT.TH2F("Occ_Event_depth_"+str(depth),"Fraction of Events with a hit in each ieta,iphi for depth "+str(depth), 16, 14.5, 30.5, 16, 1.5, 17.5) 
 
 # Plot average 4TS energy sum (z-axis) in plane of track coords from WC C
 #for ichan in chanList:
