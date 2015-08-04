@@ -17,10 +17,10 @@ parser.add_option ('--t', dest='title', type='string',
                    default = 'Plots',
                    help="Title of html page.")
 parser.add_option ('--s', dest='size', type='int',
-                   default = 500,
+                   default = 400,
                    help="Size of displayed plots.")
 parser.add_option ('--rw', dest='rowWidth', type='int',
-                   default = -1,
+                   default = 3,
                    help="Size of displayed plots.")
 parser.add_option ('--ext', type="string",
                    dest="ext", default="pdf",

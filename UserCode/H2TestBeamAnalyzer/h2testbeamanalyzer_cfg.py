@@ -60,6 +60,8 @@ process.hcalDigis = cms.EDProducer("HcalRawToDigi",
         lastSample = cms.int32(9)
 )
 
+process.hcalDigis.FEDs = cms.untracked.vint32(700,928)
+
 process.hcalAnalyzer = cms.EDAnalyzer('H2TestBeamAnalyzer',
         OutFileName = cms.untracked.string('ana_h2_tb_run'+runNumber+'.root'),
         Verbosity = cms.untracked.int32(0)
@@ -90,7 +92,7 @@ process.es_ascii = cms.ESSource('HcalTextCalibrations',
         input = cms.VPSet(
                cms.PSet(
                 object = cms.string('ElectronicsMap'),
-                file = cms.FileInPath('UserCode/H2TestBeamAnalyzer/EMAP_H2_Arjan_31JUL2015_PhiFix.txt')  # EMAP here!
+                file = cms.FileInPath('UserCode/H2TestBeamAnalyzer/EMAP_H2_VME_uHTR_03AUG2015.txt')  # EMAP here!
                )
         )
 )
