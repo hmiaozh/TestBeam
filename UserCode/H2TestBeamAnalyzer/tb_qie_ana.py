@@ -187,13 +187,15 @@ for ievt in xrange(nevts_to_run):
         print " ".join(["Checking all",str(ntp["qie11"].numChs),"channels"])
 
     nChs = ntp["qie11"].numChs
+    ishape = 0 # max is len(chanmap)-1
+    #nChs = len(chanmap)
     if nChs == 0:
         print "There are no readout channels in this file! Why do think this will make histograms?? Bye!"
         sys.exit()
     
     if len(shape_info) == 0:
         # we have not initialized the list yet
-        shape_info = [[]]*nChs
+        shape_info = [[]]*len(chanmap)
 
     for ichan in xrange(nChs):
         # get id information
@@ -204,6 +206,14 @@ for ievt in xrange(nevts_to_run):
             print "iPhi:", iphi
             print "iEta:", ieta
             print "Depth:", depth
+            print "Channel id:", ichan
+        if not iphi in valid_iphi:
+            continue
+        if not ieta in valid_ieta:
+            continue
+        if not depth in valid_depth:
+            continue
+
 
         # get number of time samples
         nTS = ntp["qie11"].numTS[ichan]
@@ -232,8 +242,8 @@ for ievt in xrange(nevts_to_run):
 
         # pulse shape
         start = ichan*nTS
-        if len(shape_info[ichan]) == 0:
-            shape_info[ichan] = [[-1]*nevts_to_run for x in xrange(nTS)]
+        if len(shape_info[ishape]) == 0:
+            shape_info[ishape] = [[-1]*nevts_to_run for x in xrange(nTS)]
         if verbose:
             print "This is the pulse shape:"
             print "ichan, numTS:", ichan, ntp["qie11"].numTS[ichan]
@@ -246,7 +256,7 @@ for ievt in xrange(nevts_to_run):
         sig = 0
         soi = -1
         for s in xrange(start,start+nTS):
-            shape_info[ichan][s-start][ievt] = ntp["qie11"].pulse[s]
+            shape_info[ishape][s-start][ievt] = ntp["qie11"].pulse[s]
             # find soi
             if ntp["qie11"].soi[s] > 0:
                 soi = s-start
@@ -260,6 +270,9 @@ for ievt in xrange(nevts_to_run):
         h_sig_ieta_v_iphi[depth].Fill(ieta,iphi,sig/nevts_to_run)
         h_sig_ieta_v_depth[iphi].Fill(ieta,depth,sig/nevts_to_run)
         h_sig_depth_v_iphi[ieta].Fill(depth,iphi,sig/nevts_to_run)
+
+        ishape = ishape + 1
+
 
 # -----------------------------
 # -- Process the global info --
