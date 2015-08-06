@@ -105,7 +105,6 @@ chanmap[18,4,1] = 102
 chanmap[19,4,2] = 103
 chanmap[20,4,1] = 104
 
-
 chanmap[1]  = (17,13,1)
 chanmap[2]  = (16,13,3)
 chanmap[3]  = (25,13,1)
