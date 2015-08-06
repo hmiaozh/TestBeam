@@ -442,10 +442,10 @@ for ievt in xrange(nevts):
             if shbhe.pulse[rchan*50+its] > 90:
                 clean = False
                 break
-        for its in range(8,10): #for now, only check highest two ts (8-9)
-            if shbhe.pulse[rchan*50+its] > 90: 
-                clean = False
-                break
+        #for its in range(8,10): #for now, only check highest two ts (8-9)
+        #    if shbhe.pulse[rchan*50+its] > 90: 
+        #        clean = False
+        #        break
     if not clean: continue
 
     # Skip events with anomalous energy
