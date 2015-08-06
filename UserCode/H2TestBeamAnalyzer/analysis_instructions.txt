@@ -22,3 +22,4 @@ Options:
                       large runs or batches of runs, as verbose output can be
                       quite massive.
   -q                  Further decreases verbosity.
+  --all               Use --all to run on all files in spool

@@ -7,6 +7,7 @@ import optparse
 import os
 
 #Options
+
 parser = optparse.OptionParser("usage: %prog [options]")
 
 parser.add_option ('--r', type='string',
@@ -24,8 +25,14 @@ parser.add_option ('--runDest',
 parser.add_option ('-v', dest="verbose", action="store_true",
                    default=False, help="Runs the analysis in verbose mode. Not recommended on large runs or batches of runs, as verbose output can be quite massive.")
 parser.add_option ('-q', dest="mute", action="store_true", default=False, help="Further decreases verbosity.")
-
+parser.add_option ('--all', dest="trash", action="store_true", default=False, help="Use --all to run on all files in spool")
+parser.add_option ('-f', dest="force", action="store_true", default=False, help="Ignore warnings about run(s) already being staged and proceed with processing run(s)")
+parser.add_option ('-u', dest="doUndone", action="store_true", default=False, help="Run analysis on all runs which have not been processed into the destination directory")
 options, args = parser.parse_args()
+
+if len(sys.argv) == 1:
+    parser.print_help()
+    sys.exit(1)
 
 delete = options.delete
 runDest = options.runDest
@@ -33,6 +40,8 @@ runs = options.runs
 destination = options.destination
 verbose = options.verbose
 mute = options.mute
+force = options.force
+doUndone = options.doUndone
 dataLoc = '/data/spool/'
 
 ########
@@ -41,11 +50,22 @@ dataLoc = '/data/spool/'
 lsCom = 'ls ' + dataLoc + 'HTB_' + runs + '.root'
 
 ls = subprocess.Popen(['ssh','daq@cmshcaltb02', lsCom,], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+ls.wait()
 out, err =  ls.communicate()
-
 fileList = out.split()
 fileList.sort(reverse=True)
-
+if doUndone:
+    ls2 = subprocess.Popen(['ls', "/hcalTB/Analysis/"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    ls2.wait()
+    out, err = ls2.communicate()
+    done = out.split()
+    for run in done:
+        runNum1 = run[12:]
+        runNum1 = runNum1.zfill(6)
+        runName = dataLoc + "HTB_" + runNum1 + ".root"
+        if runName in fileList:
+            fileList.remove(runName)
+            print "Run %s has already been processed. Run without -u to process anyway" % runNum1
 for fileName in fileList:
     name = fileName[12:]
     runNum = fileName[16:-5]
@@ -58,7 +78,14 @@ for fileName in fileList:
             subprocess.call(["rsync", "-aq", rsyncPath, runDest])
         symLinkPath = runDest + '/' + name
         if runDest != '.':
-            subprocess.call(["ln", "-s", symLinkPath, "."], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+            link = subprocess.Popen(["ln", "-s", symLinkPath, "."], stdout=open(os.devnull, 'wb'), stderr=subprocess.PIPE)
+            out, err = link.communicate()
+            if err[:2] == "ln":
+                if force:
+                    print "Warning, run %s has already been staged for processing. -f used, proceeding anyway..." % runNum
+                else:
+                    print "Warning, run %s has already been staged for processing, skipping." % runNum
+                    fileList.remove(fileName)
 ###########################
 #Run analysis
 for fileName in fileList:
@@ -76,7 +103,6 @@ for fileName in fileList:
         ana2 = "ana_tb_out_run%s.root" % str(int(runNum))
         plotsDir = "tb_plots_run%s" % str(int(runNum))
         if mute:
-            print "Adding dummy value to \"edges\" dictionary in tb_utils.py and processing run " + runNum
             subprocess.call(["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum))], stdout=open(os.devnull, 'wb'))
             subprocess.call(["rm", "-rf", plotsDir], stdout=open(os.devnull, 'wb'))
             print "Generating plots for run " + runNum
@@ -86,7 +112,6 @@ for fileName in fileList:
             print "Moving results of run " + runNum
             subprocess.call(["rsync", "-aq", "--delete", plotsDir, destination], stdout=open(os.devnull, 'wb'))
         else:
-            print "Adding dummy value to \"edges\" dictionary in tb_utils.py and processing run " + runNum
             subprocess.call(["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum))])
             subprocess.call(["rm", "-rf", plotsDir])
             print "Generating plots for run " + runNum
@@ -100,4 +125,5 @@ for fileName in fileList:
             subprocess.call(["rm", ana])
             subprocess.call(["rm", ana2])
             subprocess.call(["rm", "-rf", plotsDir])
+        print "Finished processing run %s. Results at http://cmshcalweb01.cern.ch/hcalTB/Analysis/%s" % (runNum, plotsDir)
 
