@@ -12,21 +12,21 @@ else:
         i = 0
         reverse = []
         f.write("chanmap = {}\n")
-        f.write("#ieta iphi depth channelId\n")
+        f.write("#ieta iphi depth = channelId\n")
         for line in lines:
             line = line[:-1]
 	    line = line.split("#")[0]
 	    if len(line) > 0:
-            	if i > 1:
-                    n = i - 1
+                    i = i + 1
                     channel = line.split()
                     ieta = channel[9]
                     iphi = channel[10]
                     depth = channel[11]
-                    f.write("chanmap[%s,%s,%s] = %s\n" % (ieta, iphi, depth, n))
-                    reverse.append(("chanmap[%s]  = (%s,%s,%s)" % (n, ieta, iphi, depth)))
-            i = i + 1
+                    f.write("chanmap[%s,%s,%s] = %s\n" % (ieta, iphi, depth, i))
+                    reverse.append(("chanmap[%s]  = (%s,%s,%s)" % (i, ieta, iphi, depth)))
         f.write("\n")
         for rev in reverse:
             f.write(rev)
 	    f.write("\n")
+        f.write("\n")
+        f.write("chanlist = range(1,%i)\n" % (i+1))

@@ -3,8 +3,8 @@
 print "Importing modules"
 import sys
 import optparse
-from tb_utils import *
 from tb_chanmap import *
+from tb_utils import *
 import os
 import ROOT
 import array
@@ -178,7 +178,7 @@ wc_counts["passYACm"] = 0.
 wc_counts["badEnergy"] = 1.
 
     
-for ichan in chanList:
+for ichan in chanlist:
     wc_counts["nIn", ichan] = 0.
 
 ####################################################
@@ -226,7 +226,7 @@ hist = {}
 #hist["dx_AE", "clean"] = ROOT.TH1F("h_dx_AE_clean", "h_dx_AE_clean", 400, -100., 100.)
 #hist["dy_AE", "clean"] = ROOT.TH1F("h_dy_AE_clean", "h_dy_AE_clean", 400, -100., 100.)
 
-for ichan in chanList:
+for ichan in chanlist:
     ieta = chanmap[ichan][0]
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
@@ -244,7 +244,7 @@ for depth in [1,2,3]:
     hist["occupancy_event_etaphi",depth] = ROOT.TH2F("Occ_Event_depth_"+str(depth),"Fraction of Events with a hit in each ieta,iphi for depth "+str(depth), 16, 14.5, 30.5, 16, 1.5, 17.5) 
 
 # Plot average 4TS energy sum (z-axis) in plane of track coords from WC C
-#for ichan in chanList:
+#for ichan in chanlist:
 #    hist["e_wcC"  , ichan] = ROOT.TH2F("h_e_wcC_chan"+str(chanmap[ichan])  , "h_e_wcC_chan"+str(chanmap[ichan])  , 100 , -100., 100., 100, -100., 100.)
 #    hist["e_wcC_x", ichan] = ROOT.TH1F("h_e_wcC_x_chan"+str(chanmap[ichan]), "h_e_wcC_x_chan"+str(chanmap[ichan]), 400 , -100., 100.)
 #    hist["e_wcC_y", ichan] = ROOT.TH1F("h_e_wcC_y_chan"+str(chanmap[ichan]), "h_e_wcC_y_chan"+str(chanmap[ichan]), 400 , -100., 100.)
@@ -379,7 +379,7 @@ for ievt in xrange(nevts):
 #
 #    # Check if beam is within edges of sample
 #    isIn = {}
-#    for ichan in chanList:
+#    for ichan in chanlist:
 #        xL = edges[ichan, runnum][0]
 #        xH = edges[ichan, runnum][1]
 #        yL = edges[ichan, runnum][2]
@@ -405,13 +405,13 @@ for ievt in xrange(nevts):
     # ichan is the channel number (a single integer index) defined in tb_chanmap.py
     # corresponding to a specific ieta,iphi,depth.
     #
-    # chanList contains a list of the channel numbers to process.
+    # chanlist contains a list of the channel numbers to process.
     
     # create chansToFind, a list of [(ieta1,iphi1,depth1), (ieta2,iphi2,depth2), ...]
     # for processing
     
     chansToFind = []
-    for ichan in chanList: chansToFind.append(chanmap[ichan])
+    for ichan in chanlist: chansToFind.append(chanmap[ichan])
     
     # rchan is the channel number associated with (ieta,iphi,depth) in the data
     # rchan probably doesn't equal ichan, which is just an index
@@ -427,7 +427,7 @@ for ievt in xrange(nevts):
             fchan[chanmap[test_chan]] = rchan
     
     # these are the (ieta,iphi,depth) that we expected to find
-    # (from chanList/chanmap) that never appeared in the data
+    # (from chanlist/chanmap) that never appeared in the data
     
     if len(chansToFind) > 0:
         print "Did not find channels"
@@ -442,10 +442,10 @@ for ievt in xrange(nevts):
             if shbhe.pulse[rchan*50+its] > 90:
                 clean = False
                 break
-        #for its in range(8,10): #for now, only check highest two ts (8-9)
-        #    if shbhe.pulse[rchan*50+its] > 90: 
-        #        clean = False
-        #        break
+        for its in range(8,10): #for now, only check highest two ts (8-9)
+            if shbhe.pulse[rchan*50+its] > 90: 
+                clean = False
+                break
     if not clean: continue
 
     # Skip events with anomalous energy
@@ -547,7 +547,7 @@ for ievt in xrange(nevts):
 #print "Geometric event cleaning efficiency for hitting each sample:"
 #print "============================================================"
 #print "Channel : description : efficiency for clean events : total efficiency"
-#for ichan in chanList:
+#for ichan in chanlist:
 #    print "%3i : %30s : %5.2f : %5.2f" % (ichan, chanType[ichan, runnum], wc_counts["nIn", ichan]/wc_counts["clean"], wc_counts["nIn", ichan]/nevts)
 
 #if os.path.isfile(outfile):

@@ -1,3 +1,5 @@
+from tb_chanmap import *
+
 def setPadPasMargin(pad, rightMargin=0.05):                                                                                   
   pad.SetFrameFillStyle(1001)                                                                                                 
   pad.SetTicks()                                                                                                              
@@ -107,17 +109,16 @@ def getText(ip, ip2, E_base_phase=0):
     return outText
 
 
-# Channel List
-chanList = range(1,105)
+
 
 calib = {}
-for channum in chanList:
+for channum in chanlist:
     calib[channum] = 1.
 
 runList = [7902]
 
 chanType = {}
-for channum in chanList:
+for channum in chanlist:
     chanType[channum,runList[0]] = "Channel "+str(channum)
 
 #chanType[4 , 7522] = "20x20cm SCSN-81 (PdB)"
@@ -130,7 +131,7 @@ for channum in chanList:
 #chanType[22, 7522] = "2x10cm SCSN-81"
 
 edges = {}
-for channum in chanList:
+for channum in chanlist:
     edges[channum,runList[0]] = [-80.    , 80.,     -80. ,     80.]
 
 #edges = {}         #     x-,  x+,        y-,      y+
@@ -145,5 +146,5 @@ for channum in chanList:
 
 # ped,   1pe,   2pe,    chi2  
 pecal = {}
-for channum in chanList:
+for channum in chanlist:
     pecal[channum] = [13.33, 35.19, 57.06, 164.45]

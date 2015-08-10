@@ -7,8 +7,8 @@ import os
 import ROOT
 import array
 import time
-from tb_utils import *
 from tb_chanmap import *
+from tb_utils import *
 from math import exp, sqrt, log
 
 #######################
@@ -242,7 +242,7 @@ hist = {}
 #
 
 # Make energy plots
-for ichan in chanList:
+for ichan in chanlist:
     ieta = chanmap[ichan][0]
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
@@ -267,7 +267,7 @@ for depth in [1,2,3]:
 #print "Chan :                    description :: Npe 0's : ped/tot :: Npe Mean : Npe Mean_2 : mean : chi2"
 #print "Chan :                    description :: Npe zero-counting : Npe (mean-ped)/gain"
 #print "================================================================================================="
-#for ichan in chanList:
+#for ichan in chanlist:
 #    # Counting zeros    
 #    ped = hist["e_4TS", ichan].Integral(1,51)
 #    tot = hist["e_4TS", ichan].Integral(1,5000)
@@ -285,7 +285,7 @@ for depth in [1,2,3]:
 # Find edges of samples
 ################################################################
 #find_edge = {}
-#for ichan in chanList:
+#for ichan in chanlist:
 #    for ixy in ["x", "y"]:
 #        h1 = hist["e_wcC_"+ixy , ichan]
 #        nbins = h1.GetNbinsX()
@@ -308,7 +308,7 @@ for depth in [1,2,3]:
 #print " " 
 #print "Computed edges for threshold of %2.0f percent" % (100.*edge_thold)
 #print "================================================"
-#for ichan in chanList:
+#for ichan in chanlist:
 #    print "edges[%2i, %4i] = [%5.1f, %5.1f, %5.1f, %5.1f]" % (ichan, runnum, 
 #                                                              find_edge[ichan, "x", "L"], 
 #                                                              find_edge[ichan, "x", "H"],
@@ -382,7 +382,7 @@ pad = canv.GetPad(0)
 setPadPasMargin(pad)
 
 etaphipairs = {}
-for ichan in chanList:
+for ichan in chanlist:
     ieta = chanmap[ichan][0]
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
@@ -406,7 +406,7 @@ for etaphi in etaphipairs.keys():
         iphi = etaphi[1]
         ichan = chanmap[(ieta,iphi,depth)]
                 
-        setHist(hist["avgpulse", ichan], "Time sample", "Charge (fC)", 0, (0.,180.), 1.3, depth_color_table[depth])
+        setHist(hist["avgpulse", ichan], "Time sample", "Charge (fC)", 0, (0.,200.), 1.3, depth_color_table[depth])
         hist["avgpulse", ichan].GetXaxis().SetNdivisions(10,1)
         if first:
             hist["avgpulse", ichan].Draw("hist")
@@ -431,7 +431,7 @@ pad = canv.GetPad(0)
 setPadPasMargin(pad)
 pad.SetLogy()
 
-for ichan in chanList:
+for ichan in chanlist:
     ieta = chanmap[ichan][0]
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
@@ -481,7 +481,7 @@ ROOT.gStyle.SetOptStat(0)
 #
 #ledge = {}
 #elist = ["xL", "xH", "yL", "yH"]
-#for ichan in chanList:
+#for ichan in chanlist:
 #    ledge["xL", ichan] = ROOT.TLine(edges[ichan , runnum][0], -100., edges[ichan , runnum][0], 100.)
 #    ledge["xH", ichan] = ROOT.TLine(edges[ichan , runnum][1], -100., edges[ichan , runnum][1], 100.)
 #    ledge["yL", ichan] = ROOT.TLine(-100., edges[ichan , runnum][2], 100., edges[ichan , runnum][2])
@@ -489,7 +489,7 @@ ROOT.gStyle.SetOptStat(0)
 #    for iedge in elist:
 #        ledge[iedge, ichan].SetLineStyle(2)
 #
-#for ichan in chanList:
+#for ichan in chanlist:
 #    cname = "energy_wcC_chan"+str(ichan)
 #    canv = ROOT.TCanvas(cname, cname, 400, 424)
 #    pad = canv.GetPad(0)
@@ -513,7 +513,7 @@ ROOT.gStyle.SetOptStat(0)
 ########################################
 ## Plot 1D energy in bins of WC C position
 ########################################
-#for ichan in chanList:
+#for ichan in chanlist:
 #    for ixy in ["x", "y"]:
 #        cname = "energy_wcC_"+ixy+"_chan"+str(ichan)
 #        canv = ROOT.TCanvas(cname, cname, 400, 424)
@@ -533,13 +533,13 @@ ROOT.gStyle.SetOptStat(0)
 ## Plot 4TS energy
 ########################################
 #
-#for ichan in chanList:
+#for ichan in chanlist:
 #    #    hist["e_4TS"   , ichan].Rebin()
 #    #    hist["e_4TS"   , ichan].SetLineWidth(1)
 #    hist["e_4TS"   , ichan].SetLineColor(pstyle[ichan, "col"])
 #
 #setHist(hist["e_4TS", refChan], "Energy in 4TS (LinADC)", "Events", (0.,200.), (0.5, 3.e4), 1.3, pstyle[refChan, "col"])
-#for ichan in chanList:
+#for ichan in chanlist:
 #    cname = "energy_4TS_chan"+str(ichan)
 #    canv = ROOT.TCanvas(cname, cname, 400, 424)
 #    pad = canv.GetPad(0)
