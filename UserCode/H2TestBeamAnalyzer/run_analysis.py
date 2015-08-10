@@ -11,7 +11,7 @@ import os
 parser = optparse.OptionParser("usage: %prog [options]")
 
 parser.add_option ('--r', type='string',
-                   dest="runs", default = "*",
+                   dest="runs", default = "-999",
                    help="Pick a specific run number or range of numbers with Unix globbing - may need to use single quotes or -f before running. NOTE - MUST USE 6 DIGIT RUN NUMBER, add leading zeros as needed.")
 parser.add_option ('-d',
                    dest="delete", action="store_true",
@@ -25,15 +25,13 @@ parser.add_option ('--runDest',
 parser.add_option ('-v', dest="verbose", action="store_true",
                    default=False, help="Runs the analysis in verbose mode. Not recommended on large runs or batches of runs, as verbose output can be quite massive.")
 parser.add_option ('-q', dest="mute", action="store_true", default=False, help="Further decreases verbosity.")
-parser.add_option ('--all', dest="trash", action="store_true", default=False, help="Use --all to run on all files in spool")
+parser.add_option ('--all', dest="all", action="store_true", default=False, help="Use --all to run on all files in spool")
 parser.add_option ('-f', dest="force", action="store_true", default=False, help="Ignore warnings about run(s) already being staged and proceed with processing run(s)")
 parser.add_option ('-u', dest="doUndone", action="store_true", default=False, help="Run analysis on all runs which have not been processed into the destination directory")
 options, args = parser.parse_args()
 
-if len(sys.argv) == 1:
-    parser.print_help()
-    sys.exit(1)
 
+all = options.all
 delete = options.delete
 runDest = options.runDest
 runs = options.runs
@@ -43,6 +41,15 @@ mute = options.mute
 force = options.force
 doUndone = options.doUndone
 dataLoc = '/data/spool/'
+
+if len(sys.argv) == 1:
+    parser.print_help()
+    sys.exit(1)
+if all:
+    runs = '*'
+if runs == "-999":
+    print "No runs specified. Use --r or --all"
+    sys.exit(1)
 
 ########
 
