@@ -474,7 +474,7 @@ for ievt in xrange(nevts):
         ped_avg = ped_esum/len(ped_ts_list)    
         esum[ichan, "PED"] = ped_avg
 
-        ts_list = [4,5,6,7]   #time samples in which to sum charge for signal (4-7)
+        ts_list = [3,4,5,6]   #time samples in which to sum charge for signal (4-7)
         sig_esum = 0.
         sig_esum_ps = 0.
         for its in ts_list:  
