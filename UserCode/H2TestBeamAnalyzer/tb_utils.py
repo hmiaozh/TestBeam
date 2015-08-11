@@ -115,7 +115,7 @@ calib = {}
 for channum in chanlist:
     calib[channum] = 1.
 
-runList = [7902]
+runList = xrange(8300,8700)
 
 chanType = {}
 for channum in chanlist:
@@ -132,7 +132,8 @@ for channum in chanlist:
 
 edges = {}
 for channum in chanlist:
-    edges[channum,runList[0]] = [-80.    , 80.,     -80. ,     80.]
+    for rnum in runList:
+       edges[channum,rnum] = [-80.    , 80.,     -80. ,     80.]
 
 #edges = {}         #     x-,  x+,        y-,      y+
 #edges[4 , 7526] = [-80.    , 80.,     -80. ,     80.]  #"20x20cm SCSN-81 (PdB)"
