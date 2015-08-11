@@ -89,8 +89,8 @@ refE = {}
 refE[22] = 150.
 refE[23] = 30.
 # Chamber to use for location
-refchamb = "E"
-#refchamb = "C"
+#refchamb = "E"
+refchamb = "C"
 
 # Wire chamber means and standard deviations (xA-xC, xA-xC, yA-yC, etc.)
 wc_res = {}
@@ -103,7 +103,8 @@ wc_res["y", "BC", "rms" ] =  3.88e+00
 wc_res["x", "AC", "rms" ] =  4.30e+00
 wc_res["y", "AC", "rms" ] =  5.08e+00
 
-wcList = ["A", "B", "C", "D", "E"]
+#wcList = ["A", "B", "C", "D", "E"]
+wcList = ["A","B","C"]
 
 adjust = {}
 for iwc in wcList:
@@ -113,7 +114,7 @@ for iwc in wcList:
                 adjust[ixy, iwc, runnum] = -1.
             else:
                 adjust[ixy, iwc, runnum] = 1.
-    
+                
 
 file = ROOT.TFile(infile)
 #ntp = file.Get("HFData/Events;3")
@@ -126,8 +127,9 @@ vname = {}
 vname["hbhe"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse"]
 vname["hf"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse"]
 #vname["hf"] = ["numChs", "numTS", "iphi", "ieta", "depth"]
-vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC", "xD", "yD", "xE", "yE"]
-#vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC", "xD", "yD"]
+#vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC", "xD", "yD", "xE", "yE"]
+#vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC", "xD", "yD", "xE", "yE"]
+vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC"]
 
 
 ROOT.gROOT.ProcessLine("struct hbhe_struct {Int_t numChs; Int_t numTS; Int_t iphi[120]; Int_t ieta[120]; Int_t depth[120]; Double_t pulse[6000];};")
@@ -143,9 +145,9 @@ for ivname in vname["hf"]:
 vec = {}
 for ivname in vname["wc"]:
     vec[ivname] = ROOT.vector("double")()
-    ntp["wc"].SetBranchStatus (ivname, 1)
+    ntp["wc"].SetBranchStatus(ivname, 1)
     ntp["wc"].SetBranchAddress(ivname, vec[ivname])
-    
+
 
 nevts    = ntp["hbhe"].GetEntries()
 nevts_wc = ntp["wc"].GetEntries()
@@ -155,7 +157,6 @@ if nevts != nevts_wc:
     print "Mismatch in event counts.  Exiting."
     #sys.exit()
 
-
 wc_counts = {}
 for ivname in vname["wc"]:
     for isize in range(20):
@@ -164,8 +165,8 @@ for iwc in wcList:
     wc_counts[iwc] = 0.
 wc_counts["AB"] = 0.
 wc_counts["ABC"] = 0.
-wc_counts["ABCD"] = 0.
-wc_counts["ABCE"] = 0.
+#wc_counts["ABCD"] = 0.
+#wc_counts["ABCE"] = 0.
 wc_counts["clean"] = 0.
 wc_counts["passXBCp"] = 0.
 wc_counts["passXBCm"] = 0.
@@ -186,43 +187,43 @@ for ichan in chanlist:
 ####################################################
 hist = {}
 # Define wire chamber histograms
-#for ip0 in wcList:
-#    # 2D histos for x vs y in each chamber
-#    hist["x"+ip0+"_v_y"+ip0]          = ROOT.TH2F("h_x"+ip0+"_v_y"+ip0, "h_x"+ip0+"_v_y"+ip0, 
-#                                                  400, -100., 100., 400, -100., 100.)
-#    hist["x"+ip0+"_v_y"+ip0, "clean"] = ROOT.TH2F("h_x"+ip0+"_v_y"+ip0+"_clean", "h_x"+ip0+"_v_y"+ip0+"_clean", 
-#                                                  400, -100., 100., 400, -100., 100.)
-#
-#    for ixy in ["x", "y"]:
-#        # 1D histos for x and y in all 4 chambers
-#        hist[ixy+ip0] = ROOT.TH1F("h_"+ixy+"_"+ip0, "h_"+ixy+"_"+ip0, 400, -100., 100.)
-#        hist[ixy+ip0, "clean"] = ROOT.TH1F("h_"+ixy+"_"+ip0+"_clean", "h_"+ixy+"_"+ip0+"_clean", 400, -100., 100.)
-#        # 2D histos for x and y correlations for all histo combinations
-#        
-#    for ip1 in wcList:
-#        if ((ip0 == "A" and ip1 == "B") or (ip0 == "A" and ip1 == "C") or (ip0 == "A" and ip1 == "D") or (ip0 == "A" and ip1 == "E") or 
-#            (ip0 == "B" and ip1 == "C") or (ip0 == "B" and ip1 == "D") or (ip0 == "B" and ip1 == "E") or
-#            (ip0 == "C" and ip1 == "D") or (ip0 == "C" and ip1 == "E") or
-#            (ip0 == "D" and ip1 == "E")):
-#            for ixy in ["x", "y"]:
-#                hist[ixy+ip0+"_v_"+ixy+ip1]          = ROOT.TH2F("h_"+ixy+"_"+ip0+"v"+ip1,
-#                                                                 "h_"+ixy+"_"+ip0+"v"+ip1, 
-#                                                                 400, -100., 100., 400, -100., 100.)
-#                hist[ixy+ip0+"_v_"+ixy+ip1, "clean"] = ROOT.TH2F("h_"+ixy+"_"+ip0+"v"+ip1+"_clean",
-#                                                                 "h_"+ixy+"_"+ip0+"v"+ip1+"_clean", 
-#                                                                 400, -100., 100., 400, -100., 100.)
-#
-#hist["dx_BC"] = ROOT.TH1F("h_dx_BC", "h_dx_BC", 400, -100., 100.)
-#hist["dy_BC"] = ROOT.TH1F("h_dy_BC", "h_dy_BC", 400, -100., 100.)
-#hist["dx_AC"] = ROOT.TH1F("h_dx_AC", "h_dx_AC", 400, -100., 100.)
-#hist["dy_AC"] = ROOT.TH1F("h_dy_AC", "h_dy_AC", 400, -100., 100.)
+for ip0 in wcList:
+   # 2D histos for x vs y in each chamber
+    hist["x"+ip0+"_v_y"+ip0]          = ROOT.TH2F("h_x"+ip0+"_v_y"+ip0, "h_x"+ip0+"_v_y"+ip0, 
+                                                  400, -100., 100., 400, -100., 100.)
+    hist["x"+ip0+"_v_y"+ip0, "clean"] = ROOT.TH2F("h_x"+ip0+"_v_y"+ip0+"_clean", "h_x"+ip0+"_v_y"+ip0+"_clean", 
+                                                  400, -100., 100., 400, -100., 100.)
+
+    for ixy in ["x", "y"]:
+       # 1D histos for x and y in all 4 chambers
+        hist[ixy+ip0] = ROOT.TH1F("h_"+ixy+"_"+ip0, "h_"+ixy+"_"+ip0, 400, -100., 100.)
+        hist[ixy+ip0, "clean"] = ROOT.TH1F("h_"+ixy+"_"+ip0+"_clean", "h_"+ixy+"_"+ip0+"_clean", 400, -100., 100.)
+        # 2D histos for x and y correlations for all histo combinations
+        
+    for ip1 in wcList:
+        if ((ip0 == "A" and ip1 == "B") or (ip0 == "A" and ip1 == "C") or (ip0 == "A" and ip1 == "D") or (ip0 == "A" and ip1 == "E") or 
+            (ip0 == "B" and ip1 == "C") or (ip0 == "B" and ip1 == "D") or (ip0 == "B" and ip1 == "E") or
+            (ip0 == "C" and ip1 == "D") or (ip0 == "C" and ip1 == "E") or
+            (ip0 == "D" and ip1 == "E")):
+            for ixy in ["x", "y"]:
+                hist[ixy+ip0+"_v_"+ixy+ip1]          = ROOT.TH2F("h_"+ixy+"_"+ip0+"v"+ip1,
+                                                                 "h_"+ixy+"_"+ip0+"v"+ip1, 
+                                                                 400, -100., 100., 400, -100., 100.)
+                hist[ixy+ip0+"_v_"+ixy+ip1, "clean"] = ROOT.TH2F("h_"+ixy+"_"+ip0+"v"+ip1+"_clean",
+                                                                 "h_"+ixy+"_"+ip0+"v"+ip1+"_clean", 
+                                                                 400, -100., 100., 400, -100., 100.)
+
+hist["dx_BC"] = ROOT.TH1F("h_dx_BC", "h_dx_BC", 400, -100., 100.)
+hist["dy_BC"] = ROOT.TH1F("h_dy_BC", "h_dy_BC", 400, -100., 100.)
+hist["dx_AC"] = ROOT.TH1F("h_dx_AC", "h_dx_AC", 400, -100., 100.)
+hist["dy_AC"] = ROOT.TH1F("h_dy_AC", "h_dy_AC", 400, -100., 100.)
 #hist["dx_AE"] = ROOT.TH1F("h_dx_AE", "h_dx_AE", 400, -100., 100.)
 #hist["dy_AE"] = ROOT.TH1F("h_dy_AE", "h_dy_AE", 400, -100., 100.)
-#
-#hist["dx_BC", "clean"] = ROOT.TH1F("h_dx_BC_clean", "h_dx_BC_clean", 400, -100., 100.)
-#hist["dy_BC", "clean"] = ROOT.TH1F("h_dy_BC_clean", "h_dy_BC_clean", 400, -100., 100.)
-#hist["dx_AC", "clean"] = ROOT.TH1F("h_dx_AC_clean", "h_dx_AC_clean", 400, -100., 100.)
-#hist["dy_AC", "clean"] = ROOT.TH1F("h_dy_AC_clean", "h_dy_AC_clean", 400, -100., 100.)
+
+hist["dx_BC", "clean"] = ROOT.TH1F("h_dx_BC_clean", "h_dx_BC_clean", 400, -100., 100.)
+hist["dy_BC", "clean"] = ROOT.TH1F("h_dy_BC_clean", "h_dy_BC_clean", 400, -100., 100.)
+hist["dx_AC", "clean"] = ROOT.TH1F("h_dx_AC_clean", "h_dx_AC_clean", 400, -100., 100.)
+hist["dy_AC", "clean"] = ROOT.TH1F("h_dy_AC_clean", "h_dy_AC_clean", 400, -100., 100.)
 #hist["dx_AE", "clean"] = ROOT.TH1F("h_dx_AE_clean", "h_dx_AE_clean", 400, -100., 100.)
 #hist["dy_AE", "clean"] = ROOT.TH1F("h_dy_AE_clean", "h_dy_AE_clean", 400, -100., 100.)
 
@@ -243,11 +244,15 @@ for depth in [1,2,3]:
     hist["e_4TS_etaphi",depth] = ROOT.TProfile2D("Energy_Avg_depth"+str(depth),"Average Energy per event in each ieta,iphi for depth "+str(depth), 16, 14.5, 30.5, 16, 1.5, 17.5, 0., 500.)
     hist["occupancy_event_etaphi",depth] = ROOT.TH2F("Occ_Event_depth_"+str(depth),"Fraction of Events with a hit in each ieta,iphi for depth "+str(depth), 16, 14.5, 30.5, 16, 1.5, 17.5) 
 
-# Plot average 4TS energy sum (z-axis) in plane of track coords from WC C
-#for ichan in chanlist:
-#    hist["e_wcC"  , ichan] = ROOT.TH2F("h_e_wcC_chan"+str(chanmap[ichan])  , "h_e_wcC_chan"+str(chanmap[ichan])  , 100 , -100., 100., 100, -100., 100.)
-#    hist["e_wcC_x", ichan] = ROOT.TH1F("h_e_wcC_x_chan"+str(chanmap[ichan]), "h_e_wcC_x_chan"+str(chanmap[ichan]), 400 , -100., 100.)
-#    hist["e_wcC_y", ichan] = ROOT.TH1F("h_e_wcC_y_chan"+str(chanmap[ichan]), "h_e_wcC_y_chan"+str(chanmap[ichan]), 400 , -100., 100.)
+#Plot average 4TS energy sum (z-axis) in plane of track coords from WC C
+for ichan in chanlist:
+    ieta = chanmap[ichan][0]
+    iphi = chanmap[ichan][1]
+    depth = chanmap[ichan][2]
+    label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
+    hist["e_wcC"  , ichan] = ROOT.TH2F("h_e_wcC_"+label, "h_e_wcC_"+label  , 100 , -100., 100., 100, -100., 100.)
+    hist["e_wcC_x", ichan] = ROOT.TH1F("h_e_wcC_x_"+label, "h_e_wcC_x_"+label, 400 , -100., 100.)
+    hist["e_wcC_y", ichan] = ROOT.TH1F("h_e_wcC_y_"+label, "h_e_wcC_y_"+label, 400 , -100., 100.)
 #    hist["e_4TS"  , ichan] = ROOT.TH1F("h_e_4TS_chan"+str(chanmap[ichan])  , "h_e_4TS_chan"+str(chanmap[ichan])  , 4002,  -0.5, 2000.5)
 #
 #    hist["e_4TS_withSCSN", ichan] = ROOT.TH1F("h_e_4TS_withSCSN_chan"+str(chanmap[ichan]),
@@ -268,132 +273,132 @@ print "Processing ",nevts," events."
 for ievt in xrange(nevts):
     if (ievt+1) % 1000 == 0: print "Processing Run %5i Event %7i" % (runnum, (ievt+1))
 
-#    #######################
-#    # WC Analysis
-#    #######################
-#    ntp["wc"].GetEvent(ievt)
-#
-#    # Count events with hits in each view of all WC
-#    # and determine cleaning
-#    ###############################################
-#    has = {}
-#    for ivname in vname["wc"]:
-#        has[ivname] = False
-#        isize = int(vec[ivname].size())
-#        wc_counts[ivname, isize] += 1.
-#        if isize == 1: has[ivname] = True
-#
-#    for iwc in wcList:
-#        has[iwc] = has["x"+iwc] and has["y"+iwc]
-#        if has[iwc]: wc_counts[iwc] += 1.
-#    has["AB"]   = has["A"]   and has["B"]
-#    has["ABC"]  = has["AB"]  and has["C"]
-#    has["ABCD"] = has["ABC"] and has["D"]
-#    has["ABCE"] = has["ABC"] and has["E"]
-#    for iwc in ["AB", "ABC", "ABCD", "ABCE"]:
-#        if has[iwc]: wc_counts[iwc] += 1.
-#
-#    clean = False
-#    if has["ABCE"]: 
-#        xA = vec["xA"].at(0); yA = vec["yA"].at(0)
-#        xB = vec["xB"].at(0); yB = vec["yB"].at(0)
-#        xC = vec["xC"].at(0); yC = vec["yC"].at(0)
-#        #xD = vec["xD"].at(0); yD = vec["yD"].at(0)
-#        xE = -1.*vec["xE"].at(0); yE = vec["yE"].at(0)
-#        
-#        hist["dx_BC"].Fill(xB-xC)
-#        hist["dy_BC"].Fill(yB-yC)
-#        hist["dx_AC"].Fill(xA-xC)
-#        hist["dy_AC"].Fill(yA-yC)
-#        hist["dx_AE"].Fill(xA-xE)
-#        hist["dy_AE"].Fill(yA-yE)
-#
-#        passXBCp = False; passXBCm = False; passYBCp = False; passYBCm = False;
-#        passXACp = False; passXACm = False; passYACp = False; passYACm = False;
-#        
-#        if xB-xC < wc_res["x", "BC", "mean"]+sigma_thold*wc_res["x", "BC", "rms" ]: passXBCp = True
-#        if xB-xC > wc_res["x", "BC", "mean"]-sigma_thold*wc_res["x", "BC", "rms" ]: passXBCm = True
-#        if yB-yC < wc_res["y", "BC", "mean"]+sigma_thold*wc_res["y", "BC", "rms" ]: passYBCp = True
-#        if yB-yC > wc_res["y", "BC", "mean"]-sigma_thold*wc_res["y", "BC", "rms" ]: passYBCm = True
-#        if xA-xC < wc_res["x", "AC", "mean"]+sigma_thold*wc_res["x", "AC", "rms" ]: passXACp = True
-#        if xA-xC > wc_res["x", "AC", "mean"]-sigma_thold*wc_res["x", "AC", "rms" ]: passXACm = True
-#        if yA-yC < wc_res["y", "AC", "mean"]+sigma_thold*wc_res["y", "AC", "rms" ]: passYACp = True
-#        if yA-yC > wc_res["y", "AC", "mean"]-sigma_thold*wc_res["y", "AC", "rms" ]: passYACm = True
-#
-#        if passXBCp: wc_counts["passXBCp"] += 1.
-#        if passXBCm: wc_counts["passXBCm"] += 1.
-#        if passYBCp: wc_counts["passYBCp"] += 1.
-#        if passYBCm: wc_counts["passYBCm"] += 1.
-#        if passXACp: wc_counts["passXACp"] += 1.
-#        if passXACm: wc_counts["passXACm"] += 1.
-#        if passYACp: wc_counts["passYACp"] += 1.
-#        if passYACm: wc_counts["passYACm"] += 1.
-#
-#        if passXBCp and passXBCm and passYBCp and passYBCm and passXACp and passXACm and passYACp and passYACm:
-#            clean = True
-#
-#            hist["dx_BC", "clean"].Fill(xB-xC)
-#            hist["dy_BC", "clean"].Fill(yB-yC)
-#            hist["dx_AC", "clean"].Fill(xA-xC)
-#            hist["dy_AC", "clean"].Fill(yA-yC)
-#            hist["dx_AE", "clean"].Fill(xA-xE)
-#            hist["dy_AE", "clean"].Fill(yA-yE)
-#        
+    #######################
+    # WC Analysis
+    #######################
+    ntp["wc"].GetEvent(ievt)
+
+    # Count events with hits in each view of all WC
+    # and determine cleaning
+    ###############################################
+    has = {}
+    for ivname in vname["wc"]:
+        has[ivname] = False
+        isize = int(vec[ivname].size())
+        wc_counts[ivname, isize] += 1.
+        if isize == 1: has[ivname] = True
+
+    for iwc in wcList:
+        has[iwc] = has["x"+iwc] and has["y"+iwc]
+        if has[iwc]: wc_counts[iwc] += 1.
+    has["AB"]   = has["A"]   and has["B"]
+    has["ABC"]  = has["AB"]  and has["C"]
+    #has["ABCD"] = has["ABC"] and has["D"]
+    #has["ABCE"] = has["ABC"] and has["E"]
+    #for iwc in ["AB", "ABC", "ABCD", "ABCE"]:
+    for iwc in ["AB","ABC"]:
+        if has[iwc]: wc_counts[iwc] += 1.
+
+    clean = False
+    if has["ABC"]: 
+        xA = vec["xA"].at(0); yA = vec["yA"].at(0)
+        xB = vec["xB"].at(0); yB = vec["yB"].at(0)
+        xC = vec["xC"].at(0); yC = vec["yC"].at(0)
+        #xD = vec["xD"].at(0); yD = vec["yD"].at(0)
+        #xE = -1.*vec["xE"].at(0); yE = vec["yE"].at(0)
+        
+        hist["dx_BC"].Fill(xB-xC)
+        hist["dy_BC"].Fill(yB-yC)
+        hist["dx_AC"].Fill(xA-xC)
+        hist["dy_AC"].Fill(yA-yC)
+        #hist["dx_AE"].Fill(xA-xE)
+        #hist["dy_AE"].Fill(yA-yE)
+
+        passXBCp = False; passXBCm = False; passYBCp = False; passYBCm = False;
+        passXACp = False; passXACm = False; passYACp = False; passYACm = False;
+        
+        if xB-xC < wc_res["x", "BC", "mean"]+sigma_thold*wc_res["x", "BC", "rms" ]: passXBCp = True
+        if xB-xC > wc_res["x", "BC", "mean"]-sigma_thold*wc_res["x", "BC", "rms" ]: passXBCm = True
+        if yB-yC < wc_res["y", "BC", "mean"]+sigma_thold*wc_res["y", "BC", "rms" ]: passYBCp = True
+        if yB-yC > wc_res["y", "BC", "mean"]-sigma_thold*wc_res["y", "BC", "rms" ]: passYBCm = True
+        if xA-xC < wc_res["x", "AC", "mean"]+sigma_thold*wc_res["x", "AC", "rms" ]: passXACp = True
+        if xA-xC > wc_res["x", "AC", "mean"]-sigma_thold*wc_res["x", "AC", "rms" ]: passXACm = True
+        if yA-yC < wc_res["y", "AC", "mean"]+sigma_thold*wc_res["y", "AC", "rms" ]: passYACp = True
+        if yA-yC > wc_res["y", "AC", "mean"]-sigma_thold*wc_res["y", "AC", "rms" ]: passYACm = True
+
+        if passXBCp: wc_counts["passXBCp"] += 1.
+        if passXBCm: wc_counts["passXBCm"] += 1.
+        if passYBCp: wc_counts["passYBCp"] += 1.
+        if passYBCm: wc_counts["passYBCm"] += 1.
+        if passXACp: wc_counts["passXACp"] += 1.
+        if passXACm: wc_counts["passXACm"] += 1.
+        if passYACp: wc_counts["passYACp"] += 1.
+        if passYACm: wc_counts["passYACm"] += 1.
+
+        if passXBCp and passXBCm and passYBCp and passYBCm and passXACp and passXACm and passYACp and passYACm:
+            clean = True
+
+            hist["dx_BC", "clean"].Fill(xB-xC)
+            hist["dy_BC", "clean"].Fill(yB-yC)
+            hist["dx_AC", "clean"].Fill(xA-xC)
+            hist["dy_AC", "clean"].Fill(yA-yC)
+            #hist["dx_AE", "clean"].Fill(xA-xE)
+            #hist["dy_AE", "clean"].Fill(yA-yE)
+        
 
 
     # Select events with straight tracks by requiring that 
     # events have one and only one x hit and 1-and-only-1 y hit in WC A, B, C, E
     # and events are within N standard deviations of xWC1 - xWC2 residuals
 
-#if not clean: continue
-#    wc_counts["clean"] += 1.
+    if not clean: continue
+    wc_counts["clean"] += 1.
 
-#    # Fill histograms
-#    ########################
-#    for iwc in wcList:
-#        if has[iwc]: 
-#            x = adjust["x", iwc, runnum]*vec["x"+iwc].at(0)
-#            y = adjust["y", iwc, runnum]*vec["y"+iwc].at(0)
-#            hist["x"+iwc+"_v_y"+iwc].Fill(x, y)   # x vs y within WC
-#            hist["x"+iwc]           .Fill(x) # x within WC
-#            hist["y"+iwc]           .Fill(y) # y within WC
-#            if clean: 
-#                hist["x"+iwc+"_v_y"+iwc, "clean"].Fill(x, y) # x vs y within WC
-#                hist["x"+iwc, "clean"]           .Fill(x) # x within WC
-#                hist["y"+iwc, "clean"]           .Fill(y) # y within WC
-#
-#        for ip1 in wcList:
-#            if not has[iwc] or not has[ip1]: continue
-#            if ((iwc == "A" and ip1 == "B") or (iwc == "A" and ip1 == "C") or (iwc == "A" and ip1 == "D") or (iwc == "A" and ip1 == "E") or 
-#                (iwc == "B" and ip1 == "C") or (iwc == "B" and ip1 == "D") or (iwc == "B" and ip1 == "E") or
-#                (iwc == "C" and ip1 == "D") or (iwc == "C" and ip1 == "E") or
-#                (iwc == "D" and ip1 == "E")):
-#                
-#                for ixy in ["x", "y"]:
-#                    xy_iwc = adjust[ixy, iwc, runnum]*vec[ixy+iwc].at(0)
-#                    xy_ip1 = adjust[ixy, ip1, runnum]*vec[ixy+ip1].at(0)
-#                    
-#                    hist[ixy+iwc+"_v_"+ixy+ip1].Fill(xy_iwc, xy_ip1) # xWC1 vs xWC2 and yWC1 vs yWC2
-#                    if clean: hist[ixy+iwc+"_v_"+ixy+ip1, "clean"].Fill(xy_iwc, xy_ip1) # xWC1 vs xWC2 and yWC1 vs yWC2
-#                        
-#
-#    # Check if beam is within edges of sample
-#    isIn = {}
-#    for ichan in chanlist:
-#        xL = edges[ichan, runnum][0]
-#        xH = edges[ichan, runnum][1]
-#        yL = edges[ichan, runnum][2]
-#        yH = edges[ichan, runnum][3]
-#        ix = adjust["x", refchamb, runnum]*vec["x"+refchamb].at(0)
-#        iy = adjust["y", refchamb, runnum]*vec["y"+refchamb].at(0)
-#        if ix<xH and ix>xL and iy<yH and iy>yL: 
-#            isIn[ichan] = True
-#        else:
-#            isIn[ichan] = False
-#        if isIn[ichan]: wc_counts["nIn", ichan] += 1.
+    # Fill histograms
+    ########################
+    for iwc in wcList:
+        if has[iwc]: 
+            x = adjust["x", iwc, runnum]*vec["x"+iwc].at(0)
+            y = adjust["y", iwc, runnum]*vec["y"+iwc].at(0)
+            hist["x"+iwc+"_v_y"+iwc].Fill(x, y)   # x vs y within WC
+            hist["x"+iwc]           .Fill(x) # x within WC
+            hist["y"+iwc]           .Fill(y) # y within WC
+            if clean: 
+                hist["x"+iwc+"_v_y"+iwc, "clean"].Fill(x, y) # x vs y within WC
+                hist["x"+iwc, "clean"]           .Fill(x) # x within WC
+                hist["y"+iwc, "clean"]           .Fill(y) # y within WC
 
+        for ip1 in wcList:
+            if not has[iwc] or not has[ip1]: continue
+            if ((iwc == "A" and ip1 == "B") or (iwc == "A" and ip1 == "C") or (iwc == "A" and ip1 == "D") or (iwc == "A" and ip1 == "E") or 
+                (iwc == "B" and ip1 == "C") or (iwc == "B" and ip1 == "D") or (iwc == "B" and ip1 == "E") or
+                (iwc == "C" and ip1 == "D") or (iwc == "C" and ip1 == "E") or
+                (iwc == "D" and ip1 == "E")):
+                
+                for ixy in ["x", "y"]:
+                    xy_iwc = adjust[ixy, iwc, runnum]*vec[ixy+iwc].at(0)
+                    xy_ip1 = adjust[ixy, ip1, runnum]*vec[ixy+ip1].at(0)
+                    
+                    hist[ixy+iwc+"_v_"+ixy+ip1].Fill(xy_iwc, xy_ip1) # xWC1 vs xWC2 and yWC1 vs yWC2
+                    if clean: hist[ixy+iwc+"_v_"+ixy+ip1, "clean"].Fill(xy_iwc, xy_ip1) # xWC1 vs xWC2 and yWC1 vs yWC2
+                        
 
-
+    # Check if beam is within edges of sample
+    isIn = {}
+    for ichan in chanlist:
+        xL = edges[ichan, runnum][0]
+        xH = edges[ichan, runnum][1]
+        yL = edges[ichan, runnum][2]
+        yH = edges[ichan, runnum][3]
+        ix = adjust["x", refchamb, runnum]*vec["x"+refchamb].at(0)
+        iy = adjust["y", refchamb, runnum]*vec["y"+refchamb].at(0)
+        if ix<xH and ix>xL and iy<yH and iy>yL: 
+            isIn[ichan] = True
+        else:
+            isIn[ichan] = False
+        if isIn[ichan]: wc_counts["nIn", ichan] += 1.
+ 
+               
     #######################
     # QIE Analysis
     #######################
@@ -507,12 +512,12 @@ for ievt in xrange(nevts):
             hist["occupancy_event_etaphi", depth].Fill(ieta,iphi,1./nevts)  #a bit ugly
                                                                                                                                                                 
             # Fill plot of wire chamber position for events with sufficient energy
-    #        if esum[ichan, "4TS"]>25.:
-    #            x = adjust["x", refchamb, runnum]*vec["x"+refchamb].at(0)
-    #            y = adjust["y", refchamb, runnum]*vec["y"+refchamb].at(0)
-    #            hist["e_wcC"  , ichan].Fill(x,y)
-    #            hist["e_wcC_x", ichan].Fill(x)
-    #            hist["e_wcC_y", ichan].Fill(y)
+            if esum[ichan, "4TS_PS"]>25.:
+                x = adjust["x", refchamb, runnum]*vec["x"+refchamb].at(0)
+                y = adjust["y", refchamb, runnum]*vec["y"+refchamb].at(0)
+                hist["e_wcC"  , ichan].Fill(x,y)
+                hist["e_wcC_x", ichan].Fill(x)
+                hist["e_wcC_y", ichan].Fill(y)
 
 #
 #print "Fraction of events with N hits in each WC view"

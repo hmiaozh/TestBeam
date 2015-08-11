@@ -197,7 +197,7 @@ def getText(ip, ip2, E_base_phase=0):
     return outText
 
 # choose channel to plot along side all other channels in E_4TS  plots
-refChan = 22
+refChan = 1
 
 # edge threshold
 edge_thold = 0.1
@@ -223,23 +223,24 @@ tfile = ROOT.TFile(infile)
 vname = {}
 vname["hbhe"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse"]
 vname["hf"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse"]
-vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC", "xD", "yD"]
+#vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC", "xD", "yD"]
+vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC"]
 
 hist = {}
 # Define wire chamber histograms
-#for ip0 in ["A", "B", "C", "D"]:
-#    hist["x"+ip0+"_v_y"+ip0]          = tfile.Get("h_x"+ip0+"_v_y"+ip0+"_clean")
-#    for ixy in ["x", "y"]:
-#        # 1D histos for x and y in all 4 chambers
-#        hist[ixy+ip0]          = tfile.Get("h_"+ixy+"_"+ip0+"_clean")
-#        # 2D histos for x and y correlations for all histo combinations
-#        
-#    for ip1 in ["A", "B", "C", "D"]:
-#        if ((ip0 == "A" and ip1 == "B") or (ip0 == "A" and ip1 == "C") or (ip0 == "A" and ip1 == "D") or 
-#            (ip0 == "B" and ip1 == "C") or (ip0 == "B" and ip1 == "D") or (ip0 == "C" and ip1 == "D")):            
-#            for ixy in ["x", "y"]:
-#                hist[ixy+ip0+"_v_"+ixy+ip1] = tfile.Get("h_"+ixy+"_"+ip0+"v"+ip1+"_clean")
-#
+for ip0 in ["A", "B", "C"]:
+    hist["x"+ip0+"_v_y"+ip0]          = tfile.Get("h_x"+ip0+"_v_y"+ip0+"_clean")
+    for ixy in ["x", "y"]:
+        # 1D histos for x and y in all 4 chambers
+        hist[ixy+ip0]          = tfile.Get("h_"+ixy+"_"+ip0+"_clean")
+        # 2D histos for x and y correlations for all histo combinations
+        
+    for ip1 in ["A", "B", "C"]:
+        if ((ip0 == "A" and ip1 == "B") or (ip0 == "A" and ip1 == "C") or (ip0 == "A" and ip1 == "D") or 
+            (ip0 == "B" and ip1 == "C") or (ip0 == "B" and ip1 == "D") or (ip0 == "C" and ip1 == "D")):            
+            for ixy in ["x", "y"]:
+                hist[ixy+ip0+"_v_"+ixy+ip1] = tfile.Get("h_"+ixy+"_"+ip0+"v"+ip1+"_clean")
+
 
 # Make energy plots
 for ichan in chanlist:
@@ -249,16 +250,16 @@ for ichan in chanlist:
     label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
     hist["avgpulse", ichan] = tfile.Get("AvgPulse_"+label)
     hist["e_4TS_PS", ichan] = tfile.Get("Energy_"+label) 
+    hist["e_wcC"   , ichan] = tfile.Get("h_e_wcC_"+label)
+    hist["e_wcC_x" , ichan] = tfile.Get("h_e_wcC_x_"+label)
+    hist["e_wcC_y" , ichan] = tfile.Get("h_e_wcC_y_"+label)
+#    hist["e_4TS"   , ichan] = tfile.Get("h_e_4TS_chan"   +str(ichan))
 
 for depth in [1,2,3]:
     hist["e_4TS_etaphi",depth] = tfile.Get("Energy_Avg_depth"+str(depth))
     hist["occupancy_event_etaphi",depth] = tfile.Get("Occ_Event_depth_"+str(depth)) 
 
 
-#    hist["e_wcC"   , ichan] = tfile.Get("h_e_wcC_chan"   +str(ichan))
-#    hist["e_wcC_x" , ichan] = tfile.Get("h_e_wcC_x_chan" +str(ichan))
-#    hist["e_wcC_y" , ichan] = tfile.Get("h_e_wcC_y_chan" +str(ichan))
-#    hist["e_4TS"   , ichan] = tfile.Get("h_e_4TS_chan"   +str(ichan))
 
 ################################################################
 # Get Npe for all samples from counting zeros and average
@@ -479,88 +480,100 @@ ROOT.gStyle.SetOptStat(0)
 ## Plot energy in bins of WC C position
 ########################################
 #
-#ledge = {}
-#elist = ["xL", "xH", "yL", "yH"]
-#for ichan in chanlist:
-#    ledge["xL", ichan] = ROOT.TLine(edges[ichan , runnum][0], -100., edges[ichan , runnum][0], 100.)
-#    ledge["xH", ichan] = ROOT.TLine(edges[ichan , runnum][1], -100., edges[ichan , runnum][1], 100.)
-#    ledge["yL", ichan] = ROOT.TLine(-100., edges[ichan , runnum][2], 100., edges[ichan , runnum][2])
-#    ledge["yH", ichan] = ROOT.TLine(-100., edges[ichan , runnum][3], 100., edges[ichan , runnum][3])
-#    for iedge in elist:
-#        ledge[iedge, ichan].SetLineStyle(2)
-#
-#for ichan in chanlist:
-#    cname = "energy_wcC_chan"+str(ichan)
-#    canv = ROOT.TCanvas(cname, cname, 400, 424)
-#    pad = canv.GetPad(0)
-#    #    pad.SetLogz()
-#    setPadPasMargin(pad, 0.25)
-#
-#    setHist(hist["e_wcC", ichan], "Wire Chamber C x (mm)", "Wire Chamber C y (mm)", 0, 0, 1.3)
-#    hist["e_wcC"   , ichan].GetZaxis().SetTitle("Evts with E_{4TS} > 25 linADC")
-#    hist["e_wcC"   , ichan].GetZaxis().SetLabelSize(0.03)    
-#    hist["e_wcC"   , ichan].GetZaxis().SetTitleOffset(1.3)
-#    hist["e_wcC"   , ichan].Draw("colz")
-#    for iedge in elist:
-#        ledge[iedge, ichan].Draw()
-#    textsize = 0.04; xstart = 0.2; ystart = 0.85
-#    latex = ROOT.TLatex(); latex.SetNDC(); latex.SetTextAlign(12); latex.SetTextSize(textsize)    
-#    latex.DrawLatex(xstart, ystart, "Channel "+str(ichan)+": "+chanType[ichan, runnum])
-#    for end in [".pdf", ".gif"]:
-#        canv.SaveAs(outdir+cname+end)
-#
-#
-########################################
-## Plot 1D energy in bins of WC C position
-########################################
-#for ichan in chanlist:
-#    for ixy in ["x", "y"]:
-#        cname = "energy_wcC_"+ixy+"_chan"+str(ichan)
-#        canv = ROOT.TCanvas(cname, cname, 400, 424)
-#        pad = canv.GetPad(0)
-#        setPadPasMargin(pad, 0.25)
-#        setHist(hist["e_wcC_"+ixy, ichan], "Wire Chamber C "+ixy+" (mm)", "Evts with E_{4TS} > 25 linADC", 0, 0, 1.3)
-#        hist["e_wcC_"+ixy, ichan].Draw()
-#        #        for iedge in ["L","H"]:
-#        #    ledge[ixy+iedge, ichan].Draw()
-#        textsize = 0.04; xstart = 0.2; ystart = 0.85
-#        latex = ROOT.TLatex(); latex.SetNDC(); latex.SetTextAlign(12); latex.SetTextSize(textsize)    
-#        latex.DrawLatex(xstart, ystart, "Channel "+str(ichan)+": "+chanType[ichan, runnum])
-#        for end in [".pdf", ".gif"]:
-#            canv.SaveAs(outdir+cname+end)
-#
-########################################
-## Plot 4TS energy
-########################################
-#
-#for ichan in chanlist:
+ledge = {}
+elist = ["xL", "xH", "yL", "yH"]
+for ichan in chanlist:
+    ledge["xL", ichan] = ROOT.TLine(edges[ichan , runnum][0], -100., edges[ichan , runnum][0], 100.)
+    ledge["xH", ichan] = ROOT.TLine(edges[ichan , runnum][1], -100., edges[ichan , runnum][1], 100.)
+    ledge["yL", ichan] = ROOT.TLine(-100., edges[ichan , runnum][2], 100., edges[ichan , runnum][2])
+    ledge["yH", ichan] = ROOT.TLine(-100., edges[ichan , runnum][3], 100., edges[ichan , runnum][3])
+    for iedge in elist:
+        ledge[iedge, ichan].SetLineStyle(2)
+
+for ichan in chanlist:
+    ieta = chanmap[ichan][0]
+    iphi = chanmap[ichan][1]
+    depth = chanmap[ichan][2]
+    label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
+    cname = "e_energy_wcC_"+label
+    canv = ROOT.TCanvas(cname, cname, 400, 424)
+    pad = canv.GetPad(0)
+    #    pad.SetLogz()
+    setPadPasMargin(pad, 0.25)
+
+    setHist(hist["e_wcC", ichan], "Wire Chamber C x (mm)", "Wire Chamber C y (mm)", 0, 0, 1.3)
+    hist["e_wcC"   , ichan].GetZaxis().SetTitle("Evts with E_{4TS} > 25 fC")
+    hist["e_wcC"   , ichan].GetZaxis().SetLabelSize(0.03)    
+    hist["e_wcC"   , ichan].GetZaxis().SetTitleOffset(1.3)
+    hist["e_wcC"   , ichan].Draw("colz")
+    for iedge in elist:
+        ledge[iedge, ichan].Draw()
+    textsize = 0.03; xstart = 0.2; ystart = 0.85
+    latex = ROOT.TLatex(); latex.SetNDC(); latex.SetTextAlign(12); latex.SetTextSize(textsize)    
+    latex.DrawLatex(xstart, ystart, "ieta="+str(ieta)+"  "+"iphi="+str(iphi)+"  "+"depth="+str(depth))
+    for end in [".pdf", ".gif"]:
+        canv.SaveAs(outdir+cname+end)
+
+
+#######################################
+# Plot 1D energy in bins of WC C position
+#######################################
+for ichan in chanlist:
+    ieta = chanmap[ichan][0]
+    iphi = chanmap[ichan][1]
+    depth = chanmap[ichan][2]
+    label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
+    for ixy in ["x", "y"]:
+        cname = "e_energy_wcC_"+ixy+"_"+label
+        canv = ROOT.TCanvas(cname, cname, 400, 424)
+        pad = canv.GetPad(0)
+        setPadPasMargin(pad, 0.25)
+        setHist(hist["e_wcC_"+ixy, ichan], "Wire Chamber C "+ixy+" (mm)", "Evts with E_{4TS} > 25 fC", 0, 0, 1.3)
+        hist["e_wcC_"+ixy, ichan].Draw()
+        #        for iedge in ["L","H"]:
+        #    ledge[ixy+iedge, ichan].Draw()
+        textsize = 0.03; xstart = 0.2; ystart = 0.85
+        latex = ROOT.TLatex(); latex.SetNDC(); latex.SetTextAlign(12); latex.SetTextSize(textsize)    
+        latex.DrawLatex(xstart, ystart, "ieta="+str(ieta)+"  "+"iphi="+str(iphi)+"  "+"depth="+str(depth))
+        for end in [".pdf", ".gif"]:
+            canv.SaveAs(outdir+cname+end)
+
+#######################################
+# Plot 4TS energy
+#######################################
+
+for ichan in chanlist:
+    ieta = chanmap[ichan][0]
+    iphi = chanmap[ichan][1]
+    depth = chanmap[ichan][2]
+    label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
 #    #    hist["e_4TS"   , ichan].Rebin()
 #    #    hist["e_4TS"   , ichan].SetLineWidth(1)
-#    hist["e_4TS"   , ichan].SetLineColor(pstyle[ichan, "col"])
-#
-#setHist(hist["e_4TS", refChan], "Energy in 4TS (LinADC)", "Events", (0.,200.), (0.5, 3.e4), 1.3, pstyle[refChan, "col"])
-#for ichan in chanlist:
-#    cname = "energy_4TS_chan"+str(ichan)
-#    canv = ROOT.TCanvas(cname, cname, 400, 424)
-#    pad = canv.GetPad(0)
-#    pad.SetLogy()
-#    setPadPasMargin(pad)
-#    setHist(hist["e_4TS", ichan], "Energy in 4TS (LinADC)", "Events", (0.,200.), (0.5, 3.e4), 1.3, pstyle[ichan, "col"])
-#    hist["e_4TS"   , refChan].Draw()
-#    hist["e_4TS"   , ichan  ].Draw("same")
-#    textsize = 0.03; legx0 = 0.4; legx1 = 0.9; legy0 = 0.8; legy1 = 0.93
-#    leg = ROOT.TLegend(legx0, legy0, legx1, legy1)
-#    leg.SetFillColor(0)
-#    leg.SetTextSize(textsize)
-#    leg.SetColumnSeparation(0.0)
-#    leg.SetEntrySeparation(0.1)
-#    leg.SetMargin(0.2)
-#    leg.AddEntry(hist["e_4TS", ichan], "ch"+str(ichan)+" : "+chanType[ichan, runnum])
-#    leg.AddEntry(hist["e_4TS", refChan], "ch"+str(refChan)+" : "+chanType[refChan, runnum])
-#    leg.Draw()
-#
-#    for end in [".pdf", ".gif"]:
-#        canv.SaveAs(outdir+cname+end)
+    hist["e_4TS_PS"   , ichan].SetLineColor(pstyle[22, "col"])
+
+setHist(hist["e_4TS_PS", refChan], "Energy in 4TS (LinADC)", "Events", (0.,200.), (0.5, 3.e4), 1.3, pstyle[22, "col"])
+for ichan in chanlist:
+    cname = "energy_4TS_chan"+str(ichan)
+    canv = ROOT.TCanvas(cname, cname, 400, 424)
+    pad = canv.GetPad(0)
+    pad.SetLogy()
+    setPadPasMargin(pad)
+    setHist(hist["e_4TS_PS", ichan], "Energy in 4TS (LinADC)", "Events", (0.,200.), (0.5, 3.e4), 1.3, pstyle[22, "col"])
+    hist["e_4TS_PS"   , refChan].Draw()
+    hist["e_4TS_PS"   , ichan  ].Draw("same")
+    textsize = 0.03; legx0 = 0.4; legx1 = 0.9; legy0 = 0.8; legy1 = 0.93
+    leg = ROOT.TLegend(legx0, legy0, legx1, legy1)
+    leg.SetFillColor(0)
+    leg.SetTextSize(textsize)
+    leg.SetColumnSeparation(0.0)
+    leg.SetEntrySeparation(0.1)
+    leg.SetMargin(0.2)
+    leg.AddEntry(hist["e_4TS_PS", ichan], "ch"+str(ichan))
+    leg.AddEntry(hist["e_4TS_PS", refChan], "ch"+str(refChan))
+    leg.Draw()
+
+    #for end in [".pdf", ".gif"]:
+    #    canv.SaveAs(outdir+cname+end)
 
 
 
