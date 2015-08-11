@@ -589,7 +589,7 @@ void HcalUnpacker::unpackUTCA(const FEDRawData& raw, const HcalElectronicsMap& e
         HcalUHTRData::const_iterator i=uhtr.begin(), iend=uhtr.end();
         while (i!=iend) {
             //      std::cout << i.isHeader() << " " << i.flavor() << std::endl;
-            std::cout << "This data is flavored:" << i.flavor() << std::endl;
+            //std::cout << "This data is flavored:" << i.flavor() << std::endl;
             if (!i.isHeader()) {
                 ++i;
                 std::cout << "its not a header" << std::endl;
