@@ -93,7 +93,7 @@ process.es_ascii = cms.ESSource('HcalTextCalibrations',
                cms.PSet(
                 object = cms.string('ElectronicsMap'),
                 #file = cms.FileInPath('UserCode/H2TestBeamAnalyzer/EMAP_H2_VME_uHTR_04AUG2015.txt')  # EMAP here!
-                file = cms.FileInPath('UserCode/H2TestBeamAnalyzer/EMAP_H2_VME_HO_10AUG2015.txt')
+                file = cms.FileInPath('UserCode/H2TestBeamAnalyzer/EMAP-QIE11-L00-12AUG2015-01.txt')
                )
         )
 )
@@ -102,6 +102,6 @@ process.es_prefer = cms.ESPrefer('HcalTextCalibrations', 'es_ascii')
 process.dump = cms.EDAnalyzer("HcalDigiDump")
 
 process.p = cms.Path(process.tbunpack*process.hcalDigis*process.hcalAnalyzer)
-# process.p = cms.Path(process.tbunpack*process.hcalDigis*process.dump*process.hcalAnalyzer)
+#process.p = cms.Path(process.tbunpack*process.hcalDigis*process.dump*process.hcalAnalyzer)
 # process.outpath = cms.EndPath(process.output)
 

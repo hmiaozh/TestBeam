@@ -63,6 +63,8 @@
 #include "RecoTBCalo/HcalTBObjectUnpacker/interface/HcalTBTriggerDataUnpacker.h"
 #include "RecoTBCalo/HcalTBObjectUnpacker/interface/HcalTBSlowDataUnpacker.h"
 
+#include "ADC_Conversion.h"
+
 #include "TH1D.h"
 #include "TH2D.h"
 #include "TGraph.h"
@@ -133,15 +135,14 @@ struct TQIE8Info
 struct TQIE11Info
 {
     int numChs;
-    int numTS[NUMCHS];
-    int numChsTS[NUMCHS];
+    int numTS;
     int iphi[NUMCHS];
     int ieta[NUMCHS];
     int depth[NUMCHS];
+    double pulse[NUMCHS][NUMTS];
     double ped[NUMCHS];
-    int capid_error[NUMCHS];
-    int pulse[NUMCHSTS];
-    int soi[NUMCHSTS];
+    bool capid_error[NUMCHS];
+    bool soi[NUMCHS][NUMTS];
 };
 
 
@@ -321,15 +322,14 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _file->cd("QIE11Data");
     _treeQIE11 = new TTree("Events", "Events");
     _treeQIE11->Branch("numChs", &_qie11Info.numChs, "numChs/I");
-    _treeQIE11->Branch("numTS", &_qie11Info.numTS, "numTS[numChs]/I");
-    _treeQIE11->Branch("numChsTS", &_qie11Info.numChsTS, "numChsTS[numChs]/I");
+    _treeQIE11->Branch("numTS", &_qie11Info.numTS, "numTS/I");
     _treeQIE11->Branch("iphi", _qie11Info.iphi, "iphi[numChs]/I");
     _treeQIE11->Branch("ieta", _qie11Info.ieta, "ieta[numChs]/I");
     _treeQIE11->Branch("depth", _qie11Info.depth, "depth[numChs]/I");
+    _treeQIE11->Branch("pulse", _qie11Info.pulse, "pulse[numChs][50]/D");
     _treeQIE11->Branch("ped", _qie11Info.ped, "ped[numChs]/D");
-    _treeQIE11->Branch("capid_error", _qie11Info.capid_error, "ped[numChs]/I");
-    _treeQIE11->Branch("pulse", _qie11Info.pulse, "pulse[numChsTS]/I");
-    _treeQIE11->Branch("soi", _qie11Info.soi, "soi[numChsTS]/I");
+    _treeQIE11->Branch("capid_error", _qie11Info.capid_error, "capid_error[numChs]/O");
+    _treeQIE11->Branch("soi", _qie11Info.soi, "soi[numChs][50]/O");
 
     _file->cd("Triggers");
     _treeTriggers = new TTree("Events", "Events");
@@ -714,6 +714,7 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     if (_verbosity>0) std::cout << "Trying to access the qie collection" << std::endl;
     
     const QIE11DigiCollection& qie11dc=*(qie11DigiCollection);
+
     for (int j=0; j < qie11dc.size(); j++){
         
         if (_verbosity>0){
@@ -740,60 +741,53 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
         
         // loop over the samples in the digi
         int nTS = qie11dc[j].samples();
-        int nChsTS = nTS*qie11dc.size();
-        int adc = -1;
-        int tdc = -1;
-        int soi = -1;
-        int capid = -1;
-        int capid_prev = -1;
-        int capid_error = 0; // if problem is found, put to 1
-        float ped = 0;
+
+        float ped_adc = 0;
+        float ped_fc = 0;
+
         for(int i=0; i<nTS; ++i)
         {
-            adc = qie11dc[j][i].adc();
-            tdc = qie11dc[j][i].tdc();
-            capid = qie11dc[j][i].capid();
-            soi = qie11dc[j][i].soi();
-            
-            if (_verbosity>0)
-                std::cout << "Sample " << i << ": ADC " << adc << ", TDC " << tdc << ", capid " << capid << std::endl;
+            int adc = qie11dc[j][i].adc();
+            int tdc = qie11dc[j][i].tdc();
+            int capid = qie11dc[j][i].capid();
+            int soi = qie11dc[j][i].soi();
             
             // store pulse information
-            _qie11Info.pulse[j*nTS+i] = adc;
-            _qie11Info.soi[j*nTS+i] = soi;
-            
-            //std::cout << "retrieve info from struct " << _qie11Info.pulse[j*i] << std::endl;
-            // compute ped from first 4 time samples
-            if (i<4){
-                ped += adc;
+            Converter Convertadc2fC;
+            float charge = Convertadc2fC.linearize(adc);
+            _qie11Info.pulse[j][i] = charge;
+            _qie11Info.soi[j][i] = soi;
+
+            if (_verbosity>0)
+                std::cout << "Sample " << i << ": ADC=" << adc << " Charge=" << charge << "fC" << " TDC=" << tdc << " Capid=" << capid
+                          << " SOI=" << soi << std::endl;
+
+            // compute ped from first 3 time samples
+            if (i<3){
+                ped_adc += adc;
+                ped_fc += charge;
             }
             
-            // check capid rotation
-            if (capid_prev != -1 && capid_error != 1){
-                // should be 1 larger, or back to 0 if it was three
-                if (capid > 0 && capid != capid_prev + 1) capid_error = 1;
-                if (capid == 0 && capid_prev != 3) capid_error = 1;
-            }
-            capid_prev = capid;
         }
-        ped = ped/4.;
-        
+        ped_adc = ped_adc/3.;
+        ped_fc = ped_fc/3.; 
+
         if (_verbosity>0)
-            std::cout << "The pedestal for this channel is " << ped << " ADC counts" << std::endl;
-        
+            std::cout << "The pedestal for this channel is " << ped_adc << "ADC counts and " << ped_fc << " fC" << std::endl;
+  
         // -------------------------------------
         // --    Set the Branched arrays      --
         // -------------------------------------
         _qie11Info.iphi[j] = iphi;
         _qie11Info.ieta[j] = ieta;
         _qie11Info.depth[j] = depth;
-        _qie11Info.ped[j] = ped;
-        _qie11Info.capid_error[j] = capid_error;
-        _qie11Info.numTS[j] = nTS;
-        _qie11Info.numChsTS[j] = nChsTS;
+        _qie11Info.ped[j] = ped_fc;
+        _qie11Info.capid_error[j] = qie11dc[j].capidError();
         
     }
+
     _qie11Info.numChs = qie11dc.size();
+    _qie11Info.numTS = qie11dc.samples();
 
     _treeHBHE->Fill();
     _treeHF->Fill();

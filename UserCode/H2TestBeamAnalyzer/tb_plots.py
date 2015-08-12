@@ -216,7 +216,11 @@ pstyle[24, "col"] = 3
 depth_color_table = {}
 depth_color_table[1] = 1
 depth_color_table[2] = 2
-depth_color_table[3] = 4
+depth_color_table[3] = 8
+depth_color_table[4] = 4 
+depth_color_table[5] = 6
+depth_color_table[6] = 7
+depth_color_table[7] = 11 
 
 tfile = ROOT.TFile(infile)
 
@@ -255,7 +259,7 @@ for ichan in chanlist:
     hist["e_wcC_y" , ichan] = tfile.Get("h_e_wcC_y_"+label)
 #    hist["e_4TS"   , ichan] = tfile.Get("h_e_4TS_chan"   +str(ichan))
 
-for depth in [1,2,3]:
+for depth in [1,2,3,4,5,6]:
     hist["e_4TS_etaphi",depth] = tfile.Get("Energy_Avg_depth"+str(depth))
     hist["occupancy_event_etaphi",depth] = tfile.Get("Occ_Event_depth_"+str(depth)) 
 
@@ -355,7 +359,7 @@ pad = canv.GetPad(0)
 setPadPasMargin(pad,0.13)
 #pad.SetTopMargin(0.2)
 
-for depth in [1,2,3]:
+for depth in [1,2,3,4,5,6]:
     setHist2D(hist["e_4TS_etaphi",depth], "X", "Y", "", 0, 0, 0, 0.9, 0.9, 0.1)
     #hist["e_4TS_etaphi",depth].GetListOfFunctions().Add(palette,"br")
     hist["e_4TS_etaphi",depth].GetXaxis().SetTitle("ieta")
@@ -407,7 +411,7 @@ for etaphi in etaphipairs.keys():
         iphi = etaphi[1]
         ichan = chanmap[(ieta,iphi,depth)]
                 
-        setHist(hist["avgpulse", ichan], "Time sample", "Charge (fC)", 0, (0.,200.), 1.3, depth_color_table[depth])
+        setHist(hist["avgpulse", ichan], "Time sample", "Charge (fC)", 0, (0.,500.), 1.3, depth_color_table[depth])
         hist["avgpulse", ichan].GetXaxis().SetNdivisions(10,1)
         if first:
             hist["avgpulse", ichan].Draw("hist")

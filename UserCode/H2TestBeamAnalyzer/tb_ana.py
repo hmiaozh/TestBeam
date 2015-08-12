@@ -121,13 +121,14 @@ file = ROOT.TFile(infile)
 ntp = {}
 ntp["hbhe"] = file.Get("HBHEData/Events")
 ntp["hf"] = file.Get("HFData/Events")
+ntp["qie11"] = file.Get("QIE11Data/Events")
 ntp["wc"] = file.Get("WCData/Events")
 
 vname = {}
 vname["hbhe"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse"]
 vname["hf"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse"]
+vname["qie11"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse", "ped", "capid_error", "soi"]
 #vname["hf"] = ["numChs", "numTS", "iphi", "ieta", "depth"]
-#vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC", "xD", "yD", "xE", "yE"]
 #vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC", "xD", "yD", "xE", "yE"]
 vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC"]
 
@@ -141,6 +142,11 @@ ROOT.gROOT.ProcessLine("struct hf_struct {Int_t numChs; Int_t numTS; Int_t iphi[
 shf = ROOT.hf_struct()
 for ivname in vname["hf"]:
     ntp["hf"].SetBranchAddress(ivname, ROOT.AddressOf(shf, ivname))
+
+ROOT.gROOT.ProcessLine("struct qie11_struct {Int_t numChs; Int_t numTS; Int_t iphi[120]; Int_t ieta[120]; Int_t depth[120]; Double_t pulse[6000]; Double_t ped[120]; bool capid_error[120]; bool soi[6000];};")  # Treat pulse like 1D array of length 120*50
+sqie11 = ROOT.qie11_struct()
+for ivname in vname["qie11"]:
+    ntp["qie11"].SetBranchAddress(ivname, ROOT.AddressOf(sqie11, ivname))
 
 vec = {}
 for ivname in vname["wc"]:
@@ -232,17 +238,17 @@ for ichan in chanlist:
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
     label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
-    hist["avgpulse", ichan] = ROOT.TProfile("AvgPulse_"+label, "AvgPulse_"+label, 10, -0.5, 9.5, 0., 500.)
+    hist["avgpulse", ichan] = ROOT.TProfile("AvgPulse_"+label, "AvgPulse_"+label, 10, -0.5, 9.5, 0., 4000.)
     for its in range(10):
         hist["charge", ichan, its] = ROOT.TH1F("Charge_"+label+"_ts"+str(its),
-                                               "Charge_"+label+"_ts"+str(its), 1500, 0., 1500.)
+                                               "Charge_"+label+"_ts"+str(its), 4000, 0., 4000.)
 
-    hist["e_4TS_noPS", ichan] = ROOT.TH1F("Energy_noPS_"+label,"Energy_noPS_"+label, 1000, 0., 1000.)                                          
-    hist["e_4TS_PS", ichan] = ROOT.TH1F("Energy_"+label,"Energy_"+label, 1000, 0., 1000.)                                          
+    hist["e_4TS_noPS", ichan] = ROOT.TH1F("Energy_noPS_"+label,"Energy_noPS_"+label, 4000, 0., 4000.)                                          
+    hist["e_4TS_PS", ichan] = ROOT.TH1F("Energy_"+label,"Energy_"+label, 4000, 0., 4000.)                                          
 
-for depth in [1,2,3]:
-    hist["e_4TS_etaphi",depth] = ROOT.TProfile2D("Energy_Avg_depth"+str(depth),"Average Energy per event in each ieta,iphi for depth "+str(depth), 16, 14.5, 30.5, 16, 1.5, 17.5, 0., 500.)
-    hist["occupancy_event_etaphi",depth] = ROOT.TH2F("Occ_Event_depth_"+str(depth),"Fraction of Events with a hit in each ieta,iphi for depth "+str(depth), 16, 14.5, 30.5, 16, 1.5, 17.5) 
+for depth in [1,2,3,4,5,6,7,8,9]:
+    hist["e_4TS_etaphi",depth] = ROOT.TProfile2D("Energy_Avg_depth"+str(depth),"Average Energy per event in each ieta,iphi for depth "+str(depth), 12, 14.5, 26.5, 16, 1.5, 17.5, 0., 4000.)
+    hist["occupancy_event_etaphi",depth] = ROOT.TH2F("Occ_Event_depth_"+str(depth),"Fraction of Events with a hit in each ieta,iphi for depth "+str(depth), 12, 14.5, 26.5, 16, 1.5, 17.5) 
 
 #Plot average 4TS energy sum (z-axis) in plane of track coords from WC C
 for ichan in chanlist:
@@ -268,7 +274,7 @@ esum = {}
 fillEplots = True
 
 print "Run %5i has %7i total events. " % (runnum, nevts)
-#nevts = 1000 #use to limit the number of events for diagnostic purposes
+#nevts = 1 #use to limit the number of events for diagnostic purposes
 print "Processing ",nevts," events."    
 for ievt in xrange(nevts):
     if (ievt+1) % 1000 == 0: print "Processing Run %5i Event %7i" % (runnum, (ievt+1))
@@ -403,6 +409,7 @@ for ievt in xrange(nevts):
     # QIE Analysis
     #######################
     ntp["hbhe"].GetEvent(ievt)
+    ntp["qie11"].GetEvent(ievt)
 
     # Find the channels 
     ########################
@@ -425,11 +432,19 @@ for ievt in xrange(nevts):
     # fchan contains the found channels    
             
     fchan = {}
+    fread = {}
     for rchan in range(shbhe.numChs):
         test_chan = (shbhe.ieta[rchan], shbhe.iphi[rchan], shbhe.depth[rchan])
         if test_chan in chansToFind:
             chansToFind.remove(test_chan)
             fchan[chanmap[test_chan]] = rchan
+	    fread[rchan] = shbhe
+    for rchan in range(sqie11.numChs):
+        test_chan = (sqie11.ieta[rchan], sqie11.iphi[rchan], sqie11.depth[rchan])
+        if test_chan in chansToFind:
+            chansToFind.remove(test_chan)
+            fchan[chanmap[test_chan]] = rchan
+	    fread[rchan] = sqie11
     
     # these are the (ieta,iphi,depth) that we expected to find
     # (from chanlist/chanmap) that never appeared in the data
@@ -442,34 +457,34 @@ for ievt in xrange(nevts):
         
     # Skip events with anomalously large pulses
     clean = True
-    for rchan in fchan.itervalues():
-        for its in range(2): #for now, only check lowest two ts (0-1)
-            if shbhe.pulse[rchan*50+its] > 90:
-                clean = False
-                break
-        for its in range(8,10): #for now, only check highest two ts (8-9)
-            if shbhe.pulse[rchan*50+its] > 90: 
-                clean = False
-                break
-    if not clean: continue
+    #for rchan in fchan.itervalues():
+    #    for its in range(2): #for now, only check lowest two ts (0-1)
+    #        if fread[rchan].pulse[rchan*50+its] > 90:
+    #            clean = False
+    #            break
+    #    #for its in range(8,10): #for now, only check highest two ts (8-9)
+    #    #    if fread[rchan].pulse[rchan*50+its] > 90: 
+    #    #        clean = False
+    #    #        break
+    #if not clean: continue
 
     # Skip events with anomalous energy
-    for rchan in fchan.itervalues():
-        for its in range(10):  #ts (0-9)
-            if shbhe.pulse[rchan*50+its] > 1500:
-                clean = False
-                break
-    if not clean: continue
+    #for rchan in fchan.itervalues():
+    #    for its in range(10):  #ts (0-9)
+    #        if fread[rchan].pulse[rchan*50+its] > 1500:
+    #            clean = False
+    #            break
+    #if not clean: continue
 
 
     charge = {} 
     energy = {}   
-    
+   
     for ichan,rchan in fchan.items():
-        
+               
         # Pull charges and energies for each time sample
         for its in range(10):
-            charge[ichan,its] = shbhe.pulse[rchan*50+its]  #[row][col] -> [row*n_cols + col]
+            charge[ichan,its] = fread[rchan].pulse[rchan*50+its]  #[row][col] -> [row*n_cols + col]
             energy[ichan,its] = charge[ichan,its]*calib[ichan]
 
         ped_ts_list = [0,1,2]   #time samples in which to sum charge for pedestals (0-2)    
@@ -479,7 +494,7 @@ for ievt in xrange(nevts):
         ped_avg = ped_esum/len(ped_ts_list)    
         esum[ichan, "PED"] = ped_avg
 
-        ts_list = [3,4,5,6]   #time samples in which to sum charge for signal (4-7)
+        ts_list = [4,5,6,7]   #time samples in which to sum charge for signal (4-7)
         sig_esum = 0.
         sig_esum_ps = 0.
         for its in ts_list:  
