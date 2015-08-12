@@ -11,8 +11,9 @@
      [Notes on implementation]
 */
 //
-// Original Author:  Viktor Khristenko,510 1-004,+41227672815,
-//         Created:  Tue Sep 16 15:47:09 CEST 2014
+// Original Authors:  Jay Dittmann, Nadja Strobbe, Joe Pastika
+// Based on work by:  Viktor Khristenko,510 1-004,+41227672815,
+//         Created:   Tue Sep 16 15:47:09 CEST 2014
 // $Id$
 //
 //
@@ -78,9 +79,25 @@
 using namespace std;
 
 #define NUMCHS 120 
-#define NUMADCS 128
 #define NUMTS 50
+#define NUMCHSTS NUMCHS*NUMTS
+
+#define NUMADCS 128
+
 double adc2fC[NUMADCS]={
+    -0.5,0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5,9.5, 10.5,11.5,12.5,
+    13.5,15.,17.,19.,21.,23.,25.,27.,29.5,32.5,35.5,38.5,42.,46.,50.,54.5,59.5,
+    64.5,59.5,64.5,69.5,74.5,79.5,84.5,89.5,94.5,99.5,104.5,109.5,114.5,119.5,
+    124.5,129.5,137.,147.,157.,167.,177.,187.,197.,209.5,224.5,239.5,254.5,272.,
+    292.,312.,334.5,359.5,384.5,359.5,384.5,409.5,434.5,459.5,484.5,509.5,534.5,
+    559.5,584.5,609.5,634.5,659.5,684.5,709.5,747.,797.,847.,897.,947.,997.,
+    1047.,1109.5,1184.5,1259.5,1334.5,1422.,1522.,1622.,1734.5,1859.5,1984.5,
+    1859.5,1984.5,2109.5,2234.5,2359.5,2484.5,2609.5,2734.5,2859.5,2984.5,
+    3109.5,3234.5,3359.5,3484.5,3609.5,3797.,4047.,4297.,4547.,4797.,5047.,
+    5297.,5609.5,5984.5,6359.5,6734.5,7172.,7672.,8172.,8734.5,9359.5,9984.5};
+
+// NEEDS UPDATING
+double adc2fC_QIE11[NUMADCS]={
     -0.5,0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5,9.5, 10.5,11.5,12.5,
     13.5,15.,17.,19.,21.,23.,25.,27.,29.5,32.5,35.5,38.5,42.,46.,50.,54.5,59.5,
     64.5,59.5,64.5,69.5,74.5,79.5,84.5,89.5,94.5,99.5,104.5,109.5,114.5,119.5,
@@ -103,7 +120,7 @@ struct TCalibLedInfo
     double pulse[50][10];
 };
 
-struct THCInfo
+struct TQIE8Info
 {
     int numChs;
     int numTS;
@@ -112,6 +129,23 @@ struct THCInfo
     int depth[NUMCHS];
     double pulse[NUMCHS][NUMTS];
 };
+
+struct TQIE11Info
+{
+    int numChs;
+    int numTS[NUMCHS];
+    int numChsTS[NUMCHS];
+    int iphi[NUMCHS];
+    int ieta[NUMCHS];
+    int depth[NUMCHS];
+    double ped[NUMCHS];
+    int capid_error[NUMCHS];
+    int pulse[NUMCHSTS];
+    int soi[NUMCHSTS];
+};
+
+
+
 
 struct H2Triggers
 {
@@ -173,6 +207,7 @@ class H2TestBeamAnalyzer : public edm::EDAnalyzer {
         TFile *_file;
         TTree *_treeHBHE;
         TTree *_treeHF;
+        TTree *_treeQIE11;
         TTree *_treeTriggers;
         TTree *_treeWC;
         TTree *_treeBC;
@@ -182,8 +217,9 @@ class H2TestBeamAnalyzer : public edm::EDAnalyzer {
         string _outFileName;
         int _verbosity;
         TCalibLedInfo _calibInfo;
-        THCInfo _hbheInfo;
-        THCInfo _hfInfo;
+        TQIE8Info _hbheInfo;
+        TQIE8Info _hfInfo;
+        TQIE11Info _qie11Info;
 
         H2Triggers _triggers;
         H2BeamCounters _BCData;
@@ -204,6 +240,7 @@ class H2TestBeamAnalyzer : public edm::EDAnalyzer {
       edm::EDGetTokenT<HBHEDigiCollection> tok_HBHEDigiCollection_;
       edm::EDGetTokenT<HFDigiCollection> tok_HFDigiCollection_;
       edm::EDGetTokenT<HODigiCollection> tok_HODigiCollection_;
+      edm::EDGetTokenT<HcalDataFrameContainer<QIE11DataFrame> > tok_QIE11DigiCollection_;
       edm::EDGetTokenT<HcalTBTriggerData> tok_HcalTBTriggerData_;
       edm::EDGetTokenT<HcalTBEventPosition> tok_HcalTBEventPosition_;
       edm::EDGetTokenT<HcalTBBeamCounters> tok_HcalTBBeamCounters_;
@@ -232,6 +269,7 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     tok_HBHEDigiCollection_ = consumes<HBHEDigiCollection>(edm::InputTag("hcalDigis"));
     tok_HFDigiCollection_ = consumes<HFDigiCollection>(edm::InputTag("hcalDigis"));
     tok_HODigiCollection_ = consumes<HODigiCollection>(edm::InputTag("hcalDigis"));
+    tok_QIE11DigiCollection_ = consumes<HcalDataFrameContainer<QIE11DataFrame> >(edm::InputTag("hcalDigis"));
     tok_HcalTBTriggerData_ = consumes<HcalTBTriggerData>(edm::InputTag("tbunpack"));
     tok_HcalTBEventPosition_ = consumes<HcalTBEventPosition>(edm::InputTag("tbunpack"));
     tok_HcalTBBeamCounters_ = consumes<HcalTBBeamCounters>(edm::InputTag("tbunpack"));
@@ -243,6 +281,7 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _file = new TFile(_outFileName.c_str(), "recreate");
     _file->mkdir("HBHEData");
     _file->mkdir("HFData");
+    _file->mkdir("QIE11Data");
     _file->mkdir("Triggers");
     _file->mkdir("WCData");
     _file->mkdir("Timing");
@@ -278,6 +317,19 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeHF->Branch("ieta", _hfInfo.ieta, "ieta[numChs]/I");
     _treeHF->Branch("depth", _hfInfo.depth, "depth[numChs]/I");
     _treeHF->Branch("pulse", _hfInfo.pulse, "pulse[numChs][50]/D");
+
+    _file->cd("QIE11Data");
+    _treeQIE11 = new TTree("Events", "Events");
+    _treeQIE11->Branch("numChs", &_qie11Info.numChs, "numChs/I");
+    _treeQIE11->Branch("numTS", &_qie11Info.numTS, "numTS[numChs]/I");
+    _treeQIE11->Branch("numChsTS", &_qie11Info.numChsTS, "numChsTS[numChs]/I");
+    _treeQIE11->Branch("iphi", _qie11Info.iphi, "iphi[numChs]/I");
+    _treeQIE11->Branch("ieta", _qie11Info.ieta, "ieta[numChs]/I");
+    _treeQIE11->Branch("depth", _qie11Info.depth, "depth[numChs]/I");
+    _treeQIE11->Branch("ped", _qie11Info.ped, "ped[numChs]/D");
+    _treeQIE11->Branch("capid_error", _qie11Info.capid_error, "ped[numChs]/I");
+    _treeQIE11->Branch("pulse", _qie11Info.pulse, "pulse[numChsTS]/I");
+    _treeQIE11->Branch("soi", _qie11Info.soi, "soi[numChsTS]/I");
 
     _file->cd("Triggers");
     _treeTriggers = new TTree("Events", "Events");
@@ -373,6 +425,7 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     edm::Handle<HBHEDigiCollection> hbheDigiCollection;
     edm::Handle<HFDigiCollection> hfDigiCollection;
     edm::Handle<HODigiCollection> hoDigiCollection;
+    edm::Handle<QIE11DigiCollection> qie11DigiCollection;
     edm::Handle<HcalTBTriggerData> trigData;
     edm::Handle<HcalTBEventPosition> eventPos;
     edm::Handle<HcalTBBeamCounters> beamCounters;
@@ -382,6 +435,7 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     iEvent.getByToken(tok_HBHEDigiCollection_,hbheDigiCollection);
     iEvent.getByToken(tok_HFDigiCollection_,hfDigiCollection);
     iEvent.getByToken(tok_HODigiCollection_,hoDigiCollection);
+    iEvent.getByToken(tok_QIE11DigiCollection_,qie11DigiCollection);
     iEvent.getByToken(tok_HcalTBTriggerData_,trigData);
     iEvent.getByToken(tok_HcalTBEventPosition_,eventPos);
     iEvent.getByToken(tok_HcalTBBeamCounters_,beamCounters);
@@ -490,9 +544,10 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     if (_verbosity>0)
     {
         cout << "### Before Loop: " << endl
-            << "### HF Digis=" << hfDigiCollection->size() << endl
             << "### HBHE Digis=" << hbheDigiCollection->size() << endl
-            << "### HO Digis=" << hoDigiCollection->size() << endl;
+            << "### HF Digis=" << hfDigiCollection->size() << endl
+            << "### HO Digis=" << hoDigiCollection->size() << endl
+            << "### QIE11 Digis=" << qie11DigiCollection->size() << endl;
 
         cout << "### Triggers: " << endl
             << "### PED Trigger: " << _triggers.ped << endl
@@ -525,7 +580,6 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
             << "### S3Count: " << _timing.s3Count << endl
             << "### S4Count: " << _timing.s4Count << endl;
     }
-
 	
     for (HBHEDigiCollection::const_iterator digi=hbheDigiCollection->begin();
          digi!=hbheDigiCollection->end(); ++digi)
@@ -645,8 +699,105 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     }
     _hfInfo.numChs = numChs;
 
+
+    // --------------------------
+    // --   QIE11 Information  --
+    // --------------------------
+    
+    // This does not work:
+    // for (QIE11DigiCollection::const_iterator digi=qie11DigiCollection->begin();
+    // 	 digi!=qie11DigiCollection->end(); ++digi)
+    //   cout << digi->samples() << endl;
+    // But this apparently does..
+    
+    
+    if (_verbosity>0) std::cout << "Trying to access the qie collection" << std::endl;
+    
+    const QIE11DigiCollection& qie11dc=*(qie11DigiCollection);
+    for (int j=0; j < qie11dc.size(); j++){
+        
+        if (_verbosity>0){
+            std::cout << "Printing raw dataframe" << std::endl;
+            std::cout << qie11dc[j] << std::endl;
+            
+            std::cout << "Printing content of samples() method" << std::endl;
+            std::cout << qie11dc[j].samples() << std::endl;
+        }
+        
+        // Extract info on detector location
+        DetId detid = qie11dc[j].detid();
+        HcalDetId hcaldetid = HcalDetId(detid);
+        int ieta = hcaldetid.ieta();
+        int iphi = hcaldetid.iphi();
+        int depth = hcaldetid.depth();
+        
+        if (_verbosity>0){
+            std::cout << "Where am I?\n detid: " << detid.rawId() << std::endl;
+            std::cout << " ieta: " << ieta << "\n"
+            << " iphi: " << iphi << "\n"
+            << " depth: " << depth << std::endl;
+        }
+        
+        // loop over the samples in the digi
+        int nTS = qie11dc[j].samples();
+        int nChsTS = nTS*qie11dc.size();
+        int adc = -1;
+        int tdc = -1;
+        int soi = -1;
+        int capid = -1;
+        int capid_prev = -1;
+        int capid_error = 0; // if problem is found, put to 1
+        float ped = 0;
+        for(int i=0; i<nTS; ++i)
+        {
+            adc = qie11dc[j][i].adc();
+            tdc = qie11dc[j][i].tdc();
+            capid = qie11dc[j][i].capid();
+            soi = qie11dc[j][i].soi();
+            
+            if (_verbosity>0)
+                std::cout << "Sample " << i << ": ADC " << adc << ", TDC " << tdc << ", capid " << capid << std::endl;
+            
+            // store pulse information
+            _qie11Info.pulse[j*nTS+i] = adc;
+            _qie11Info.soi[j*nTS+i] = soi;
+            
+            //std::cout << "retrieve info from struct " << _qie11Info.pulse[j*i] << std::endl;
+            // compute ped from first 4 time samples
+            if (i<4){
+                ped += adc;
+            }
+            
+            // check capid rotation
+            if (capid_prev != -1 && capid_error != 1){
+                // should be 1 larger, or back to 0 if it was three
+                if (capid > 0 && capid != capid_prev + 1) capid_error = 1;
+                if (capid == 0 && capid_prev != 3) capid_error = 1;
+            }
+            capid_prev = capid;
+        }
+        ped = ped/4.;
+        
+        if (_verbosity>0)
+            std::cout << "The pedestal for this channel is " << ped << " ADC counts" << std::endl;
+        
+        // -------------------------------------
+        // --    Set the Branched arrays      --
+        // -------------------------------------
+        _qie11Info.iphi[j] = iphi;
+        _qie11Info.ieta[j] = ieta;
+        _qie11Info.depth[j] = depth;
+        _qie11Info.ped[j] = ped;
+        _qie11Info.capid_error[j] = capid_error;
+        _qie11Info.numTS[j] = nTS;
+        _qie11Info.numChsTS[j] = nChsTS;
+        
+    }
+    _qie11Info.numChs = qie11dc.size();
+
     _treeHBHE->Fill();
     _treeHF->Fill();
+    _treeQIE11->Fill();
     _treeTriggers->Fill();
     _treeWC->Fill();
     _treeBC->Fill();
