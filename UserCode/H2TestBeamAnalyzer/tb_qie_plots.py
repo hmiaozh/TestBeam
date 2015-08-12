@@ -196,6 +196,25 @@ for ieta in valid_ieta:
 
 
 
+h_pulse_per_channel = {}
+for ichan in chanmap_inv:
+    iphi, ieta, depth = chanmap_inv[ichan]
+    h = inputfile.Get("h_pulse_channel_%s" % (ichan))
+    setHist2D(h, "BX", "ADC", "Events",
+              xoff=0.8, yoff=0.8, zoff=0.9)
+    c = ROOT.TCanvas(h.GetName())
+    c.SetRightMargin(0.15)
+    c.cd()
+    h.Draw("box")
+    t = ROOT.TText()
+    t.DrawTextNDC(0.5,0.93,'ieta = %s, iphi = %s, depth = %s' % (ieta,iphi,depth) )
+    outputfile.cd()
+    c.Write()
+    c.SaveAs(outdir+"/"+h.GetName().replace("h_","",1)+".pdf")
+    c.SaveAs(outdir+"/"+h.GetName().replace("h_","",1)+".gif")
+
+
+
 # ------------------------
 # --  Capid error plot  --
 # ------------------------

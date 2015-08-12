@@ -129,7 +129,7 @@ valid_depth = [1,2,3,4,5,6]
 # Valid ieta
 valid_ieta = [1,2,3,4,5,6,7,8]
 # Valid iphi
-valid_iphi = [5]
+valid_iphi = [69,71]
 
 chanmap = {}
 chanmap_inv = {}
