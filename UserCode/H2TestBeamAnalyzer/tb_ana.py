@@ -238,18 +238,22 @@ for ichan in chanlist:
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
     label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
-    hist["avgpulse", ichan] = ROOT.TProfile("AvgPulse_"+label, "AvgPulse_"+label, 10, -0.5, 9.5, 0., 4000.)
+    hist["avgpulse", ichan] = ROOT.TProfile("AvgPulse_"+label, "AvgPulse_"+label, 10, -0.5, 9.5, 0., 8000.)
     for its in range(10):
         hist["charge", ichan, its] = ROOT.TH1F("Charge_"+label+"_ts"+str(its),
-                                               "Charge_"+label+"_ts"+str(its), 4000, 0., 4000.)
+                                               "Charge_"+label+"_ts"+str(its), 8000, 0., 8000.)
 
-    hist["e_4TS_noPS", ichan] = ROOT.TH1F("Energy_noPS_"+label,"Energy_noPS_"+label, 4000, 0., 4000.)                                          
-    hist["e_4TS_PS", ichan] = ROOT.TH1F("Energy_"+label,"Energy_"+label, 4000, 0., 4000.)                                          
+    hist["e_4TS_noPS", ichan] = ROOT.TH1F("Energy_noPS_"+label,"Energy_noPS_"+label, 8000, 0., 8000.)                                          
+    hist["e_4TS_PS", ichan] = ROOT.TH1F("Energy_"+label,"Energy_"+label, 8000, 0., 8000.)                                          
 
 for depth in [1,2,3,4,5,6,7,8,9]:
     hist["e_4TS_etaphi",depth] = ROOT.TProfile2D("Energy_Avg_depth"+str(depth),"Average Energy per event in each ieta,iphi for depth "+str(depth), 12, 14.5, 26.5, 16, 1.5, 17.5, 0., 4000.)
     hist["occupancy_event_etaphi",depth] = ROOT.TH2F("Occ_Event_depth_"+str(depth),"Fraction of Events with a hit in each ieta,iphi for depth "+str(depth), 12, 14.5, 26.5, 16, 1.5, 17.5) 
 
+for iphi in [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]:
+    hist["e_4TS_etadepth",iphi] = ROOT.TProfile2D("Energy_Avg_phi"+str(iphi),"Average Energy per event in each ieta,depth for iphi "+str(iphi), 12, 14.5, 26.5, 8, 0.5, 8.5, 0., 4000.)
+    
+    
 #Plot average 4TS energy sum (z-axis) in plane of track coords from WC C
 for ichan in chanlist:
     ieta = chanmap[ichan][0]
@@ -449,11 +453,8 @@ for ievt in xrange(nevts):
     # these are the (ieta,iphi,depth) that we expected to find
     # (from chanlist/chanmap) that never appeared in the data
     
-    if len(chansToFind) > 0:
-        print "Did not find channels"
-        print chansToFind, "."
-        #print "Exiting."
-        #sys.exit()
+    #if len(chansToFind) > 0:
+    #    print "Did not find channels ", chansToFind
         
     # Skip events with anomalously large pulses
     clean = True
@@ -524,6 +525,7 @@ for ievt in xrange(nevts):
             iphi = chanmap[ichan][1]
             depth = chanmap[ichan][2]
             hist["e_4TS_etaphi", depth].Fill(ieta, iphi, esum[ichan, "4TS_PS"])
+            hist["e_4TS_etadepth", iphi].Fill(ieta, depth, esum[ichan, "4TS_PS"])
             hist["occupancy_event_etaphi", depth].Fill(ieta,iphi,1./nevts)  #a bit ugly
                                                                                                                                                                 
             # Fill plot of wire chamber position for events with sufficient energy
