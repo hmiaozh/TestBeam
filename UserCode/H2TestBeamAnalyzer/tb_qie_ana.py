@@ -10,6 +10,7 @@ import ROOT
 import cProfile
 
 from tb_qie_utils import *
+from tb_chanmap import *
 
 def main():
 
@@ -33,9 +34,15 @@ def main():
     parser.add_option ('-n', '--nevents', dest='nevents', type='int',
                        default = -1,
                        help="Number of events to process (default: all)")
+    parser.add_option ('--start', dest='start', type='int',
+                       default = 0,
+                       help="Event number to start at (default: 0)")
     parser.add_option ('--sigTS', dest='sigTS', type='int',
                        default = 2,
                        help="Number of time samples to use as signal (default: 2)")
+    parser.add_option ('--linear', dest='linear',
+                       action='store_true', default = False,
+                       help="Turn on lineariziation of ADC counts")
     parser.add_option ('--verbose', dest='verbose', 
                        action='store_true', default=False,
                        help="Turn on verbose mode")
@@ -48,6 +55,8 @@ def main():
     verbose = options.verbose
     nevents = options.nevents
     sigTS = options.sigTS
+    start = options.start
+    linear = options.linear
 
     # Do some sanity checks
     if infile is None: 
@@ -110,7 +119,7 @@ def main():
     for depth in valid_depth:
         h_ped_ieta_v_iphi[depth] = ROOT.TH2D("h_ped_ieta_vs_iphi_depth%s"%(depth),"Pedestal in ieta vs iphi, for depth %s"%(depth),
                                              len(valid_ieta),valid_ieta[0],valid_ieta[-1]+1,
-                                             len(valid_iphi),valid_iphi[0],valid_iphi[-1]+1)
+                                             len(range(valid_iphi[0], valid_iphi[-1]+1)),valid_iphi[0],valid_iphi[-1]+1)
     # eta vs depth, for various phi
     h_ped_ieta_v_depth = {}
     for iphi in valid_iphi:
@@ -122,7 +131,7 @@ def main():
     for ieta in valid_ieta:
         h_ped_depth_v_iphi[ieta] = ROOT.TH2D("h_ped_depth_vs_iphi_ieta%s"%(ieta),"Pedestal in depth vs iphi, for ieta %s"%(ieta),
                                              len(valid_depth),valid_depth[0],valid_depth[-1]+1,
-                                             len(valid_iphi),valid_iphi[0],valid_iphi[-1]+1)
+                                             len(range(valid_iphi[0], valid_iphi[-1]+1)),valid_iphi[0],valid_iphi[-1]+1)
 
 
 
@@ -135,7 +144,7 @@ def main():
     for depth in valid_depth:
         h_sig_ieta_v_iphi[depth] = ROOT.TH2D("h_sig_ieta_vs_iphi_depth%s"%(depth),"Signal (2TS ave) in ieta vs iphi, for depth %s"%(depth),
                                              len(valid_ieta),valid_ieta[0],valid_ieta[-1]+1,
-                                             len(valid_iphi),valid_iphi[0],valid_iphi[-1]+1)
+                                             len(range(valid_iphi[0], valid_iphi[-1]+1)),valid_iphi[0],valid_iphi[-1]+1)
     # eta vs depth, for various phi
     h_sig_ieta_v_depth = {}
     for iphi in valid_iphi:
@@ -147,18 +156,22 @@ def main():
     for ieta in valid_ieta:
         h_sig_depth_v_iphi[ieta] = ROOT.TH2D("h_sig_depth_vs_iphi_ieta%s"%(ieta),"Signal (2TS ave) in depth vs iphi, for ieta %s"%(ieta),
                                              len(valid_depth),valid_depth[0],valid_depth[-1]+1,
-                                             len(valid_iphi),valid_iphi[0],valid_iphi[-1]+1)
+                                             len(range(valid_iphi[0], valid_iphi[-1]+1)),valid_iphi[0],valid_iphi[-1]+1)
 
     # SPY like plots
     h_pulse_per_channel = {}
-    for ichan in chanmap_inv:
+    max_pulse = 350000 if linear else 256
+    nbins_pulse = 700 if linear else 256
+    for ichan in chanmap:
+        if type(ichan) is not int:
+            continue
         h_pulse_per_channel[ichan] = ROOT.TH2D("h_pulse_channel_%s" % (ichan),
                                                "Pulse shape for channel %s, ieta %s, iphi %s, depth %s" % (ichan, 
-                                                                                                           chanmap_inv[ichan][1],
-                                                                                                           chanmap_inv[ichan][0],
-                                                                                                           chanmap_inv[ichan][2]),
+                                                                                                           chanmap[ichan][1],
+                                                                                                           chanmap[ichan][0],
+                                                                                                           chanmap[ichan][2]),
                                                10,0,10,
-                                               256,0,256)
+                                               256,0,max_pulse)
 
 
     # -----------------------
@@ -179,7 +192,7 @@ def main():
     # --  Event Loop  --
     # ------------------
 
-    nevts = ntp["qie11"].GetEntriesFast()
+    nevts = ntp["qie11"].GetEntriesFast() - start
     if nevents != -1 and nevents <= nevts:
         nevts_to_run = nevents
     else:
@@ -190,7 +203,7 @@ def main():
     shape_info = []
     chan_ordering = []
 
-    for ievt in xrange(nevts_to_run):
+    for ievt in xrange(start,start+nevts_to_run):
         if ievt % 100 == 0: print "Processing event ", ievt
     
         #######################
@@ -212,7 +225,7 @@ def main():
     
         if len(shape_info) == 0:
             # we have not initialized the list yet
-            shape_info = [[]]*len(chanmap)
+            shape_info = [[]]*len(chanlist)
             chan_ordering = [[]]*nChs
             
 
@@ -253,7 +266,7 @@ def main():
             h_capid_error.Fill(capid_error)
 
             # get pedestal value
-            ped = ntp["qie11"].ped[ichan]
+            ped = ntp["qie11"].pedcharge[ichan] if linear else ntp["qie11"].ped[ichan]
             pednorm = ped/nevts_to_run
             if verbose:
                 print "Pedestal:", ped
@@ -271,6 +284,7 @@ def main():
                 print "This is the pulse shape:"
                 print "ichan, numTS:", ichan, ntp["qie11"].numTS[ichan]
                 print ",".join([str(ntp["qie11"].pulse[s]) for s in xrange(start, start+nTS) ])
+                print ",".join([str(ntp["qie11"].pulsecharge[s]) for s in xrange(start, start+nTS) ])
                 print ",".join([str(ntp["qie11"].soi[s]) for s in xrange(start, start+nTS) ])
         
 
@@ -281,7 +295,7 @@ def main():
             soi = -1
             soi_offset = 1 # Can only be positive!
             for s in xrange(start,start+nTS):
-                pulse = ntp["qie11"].pulse[s]
+                pulse = ntp["qie11"].pulsecharge[s] if linear else ntp["qie11"].pulse[s]
                 shape_info[ishape][s-start][ievt] = pulse
                 h_pulse_per_channel[chanmap[(iphi,ieta,depth)]].Fill(s-start,pulse)
                 # find soi
@@ -309,7 +323,7 @@ def main():
 
     print "processing pulse shape"
 
-
+    #print len(chan_ordering), chan_ordering
     # Process the pulse shape information
     nchan = len(shape_info)
     nsamples = len(shape_info[0])
@@ -322,50 +336,52 @@ def main():
     h_median_pulse_per_channel = {}
     h_low_pulse_per_channel = {}
     h_high_pulse_per_channel = {}
-    for ichan in chanmap_inv:
+    for ichan in chanmap:
+        if type(ichan) is not int:
+            continue
         h_min_pulse_per_channel[ichan] = ROOT.TH1D("h_min_pulse_channel_%s" % (ichan),
                                                    "Min Pulse shape for channel %s, ieta %s, iphi %s, depth %s" % (ichan, 
-                                                                                                                   chanmap_inv[ichan][1],
-                                                                                                                   chanmap_inv[ichan][0],
-                                                                                                                   chanmap_inv[ichan][2]),
+                                                                                                                   chanmap[ichan][1],
+                                                                                                                   chanmap[ichan][0],
+                                                                                                                   chanmap[ichan][2]),
                                                    nsamples,0,nsamples)
         h_max_pulse_per_channel[ichan] = ROOT.TH1D("h_max_pulse_channel_%s" % (ichan),
                                                    "Max Pulse shape for channel %s, ieta %s, iphi %s, depth %s" % (ichan, 
-                                                                                                                   chanmap_inv[ichan][1],
-                                                                                                                   chanmap_inv[ichan][0],
-                                                                                                                   chanmap_inv[ichan][2]),
+                                                                                                                   chanmap[ichan][1],
+                                                                                                                   chanmap[ichan][0],
+                                                                                                                   chanmap[ichan][2]),
                                                    nsamples,0,nsamples)
         h_mean_pulse_per_channel[ichan] = ROOT.TH1D("h_mean_pulse_channel_%s" % (ichan),
                                                     "Mean Pulse shape for channel %s, ieta %s, iphi %s, depth %s" % (ichan, 
-                                                                                                                     chanmap_inv[ichan][1],
-                                                                                                                     chanmap_inv[ichan][0],
-                                                                                                                     chanmap_inv[ichan][2]),
+                                                                                                                     chanmap[ichan][1],
+                                                                                                                     chanmap[ichan][0],
+                                                                                                                     chanmap[ichan][2]),
                                                     nsamples,0,nsamples)
         h_median_pulse_per_channel[ichan] = ROOT.TH1D("h_median_pulse_channel_%s" % (ichan),
                                                       "Median Pulse shape for channel %s, ieta %s, iphi %s, depth %s" % (ichan, 
-                                                                                                                         chanmap_inv[ichan][1],
-                                                                                                                         chanmap_inv[ichan][0],
-                                                                                                                         chanmap_inv[ichan][2]),
+                                                                                                                         chanmap[ichan][1],
+                                                                                                                         chanmap[ichan][0],
+                                                                                                                         chanmap[ichan][2]),
                                                       nsamples,0,nsamples)
         h_low_pulse_per_channel[ichan] = ROOT.TH1D("h_low_pulse_channel_%s" % (ichan),
                                                    "Low Pulse shape for channel %s, ieta %s, iphi %s, depth %s" % (ichan, 
-                                                                                                                   chanmap_inv[ichan][1],
-                                                                                                                   chanmap_inv[ichan][0],
-                                                                                                                   chanmap_inv[ichan][2]),
+                                                                                                                   chanmap[ichan][1],
+                                                                                                                   chanmap[ichan][0],
+                                                                                                                   chanmap[ichan][2]),
                                                    nsamples,0,nsamples)
         h_high_pulse_per_channel[ichan] = ROOT.TH1D("h_high_pulse_channel_%s" % (ichan),
                                                     "High Pulse shape for channel %s, ieta %s, iphi %s, depth %s" % (ichan, 
-                                                                                                                     chanmap_inv[ichan][1],
-                                                                                                                     chanmap_inv[ichan][0],
-                                                                                                                     chanmap_inv[ichan][2]),
+                                                                                                                     chanmap[ichan][1],
+                                                                                                                     chanmap[ichan][0],
+                                                                                                                     chanmap[ichan][2]),
                                                     nsamples,0,nsamples)
+
 
 
     if verbose:
         print "-"*20,"\nPulse data summary: \n","-"*20
     for jchan, chan_info in enumerate(shape_info):
         ichan = chanmap[chan_ordering[jchan]]
-        print "jchan, ichan, (iphi, ieta, depth)", jchan, ichan, chan_ordering[jchan], chanmap_inv[ichan]
 
         if verbose:
             print "Channel", ichan
@@ -420,7 +436,10 @@ def main():
                              h_high_pulse_per_channel.values(),
                              h_pulse_per_channel.values()
                              ):
-        h.Write()
+        if linear:
+            h.Write(h.GetName()+"_linear")
+        else:
+            h.Write()
 
 
 

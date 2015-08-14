@@ -125,20 +125,23 @@ def getText(ip, ip2, E_base_phase=0):
 ###########################################
 
 # Valid depths
-valid_depth = [1,2,3,4,5,6]
+valid_depth = [1,2,3,4,5,6,7]
 # Valid ieta
-valid_ieta = [1,2,3,4,5,6,7,8]
+valid_ieta = [16,17,18,19,20,21,22,23,24,25]
 # Valid iphi
-valid_iphi = [69,71]
+valid_iphi = [5,6,11]
 
-chanmap = {}
-chanmap_inv = {}
+#chanmap = {}
+#chanmap_inv = {}
 #iphi ieta depth channelId
-c = 0
-for iphi, ieta, depth in itertools.product(valid_iphi, valid_ieta, valid_depth):
-  chanmap[iphi, ieta, depth] = c
-  chanmap_inv[c] = (iphi, ieta, depth)
-  c = c+1
+#c = 0
+#for iphi, ieta, depth in itertools.product(valid_iphi, valid_ieta, valid_depth):
+#  chanmap[iphi, ieta, depth] = c
+#  chanmap_inv[c] = (iphi, ieta, depth)
+#  c = c+1
+
+
+
 
 
 ####### OLD INFO ##########

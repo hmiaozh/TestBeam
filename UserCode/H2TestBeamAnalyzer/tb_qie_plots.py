@@ -25,12 +25,16 @@ parser.add_option ('-i', dest='infile', type='string',
 parser.add_option ('-r', dest='runnum', type='int',
                    default = None,
                    help="run number")
+parser.add_option ('--linear', dest='linear',
+                   action='store_true', default = False,
+                   help="Turn on lineariziation of ADC counts")
 
 options, args = parser.parse_args()
 
 infile = options.infile
 outdir = options.outdir
 runnum = options.runnum
+linear = options.linear
 
 # Do some sanity checks
 if infile is None: 
@@ -54,6 +58,7 @@ if runnum is None:
 # --  help output is not shown       --
 # -------------------------------------
 from tb_qie_utils import *
+from tb_chanmap import *
 
 # ------------------------
 # --  Set ROOT options  --
@@ -89,12 +94,16 @@ inputfile = ROOT.TFile.Open(infile)
 # create output file
 outputfile = ROOT.TFile.Open(outdir+"/plots_run_%s.root"%(runnum),"RECREATE")
 
+lin = ""
+if linear:
+    lin = "_linear"
+
 # ----------------------
 # --  Pedestal plots  --
 # ----------------------
 for depth in valid_depth:
-    h = inputfile.Get("h_ped_ieta_vs_iphi_depth%s"%(depth))
-    setHist2D(h, "ieta", "iphi", "pedestal (ADC)",
+    h = inputfile.Get("h_ped_ieta_vs_iphi_depth%s%s"%(depth,lin))
+    setHist2D(h, "ieta", "iphi", "pedestal (%s)" % ("fC" if linear else "ADC"),
               xoff=0.8, yoff=0.8, zoff=0.9)
     c = ROOT.TCanvas(h.GetName())
     c.SetRightMargin(0.15)
@@ -110,8 +119,8 @@ for depth in valid_depth:
      
 # eta vs depth, for various phi
 for iphi in valid_iphi:
-    h = inputfile.Get("h_ped_ieta_vs_depth_iphi%s"%(iphi))
-    setHist2D(h, "ieta", "depth", "pedestal (ADC)",
+    h = inputfile.Get("h_ped_ieta_vs_depth_iphi%s%s"%(iphi,lin))
+    setHist2D(h, "ieta", "depth", "pedestal (%s)" % ("fC" if linear else "ADC"),
               xoff=0.8, yoff=0.8, zoff=0.9)
     c = ROOT.TCanvas(h.GetName())
     c.SetRightMargin(0.15)
@@ -126,8 +135,8 @@ for iphi in valid_iphi:
 
 # depth vs phi, for various ieta
 for ieta in valid_ieta:
-    h = inputfile.Get("h_ped_depth_vs_iphi_ieta%s"%(ieta))
-    setHist2D(h, "depth", "iphi", "pedestal (ADC)",
+    h = inputfile.Get("h_ped_depth_vs_iphi_ieta%s%s"%(ieta,lin))
+    setHist2D(h, "depth", "iphi", "pedestal (%s)" % ("fC" if linear else "ADC"),
               xoff=0.8, yoff=0.8, zoff=0.9)
     c = ROOT.TCanvas(h.GetName())
     c.SetRightMargin(0.15)
@@ -146,8 +155,8 @@ for ieta in valid_ieta:
 # --------------------
 h_sig_ieta_v_iphi = {}
 for depth in valid_depth:
-    h = inputfile.Get("h_sig_ieta_vs_iphi_depth%s"%(depth))
-    setHist2D(h, "ieta", "iphi", "signal (ADC)",
+    h = inputfile.Get("h_sig_ieta_vs_iphi_depth%s%s"%(depth,lin))
+    setHist2D(h, "ieta", "iphi", "signal (%s)" % ("fC" if linear else "ADC"),
               xoff=0.8, yoff=0.8, zoff=0.9)
     c = ROOT.TCanvas(h.GetName())
     c.SetRightMargin(0.15)
@@ -163,8 +172,8 @@ for depth in valid_depth:
 # eta vs depth, for various phi
 h_sig_ieta_v_depth = {}
 for iphi in valid_iphi:
-    h = inputfile.Get("h_sig_ieta_vs_depth_iphi%s"%(iphi))
-    setHist2D(h, "ieta", "depth", "signal (ADC)",
+    h = inputfile.Get("h_sig_ieta_vs_depth_iphi%s%s"%(iphi,lin))
+    setHist2D(h, "ieta", "depth", "signal (%s)" % ("fC" if linear else "ADC"),
               xoff=0.8, yoff=0.8, zoff=0.9)
     c = ROOT.TCanvas(h.GetName())
     c.SetRightMargin(0.15)
@@ -180,8 +189,8 @@ for iphi in valid_iphi:
 # depth vs phi, for various ieta
 h_sig_depth_v_iphi = {}
 for ieta in valid_ieta:
-    h = inputfile.Get("h_sig_depth_vs_iphi_ieta%s"%(ieta))
-    setHist2D(h, "depth", "iphi", "signal (ADC)",
+    h = inputfile.Get("h_sig_depth_vs_iphi_ieta%s%s"%(ieta,lin))
+    setHist2D(h, "depth", "iphi", "signal (%s)" % ("fC" if linear else "ADC"),
               xoff=0.8, yoff=0.8, zoff=0.9)
     c = ROOT.TCanvas(h.GetName())
     c.SetRightMargin(0.15)
@@ -197,10 +206,12 @@ for ieta in valid_ieta:
 
 
 h_pulse_per_channel = {}
-for ichan in chanmap_inv:
-    iphi, ieta, depth = chanmap_inv[ichan]
-    h = inputfile.Get("h_pulse_channel_%s" % (ichan))
-    setHist2D(h, "BX", "ADC", "Events",
+for ichan in chanmap:
+    if type(ichan) is not int:
+        continue
+    iphi, ieta, depth = chanmap[ichan]
+    h = inputfile.Get("h_pulse_channel_%s%s" % (ichan,lin))
+    setHist2D(h, "BX", "Charge (fC)" if linear else "ADC", "Events",
               xoff=0.8, yoff=0.8, zoff=0.9)
     c = ROOT.TCanvas(h.GetName())
     c.SetRightMargin(0.15)
@@ -244,35 +255,38 @@ h_mean_pulse_per_channel = {}
 h_median_pulse_per_channel = {}
 h_low_pulse_per_channel = {}
 h_high_pulse_per_channel = {}
-for ichan in chanmap_inv:
-    h_min = inputfile.Get("h_min_pulse_channel_%s" % (ichan))
-    h_max = inputfile.Get("h_max_pulse_channel_%s" % (ichan))
-    h_mean = inputfile.Get("h_mean_pulse_channel_%s" % (ichan))
-    h_median = inputfile.Get("h_median_pulse_channel_%s" % (ichan))
-    h_low = inputfile.Get("h_low_pulse_channel_%s" % (ichan))
-    h_high = inputfile.Get("h_high_pulse_channel_%s" % (ichan))
+for ichan in chanmap:
+    if type(ichan) is not int:
+        continue
 
-    iphi, ieta, depth = chanmap_inv[ichan]
+    h_min = inputfile.Get("h_min_pulse_channel_%s%s" % (ichan,lin))
+    h_max = inputfile.Get("h_max_pulse_channel_%s%s" % (ichan,lin))
+    h_mean = inputfile.Get("h_mean_pulse_channel_%s%s" % (ichan,lin))
+    h_median = inputfile.Get("h_median_pulse_channel_%s%s" % (ichan,lin))
+    h_low = inputfile.Get("h_low_pulse_channel_%s%s" % (ichan,lin))
+    h_high = inputfile.Get("h_high_pulse_channel_%s%s" % (ichan,lin))
+
+    iphi, ieta, depth = chanmap[ichan]
 
     hmax = 20
     if h_max.GetMaximum() > 20:
         hmax = h_max.GetMaximum()*1.1
-    setHist(h_max, "TS", "ADC", 
+    setHist(h_max, "TS", "Pulse (%s)" % ("fC" if linear else "ADC"), 
             yrange_=[0, hmax],
             color=ROOT.kGray, width=3)
-    setHist(h_min, "TS", "ADC", 
+    setHist(h_min, "TS", "Pulse (%s)" % ("fC" if linear else "ADC"), 
             yrange_=[0, hmax],
             color=ROOT.kGray, width=3)
-    setHist(h_high, "TS", "ADC", 
+    setHist(h_high, "TS", "Pulse (%s)" % ("fC" if linear else "ADC"), 
             yrange_=[0, hmax],
             color=ROOT.kCyan-6, width=3)
-    setHist(h_low, "TS", "ADC", 
+    setHist(h_low, "TS", "Pulse (%s)" % ("fC" if linear else "ADC"), 
             yrange_=[0, hmax],
             color=ROOT.kCyan-6, width=3)
-    setHist(h_median, "TS", "ADC", 
+    setHist(h_median, "TS", "Pulse (%s)" % ("fC" if linear else "ADC"), 
             yrange_=[0, hmax],
             width=3)
-    setHist(h_mean, "TS", "ADC", 
+    setHist(h_mean, "TS", "Pulse (%s)" % ("fC" if linear else "ADC"), 
             yrange_=[0, hmax],
             style=7, width=3)
 
