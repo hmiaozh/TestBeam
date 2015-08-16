@@ -17,21 +17,36 @@ from math import exp, sqrt
 
 print "Getting options"
 
-parser = optparse.OptionParser("usage: %prog [options]\
-<input directory> \n")
+parser = optparse.OptionParser("usage: %prog [options] \n")
 
-parser.add_option ('--o', dest='outfile', type='string',
-                   default = 'none',
+parser.add_option ('-o', '--o', dest='outfile', type='string',
+                   default = None,
                    help="output file")
-parser.add_option ('--i', dest='infile', type='string',
-                   default = 'none',
-                   help="output directory")
-parser.add_option ('--r', dest='runnum', type='int',
+parser.add_option ('-i', '--i', dest='infile', type='string',
+                   default = None,
+                   help="input file")
+parser.add_option ('-r', '--r', dest='runnum', type='int',
                    default = -1,
-                   help="output directory")
+                   help="Run number")
 
 parser.add_option ('--doRefTile', action="store_true",
                    dest="doRefTile", default=False)
+
+parser.add_option ('-n', '--nevents', dest='nevents', type='int',
+                   default = -1,
+                   help="Number of events to process (default: all)")
+parser.add_option ('--start', dest='start', type='int',
+                   default = 0,
+                   help="Event number to start at (default: %default)")
+parser.add_option ('--sigTS', dest='sigTS', type='int',
+                   default = 4,
+                   help="Number of time samples to use as signal (default: %default)")
+parser.add_option ('--adc', dest='adc',
+                   action='store_true', default = False,
+                   help="Turn off lineariziation of ADC counts")
+parser.add_option ('--verbose', dest='verbose', 
+                   action='store_true', default=False,
+                   help="Turn on verbose mode")
 
 options, args = parser.parse_args()
 
@@ -39,6 +54,27 @@ infile = options.infile
 outfile = options.outfile
 runnum = options.runnum
 doRefTile = options.doRefTile
+verbose = options.verbose
+nevents = options.nevents
+sigTS = options.sigTS
+start = options.start
+adc = options.adc
+
+# Do some sanity checks
+if infile is None: 
+    print "You did not provide an input file! Exiting."
+    sys.exit()
+if outfile is None:
+    print "You did not provide an output file! Exiting."
+    sys.exit()
+if runnum is None:
+    print "You did not provide a run number! Exiting."
+    sys.exit()
+
+
+#######################
+#  Set ROOT options  
+#######################
 
 print "Setting ROOT options"
 ROOT.gROOT.SetBatch()
@@ -114,7 +150,11 @@ for iwc in wcList:
                 adjust[ixy, iwc, runnum] = -1.
             else:
                 adjust[ixy, iwc, runnum] = 1.
-                
+
+
+#######################
+# Read input data
+#######################
 
 file = ROOT.TFile(infile)
 #ntp = file.Get("HFData/Events;3")
@@ -124,10 +164,15 @@ ntp["hf"] = file.Get("HFData/Events")
 ntp["qie11"] = file.Get("QIE11Data/Events")
 ntp["wc"] = file.Get("WCData/Events")
 
+
+############################
+# Prepare for tree reading
+############################           
+
 vname = {}
 vname["hbhe"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse"]
 vname["hf"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse"]
-vname["qie11"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse", "ped", "capid_error", "soi"]
+vname["qie11"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse", "ped", "pulse_adc", "ped_adc", "capid_error", "link_error", "soi"]
 #vname["hf"] = ["numChs", "numTS", "iphi", "ieta", "depth"]
 #vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC", "xD", "yD", "xE", "yE"]
 vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC"]
@@ -143,7 +188,7 @@ shf = ROOT.hf_struct()
 for ivname in vname["hf"]:
     ntp["hf"].SetBranchAddress(ivname, ROOT.AddressOf(shf, ivname))
 
-ROOT.gROOT.ProcessLine("struct qie11_struct {Int_t numChs; Int_t numTS; Int_t iphi[120]; Int_t ieta[120]; Int_t depth[120]; Double_t pulse[6000]; Double_t ped[120]; bool capid_error[120]; bool soi[6000];};")  # Treat pulse like 1D array of length 120*50
+ROOT.gROOT.ProcessLine("struct qie11_struct {Int_t numChs; Int_t numTS; Int_t iphi[120]; Int_t ieta[120]; Int_t depth[120]; Double_t pulse[6000]; Double_t ped[120]; Double_t pulse_adc[6000]; Double_t ped_adc[120]; bool capid_error[120]; bool link_error[120]; bool soi[6000];};")  # Treat pulse like 1D array of length 120*50
 sqie11 = ROOT.qie11_struct()
 for ivname in vname["qie11"]:
     ntp["qie11"].SetBranchAddress(ivname, ROOT.AddressOf(sqie11, ivname))
@@ -191,7 +236,9 @@ for ichan in chanlist:
 ####################################################
 # Define histograms
 ####################################################
+
 hist = {}
+
 # Define wire chamber histograms
 for ip0 in wcList:
    # 2D histos for x vs y in each chamber
@@ -233,6 +280,8 @@ hist["dy_AC", "clean"] = ROOT.TH1F("h_dy_AC_clean", "h_dy_AC_clean", 400, -100.,
 #hist["dx_AE", "clean"] = ROOT.TH1F("h_dx_AE_clean", "h_dx_AE_clean", 400, -100., 100.)
 #hist["dy_AE", "clean"] = ROOT.TH1F("h_dy_AE_clean", "h_dy_AE_clean", 400, -100., 100.)
 
+
+# QIE11 histograms
 for ichan in chanlist:
     ieta = chanmap[ichan][0]
     iphi = chanmap[ichan][1]
@@ -245,13 +294,23 @@ for ichan in chanlist:
 
     hist["e_4TS_noPS", ichan] = ROOT.TH1F("Energy_noPS_"+label,"Energy_noPS_"+label, 8000, 0., 8000.)                                          
     hist["e_4TS_PS", ichan] = ROOT.TH1F("Energy_"+label,"Energy_"+label, 8000, 0., 8000.)                                          
+    hist["link_error", ichan] = ROOT.TH1F("Link_Error_"+label,"Link Errors for "+label,2,0,2)
 
-for depth in [1,2,3,4,5,6,7,8,9]:
-    hist["e_4TS_etaphi",depth] = ROOT.TProfile2D("Energy_Avg_depth"+str(depth),"Average Energy per event in each ieta,iphi for depth "+str(depth), 12, 14.5, 26.5, 16, 1.5, 17.5, 0., 4000.)
-    hist["occupancy_event_etaphi",depth] = ROOT.TH2F("Occ_Event_depth_"+str(depth),"Fraction of Events with a hit in each ieta,iphi for depth "+str(depth), 12, 14.5, 26.5, 16, 1.5, 17.5) 
+for depth in valid_depth:
+    hist["e_4TS_etaphi",depth] = ROOT.TProfile2D("Energy_Avg_depth"+str(depth),"Average Energy per event in each ieta,iphi for depth "+str(depth), 
+                                                 (valid_ieta[-1] - valid_ieta[0])+2, valid_ieta[0]-1.5, valid_ieta[-1]+1.5, 
+                                                 (valid_iphi[-1] - valid_iphi[0])+2, valid_iphi[0]-1.5, valid_iphi[-1]+1.5, 
+                                                 0., 4000.)
+    hist["occupancy_event_etaphi",depth] = ROOT.TH2F("Occ_Event_depth_"+str(depth),"Fraction of Events with a hit in each ieta,iphi for depth "+str(depth), 
+                                                     (valid_ieta[-1] - valid_ieta[0])+2, valid_ieta[0]-1.5, valid_ieta[-1]+1.5,
+                                                     (valid_iphi[-1] - valid_iphi[0])+2, valid_iphi[0]-1.5, valid_iphi[-1]+1.5)
 
-for iphi in [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]:
-    hist["e_4TS_etadepth",iphi] = ROOT.TProfile2D("Energy_Avg_phi"+str(iphi),"Average Energy per event in each ieta,depth for iphi "+str(iphi), 12, 14.5, 26.5, 8, 0.5, 8.5, 0., 4000.)
+for iphi in valid_iphi:
+    hist["e_4TS_etadepth",iphi] = ROOT.TProfile2D("Energy_Avg_phi"+str(iphi),"Average Energy per event in each ieta,depth for iphi "+str(iphi), 
+                                                  (valid_ieta[-1] - valid_ieta[0])+2, valid_ieta[0]-1.5, valid_ieta[-1]+1.5, 
+                                                  (valid_iphi[-1] - valid_iphi[0])+2, valid_iphi[0]-1.5, valid_iphi[-1]+1.5, 
+                                                  0., 4000.)
+    
     
     
 #Plot average 4TS energy sum (z-axis) in plane of track coords from WC C
@@ -278,9 +337,15 @@ esum = {}
 fillEplots = True
 
 print "Run %5i has %7i total events. " % (runnum, nevts)
-#nevts = 1 #use to limit the number of events for diagnostic purposes
-print "Processing ",nevts," events."    
-for ievt in xrange(nevts):
+
+# Run over all events starting from event 'start'
+nevts_to_run = nevts - start
+# If not running over all events (nevents != -1), check that there are a sufficient number, otherwise just run over all of it.
+if nevents != -1 and nevents <= (nevts - start):
+    nevts_to_run = nevents
+
+print "Processing ",nevts_to_run," events."    
+for ievt in xrange(start, start + nevts_to_run):
     if (ievt+1) % 1000 == 0: print "Processing Run %5i Event %7i" % (runnum, (ievt+1))
 
     #######################
@@ -428,6 +493,8 @@ for ievt in xrange(nevts):
     
     chansToFind = []
     for ichan in chanlist: chansToFind.append(chanmap[ichan])
+
+    if verbose: print "chansToFind:", chansToFind
     
     # rchan is the channel number associated with (ieta,iphi,depth) in the data
     # rchan probably doesn't equal ichan, which is just an index
@@ -437,19 +504,22 @@ for ievt in xrange(nevts):
             
     fchan = {}
     fread = {}
-    for rchan in range(shbhe.numChs):
+    for rchan in xrange(shbhe.numChs):
         test_chan = (shbhe.ieta[rchan], shbhe.iphi[rchan], shbhe.depth[rchan])
         if test_chan in chansToFind:
             chansToFind.remove(test_chan)
             fchan[chanmap[test_chan]] = rchan
 	    fread[rchan] = shbhe
-    for rchan in range(sqie11.numChs):
+    for rchan in xrange(sqie11.numChs):
         test_chan = (sqie11.ieta[rchan], sqie11.iphi[rchan], sqie11.depth[rchan])
         if test_chan in chansToFind:
             chansToFind.remove(test_chan)
             fchan[chanmap[test_chan]] = rchan
 	    fread[rchan] = sqie11
     
+    if verbose:
+        print "fchan:", fchan
+
     # these are the (ieta,iphi,depth) that we expected to find
     # (from chanlist/chanmap) that never appeared in the data
     
@@ -481,28 +551,58 @@ for ievt in xrange(nevts):
     charge = {} 
     energy = {}   
    
-    for ichan,rchan in fchan.items():
-               
-        # Pull charges and energies for each time sample
-        for its in range(10):
-            charge[ichan,its] = fread[rchan].pulse[rchan*50+its]  #[row][col] -> [row*n_cols + col]
-            energy[ichan,its] = charge[ichan,its]*calib[ichan]
+    for ichan,rchan in fchan.iteritems():
 
-        ped_ts_list = [0,1,2]   #time samples in which to sum charge for pedestals (0-2)    
-        ped_esum = 0.
-        for its in ped_ts_list:   
-            ped_esum += energy[ichan,its]
-        ped_avg = ped_esum/len(ped_ts_list)    
-        esum[ichan, "PED"] = ped_avg
+        if verbose:
+            print "processing ichan %s, rchan %s" % (ichan, rchan)
 
-        ts_list = [4,5,6,7]   #time samples in which to sum charge for signal (4-7)
+        # Pull charges and energies for each time sample, convert to fC when appropriate
+        nts = fread[rchan].numTS
+        for its in xrange(nts):
+            if adc:
+                charge[ichan,its] = fread[rchan].pulse_adc[rchan*50+its]  #[row][col] -> [row*n_cols + col]
+                energy[ichan,its] = charge[ichan,its]
+            else:
+                charge[ichan,its] = fread[rchan].pulse[rchan*50+its]  #[row][col] -> [row*n_cols + col]
+                energy[ichan,its] = charge[ichan,its]*calib[ichan]
+
+        if verbose:
+            print "charge: ", ",".join([str(charge[ichan,its]) for its in xrange(nts)])
+
+        # Pedestals are stored in the output for h2testbeamanalyzer
+        #ped_ts_list = [0,1,2]   #time samples in which to sum charge for pedestals (0-2)    
+        #ped_esum = 0.
+        #for its in ped_ts_list:   
+        #    ped_esum += energy[ichan,its]
+        #ped_avg = ped_esum/len(ped_ts_list)    
+        esum[ichan, "PED"] = fread[rchan].ped[rchan]*calib[ichan]
+        esum[ichan, "PED_ADC"] = fread[rchan].ped_adc[rchan]
+
+        if verbose:
+            print "Pedestal (fC) = %s" % (fread[rchan].ped[rchan])
+            print "Pedestal (ADC counts) = %s" % (fread[rchan].ped_adc[rchan])
+
+        # Compute signal and pedestal-subtracted signal
+        ts_list = xrange(4,4+sigTS) # [4,5,6,7]   #time samples in which to sum charge for signal (4-7 by default)
         sig_esum = 0.
         sig_esum_ps = 0.
         for its in ts_list:  
-            sig_esum += energy[ichan,its]
-            sig_esum_ps += energy[ichan,its]-ped_avg  #pedestal-subtracted energy  
+            if adc:
+                sig_esum += charge_adc[ichan,its]
+                sig_esum_ps += charge_adc[ichan,its] - esum[ichan, "PED_ADC"]  #pedestal-subtracted energy  
+            else:
+                sig_esum += energy[ichan,its]
+                sig_esum_ps += energy[ichan,its] - esum[ichan, "PED"]  #pedestal-subtracted energy  
         esum[ichan, "4TS_noPS"] = sig_esum
         esum[ichan, "4TS_PS"] = sig_esum_ps          
+
+        # Fill histograms
+        ####################
+
+        # Fill LinkError plot
+        if fillEplots:
+            hist["link_error", ichan].Fill(fread[rchan].link_error[rchan])
+
 
         # Fill pulse shape plot
         if fillEplots: 
@@ -581,8 +681,9 @@ print "Finished Run %5i." % runnum
 
 method = "recreate"
 outtfile = ROOT.TFile(outfile,method)
-for hist in sorted(hist.values()):
-    outtfile.Delete(hist.GetName()+";*")
-    hist.Write()
+
+for histo in sorted(hist.values()):
+    outtfile.Delete(histo.GetName()+";*")
+    histo.Write()
 outtfile.Close()
 

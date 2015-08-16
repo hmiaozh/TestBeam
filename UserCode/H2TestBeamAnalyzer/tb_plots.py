@@ -17,18 +17,17 @@ from math import exp, sqrt, log
 
 print "Getting options"
 
-parser = optparse.OptionParser("usage: %prog [options]\
-<input directory> \n")
+parser = optparse.OptionParser("usage: %prog [options] \n")
 
-parser.add_option ('--o', dest='outdir', type='string',
-                   default = 'none',
+parser.add_option ('-o', '--o', dest='outdir', type='string',
+                   default = None,
                    help="output directory")
-parser.add_option ('--i', dest='infile', type='string',
-                   default = 'none',
-                   help="output directory")
-parser.add_option ('--r', dest='runnum', type='int',
+parser.add_option ('-i', '--i', dest='infile', type='string',
+                   default = None,
+                   help="Input file")
+parser.add_option ('-r', '--r', dest='runnum', type='int',
                    default = 1,
-                   help="output directory")
+                   help="Run number")
 parser.add_option ('--pe_only', action="store_true",
                    dest="doPE", default=False)
 
@@ -41,7 +40,11 @@ doPE   = options.doPE
 infile = options.infile
 outdir = options.outdir
 runnum = options.runnum
-if outdir != "none":
+if infile is None:
+    print "You did not provide an input file! Exiting"
+    sys.exit()
+
+if outdir is not None:
     outdir += "/"
     if not os.path.isdir(outdir):
         os.system("mkdir -p "+outdir)
@@ -115,7 +118,7 @@ def setHistBasic(hist):
     hist.GetXaxis().SetNdivisions(406,1)
     return 0
 
-def setHist(hist, xtitle, ytitle, xrange, yrange, yoff, color=-1, style=-1):
+def setHist(hist, xtitle, ytitle, xrange_, yrange_, yoff, color=-1, style=-1):
     setHistBasic(hist)
     hist.GetYaxis().SetTitle(ytitle)
     hist.GetXaxis().SetTitle(xtitle)
@@ -125,13 +128,13 @@ def setHist(hist, xtitle, ytitle, xrange, yrange, yoff, color=-1, style=-1):
         hist.SetLineStyle(style)
     hist.SetLineWidth(2)
     hist.GetYaxis().SetTitleOffset(yoff)                                                                               
-    if yrange != 0:                                                                             
-        hist.GetYaxis().SetRangeUser(yrange[0], yrange[1])
-    if xrange != 0:
-        hist.GetXaxis().SetRangeUser(xrange[0], xrange[1])
+    if yrange_ != 0:                                                                             
+        hist.GetYaxis().SetRangeUser(yrange_[0], yrange_[1])
+    if xrange_ != 0:
+        hist.GetXaxis().SetRangeUser(xrange_[0], xrange_[1])
     return 0
 
-def setHist2D(hist, xtitle, ytitle, ztitle, xrange, yrange, zrange, xoff, yoff, zoff):
+def setHist2D(hist, xtitle, ytitle, ztitle, xrange_, yrange_, zrange_, xoff, yoff, zoff):
     setHistBasic(hist)
     hist.GetYaxis().SetTitle(ytitle)
     hist.GetXaxis().SetTitle(xtitle)
@@ -139,15 +142,15 @@ def setHist2D(hist, xtitle, ytitle, ztitle, xrange, yrange, zrange, xoff, yoff, 
     hist.GetYaxis().SetTitleOffset(yoff)                                                                               
     hist.GetXaxis().SetTitleOffset(xoff)                                                                               
     hist.GetZaxis().SetTitleOffset(zoff)                                                                               
-    if yrange != 0:                                                                             
-        hist.GetYaxis().SetRangeUser(yrange[0], yrange[1])
-    if xrange != 0:
-        hist.GetXaxis().SetRangeUser(xrange[0], xrange[1])
-    if zrange != 0:
-        hist.GetZaxis().SetRangeUser(zrange[0], zrange[1])
+    if yrange_ != 0:                                                                             
+        hist.GetYaxis().SetRangeUser(yrange_[0], yrange_[1])
+    if xrange_ != 0:
+        hist.GetXaxis().SetRangeUser(xrange_[0], xrange_[1])
+    if zrange_ != 0:
+        hist.GetZaxis().SetRangeUser(zrange_[0], zrange_[1])
     return 0
 
-def setGraph(hist, xtitle, ytitle, xrange, yrange, yoff, color, mstyle, msize):
+def setGraph(hist, xtitle, ytitle, xrange_, yrange_, yoff, color, mstyle, msize):
     hist.SetMarkerStyle(mstyle)
     hist.SetMarkerColor(color)
     hist.SetLineColor  (color)
@@ -166,10 +169,10 @@ def setGraph(hist, xtitle, ytitle, xrange, yrange, yoff, color, mstyle, msize):
     hist.GetXaxis().SetTitleFont(62)                                                                                   
     hist.GetYaxis().SetTitleFont(62)                                                                                   
     hist.GetXaxis().SetNdivisions(406,1)
-    if yrange != 0:                                                                             
-        hist.GetYaxis().SetRangeUser(yrange[0], yrange[1])
-    if xrange != 0:
-        hist.GetXaxis().SetRangeUser(xrange[0], xrange[1])
+    if yrange_ != 0:                                                                             
+        hist.GetYaxis().SetRangeUser(yrange_[0], yrange_[1])
+    if xrange_ != 0:
+        hist.GetXaxis().SetRangeUser(xrange_[0], xrange_[1])
     return 0
     
 def addHists(hist1, hist2, name):
@@ -253,20 +256,20 @@ for ichan in chanlist:
     depth = chanmap[ichan][2]
     label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
     hist["avgpulse", ichan] = tfile.Get("AvgPulse_"+label)
+    hist["linkerror", ichan] = tfile.Get("Link_Error_"+label)
     hist["e_4TS_PS", ichan] = tfile.Get("Energy_"+label) 
     hist["e_wcC"   , ichan] = tfile.Get("h_e_wcC_"+label)
     hist["e_wcC_x" , ichan] = tfile.Get("h_e_wcC_x_"+label)
     hist["e_wcC_y" , ichan] = tfile.Get("h_e_wcC_y_"+label)
 #    hist["e_4TS"   , ichan] = tfile.Get("h_e_4TS_chan"   +str(ichan))
 
-for depth in [1,2,3,4,5,6]:
+for depth in valid_depth:
     hist["e_4TS_etaphi",depth] = tfile.Get("Energy_Avg_depth"+str(depth))
     hist["occupancy_event_etaphi",depth] = tfile.Get("Occ_Event_depth_"+str(depth)) 
 
-for iphi in [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]:
+for iphi in valid_iphi:
     hist["e_4TS_etadepth",iphi] = tfile.Get("Energy_Avg_phi"+str(iphi))
     #hist["occupancy_event_etaphi",depth] = tfile.Get("Energy_Avg_phi"+str(iphi)) 
-
 
 ################################################################
 # Get Npe for all samples from counting zeros and average
@@ -335,7 +338,7 @@ pad = canv.GetPad(0)
 setPadPasMargin(pad,0.13)
 #pad.SetTopMargin(0.2)
 
-for depth in [1,2,3,4,5,6]:
+for depth in valid_depth:
     setHist2D(hist["occupancy_event_etaphi",depth], "X", "Y", "", 0, 0, 0, 0.9, 0.999999999, 0.1)
     #hist["e_4TS_etaphi",depth].GetListOfFunctions().Add(palette,"br")
     hist["occupancy_event_etaphi",depth].GetXaxis().SetTitle("ieta")
@@ -362,7 +365,7 @@ pad = canv.GetPad(0)
 setPadPasMargin(pad,0.13)
 #pad.SetTopMargin(0.2)
 
-for depth in [1,2,3,4,5,6]:
+for depth in valid_depth:
     setHist2D(hist["e_4TS_etaphi",depth], "X", "Y", "", 0, 0, 0, 0.9, 0.9, 0.1)
     #hist["e_4TS_etaphi",depth].GetListOfFunctions().Add(palette,"br")
     hist["e_4TS_etaphi",depth].GetXaxis().SetTitle("ieta")
@@ -386,7 +389,7 @@ pad = canv.GetPad(0)
 setPadPasMargin(pad,0.13)
 #pad.SetTopMargin(0.2)
 
-for iphi in [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]:
+for iphi in valid_iphi:
     setHist2D(hist["e_4TS_etadepth",iphi], "X", "Y", "", 0, 0, 0, 0.9, 0.9, 0.1)
     #hist["e_4TS_etadepth",iphi].GetListOfFunctions().Add(palette,"br")
     hist["e_4TS_etadepth",iphi].GetXaxis().SetTitle("ieta")
@@ -614,4 +617,35 @@ for ichan in chanlist:
     #    canv.SaveAs(outdir+cname+end)
 
 
+
+##################################
+# Link Error
+##################################
+cname = "f_link_error"
+canv = ROOT.TCanvas(cname, cname, 400, 424)
+pad = canv.GetPad(0)
+setPadPasMargin(pad)
+
+for ichan in chanlist:
+    ieta = chanmap[ichan][0]
+    iphi = chanmap[ichan][1]
+    depth = chanmap[ichan][2]
+
+    setHist(hist["linkerror", ichan], "Link Error", "# Events", 0, 0, 1.3)
+    hist["linkerror", ichan].Draw()
+    pad.Update()
+
+    textsize = 0.03; legx0 = 0.23; legx1 = 0.68; legy0 = 0.82; legy1 = 0.88
+    leg = ROOT.TLegend(legx0, legy0, legx1, legy1)
+    leg.SetFillColor(0)
+    leg.SetTextSize(textsize)
+    leg.SetColumnSeparation(0.0)
+    leg.SetEntrySeparation(0.1)
+    leg.SetMargin(0.2)
+
+    leg.AddEntry(hist["linkerror", ichan], "ieta="+str(ieta)+"  "+"iphi="+str(iphi)+"  "+"depth="+str(depth))
+    leg.Draw()
+        
+    for end in [".pdf", ".gif"]:
+        canv.SaveAs(outdir+cname+"_ieta"+str(ieta)+"_iphi"+str(iphi)+"_depth"+str(depth)+end)
 
