@@ -261,6 +261,13 @@ for ichan in chanlist:
     hist["e_wcC"   , ichan] = tfile.Get("h_e_wcC_"+label)
     hist["e_wcC_x" , ichan] = tfile.Get("h_e_wcC_x_"+label)
     hist["e_wcC_y" , ichan] = tfile.Get("h_e_wcC_y_"+label)
+    hist["e_wcC_noTScut"   , ichan] = tfile.Get("h_e_wcC_noTScut_"+label)
+    hist["e_wcC_x_noTScut" , ichan] = tfile.Get("h_e_wcC_x_noTScut_"+label)
+    hist["e_wcC_y_noTScut" , ichan] = tfile.Get("h_e_wcC_y_noTScut_"+label)
+    hist["e_wcC_efficiency"   , ichan] = tfile.Get("h_e_wcC_efficiency_"+label)
+    hist["e_wcC_x_efficiency" , ichan] = tfile.Get("h_e_wcC_x_efficiency_"+label)
+    hist["e_wcC_y_efficiency" , ichan] = tfile.Get("h_e_wcC_y_efficiency_"+label)
+
 #    hist["e_4TS"   , ichan] = tfile.Get("h_e_4TS_chan"   +str(ichan))
 
 for depth in valid_depth:
@@ -547,6 +554,7 @@ for ichan in chanlist:
     hist["e_wcC"   , ichan].GetZaxis().SetLabelSize(0.03)    
     hist["e_wcC"   , ichan].GetZaxis().SetTitleOffset(1.3)
     hist["e_wcC"   , ichan].Draw("colz")
+    
     for iedge in elist:
         ledge[iedge, ichan].Draw()
     textsize = 0.03; xstart = 0.2; ystart = 0.85
@@ -555,6 +563,87 @@ for ichan in chanlist:
     for end in [".pdf", ".gif"]:
         canv.SaveAs(outdir+cname+end)
 
+
+
+
+########################################
+## Plot noTScut in bins of WC C position #added by Abdollah
+########################################
+#
+ledge = {}
+elist = ["xL", "xH", "yL", "yH"]
+for ichan in chanlist:
+    ledge["xL", ichan] = ROOT.TLine(edges[ichan , runnum][0], -100., edges[ichan , runnum][0], 100.)
+    ledge["xH", ichan] = ROOT.TLine(edges[ichan , runnum][1], -100., edges[ichan , runnum][1], 100.)
+    ledge["yL", ichan] = ROOT.TLine(-100., edges[ichan , runnum][2], 100., edges[ichan , runnum][2])
+    ledge["yH", ichan] = ROOT.TLine(-100., edges[ichan , runnum][3], 100., edges[ichan , runnum][3])
+    for iedge in elist:
+        ledge[iedge, ichan].SetLineStyle(2)
+
+for ichan in chanlist:
+    ieta = chanmap[ichan][0]
+    iphi = chanmap[ichan][1]
+    depth = chanmap[ichan][2]
+    label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
+    cname = "e_energy_wcC_noTScut_"+label
+    canv = ROOT.TCanvas(cname, cname, 400, 424)
+    pad = canv.GetPad(0)
+    #    pad.SetLogz()
+    setPadPasMargin(pad, 0.25)
+    
+    setHist(hist["e_wcC_noTScut", ichan], "Wire Chamber C x (mm)", "Wire Chamber C y (mm)", 0, 0, 1.3)
+    hist["e_wcC_noTScut"   , ichan].GetZaxis().SetTitle("All events")
+    hist["e_wcC_noTScut"   , ichan].GetZaxis().SetLabelSize(0.03)
+    hist["e_wcC_noTScut"   , ichan].GetZaxis().SetTitleOffset(1.3)
+    hist["e_wcC_noTScut"   , ichan].Draw("colz")
+    for iedge in elist:
+        ledge[iedge, ichan].Draw()
+    textsize = 0.03; xstart = 0.2; ystart = 0.85
+    latex = ROOT.TLatex(); latex.SetNDC(); latex.SetTextAlign(12); latex.SetTextSize(textsize)
+    latex.DrawLatex(xstart, ystart, "ieta="+str(ieta)+"  "+"iphi="+str(iphi)+"  "+"depth="+str(depth))
+    for end in [".pdf", ".gif"]:
+        canv.SaveAs(outdir+cname+end)
+
+
+
+########################################
+## Plot efficiency in bins of WC C position  #added by Abdollah
+########################################
+#
+ledge = {}
+elist = ["xL", "xH", "yL", "yH"]
+for ichan in chanlist:
+    ledge["xL", ichan] = ROOT.TLine(edges[ichan , runnum][0], -100., edges[ichan , runnum][0], 100.)
+    ledge["xH", ichan] = ROOT.TLine(edges[ichan , runnum][1], -100., edges[ichan , runnum][1], 100.)
+    ledge["yL", ichan] = ROOT.TLine(-100., edges[ichan , runnum][2], 100., edges[ichan , runnum][2])
+    ledge["yH", ichan] = ROOT.TLine(-100., edges[ichan , runnum][3], 100., edges[ichan , runnum][3])
+    for iedge in elist:
+        ledge[iedge, ichan].SetLineStyle(2)
+
+for ichan in chanlist:
+    ieta = chanmap[ichan][0]
+    iphi = chanmap[ichan][1]
+    depth = chanmap[ichan][2]
+    label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
+    cname = "e_energy_wcC_efficiency_"+label
+    canv = ROOT.TCanvas(cname, cname, 400, 424)
+    pad = canv.GetPad(0)
+    #    pad.SetLogz()
+    setPadPasMargin(pad, 0.25)
+    
+    setHist(hist["e_wcC", ichan], "WC x (Efficiency)", "WC y (Efficiency)", 0, 0, 1.3)
+    hist["e_wcC"   , ichan].GetZaxis().SetTitle("Efficiency of Wire Chamber")
+    hist["e_wcC"   , ichan].Divide(hist["e_wcC_noTScut"   , ichan])
+    hist["e_wcC"   , ichan].GetZaxis().SetLabelSize(0.03)
+    hist["e_wcC"   , ichan].GetZaxis().SetTitleOffset(1.3)
+    hist["e_wcC"   , ichan].Draw("colz")
+    for iedge in elist:
+        ledge[iedge, ichan].Draw()
+    textsize = 0.03; xstart = 0.2; ystart = 0.85
+    latex = ROOT.TLatex(); latex.SetNDC(); latex.SetTextAlign(12); latex.SetTextSize(textsize);latex.SetTextColor(2)
+    latex.DrawLatex(xstart, ystart, "ieta="+str(ieta)+"  "+"iphi="+str(iphi)+"  "+"depth="+str(depth)+ "   'Efficiency'")
+    for end in [".pdf", ".gif"]:
+        canv.SaveAs(outdir+cname+end)
 
 #######################################
 # Plot 1D energy in bins of WC C position
