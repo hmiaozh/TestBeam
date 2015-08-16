@@ -263,6 +263,12 @@ for ichan in chanlist:
     hist["e_wcC"  , ichan] = ROOT.TH2F("h_e_wcC_"+label, "h_e_wcC_"+label  , 100 , -100., 100., 100, -100., 100.)
     hist["e_wcC_x", ichan] = ROOT.TH1F("h_e_wcC_x_"+label, "h_e_wcC_x_"+label, 400 , -100., 100.)
     hist["e_wcC_y", ichan] = ROOT.TH1F("h_e_wcC_y_"+label, "h_e_wcC_y_"+label, 400 , -100., 100.)
+    hist["e_wcC_noTScut"  , ichan] = ROOT.TH2F("h_e_wcC_noTScut_"+label, "h_e_wcC_noTScut_"+label  , 100 , -100., 100., 100, -100., 100.)
+    hist["e_wcC_x_noTScut", ichan] = ROOT.TH1F("h_e_wcC_x_noTScut_"+label, "h_e_wcC_x_noTScut_"+label, 400 , -100., 100.)
+    hist["e_wcC_y_noTScut", ichan] = ROOT.TH1F("h_e_wcC_y_noTScut_"+label, "h_e_wcC_y_noTScut_"+label, 400 , -100., 100.)
+    hist["e_wcC_ratio"  , ichan] = ROOT.TH2F("h_e_wcC_ratio_"+label, "h_e_wcC_ratio_"+label  , 100 , -100., 100., 100, -100., 100.)
+    hist["e_wcC_x_ratio", ichan] = ROOT.TH1F("h_e_wcC_x_ratio_"+label, "h_e_wcC_x_ratio_"+label, 400 , -100., 100.)
+    hist["e_wcC_y_ratio", ichan] = ROOT.TH1F("h_e_wcC_y_ratio_"+label, "h_e_wcC_y_ratio_"+label, 400 , -100., 100.)
 #    hist["e_4TS"  , ichan] = ROOT.TH1F("h_e_4TS_chan"+str(chanmap[ichan])  , "h_e_4TS_chan"+str(chanmap[ichan])  , 4002,  -0.5, 2000.5)
 #
 #    hist["e_4TS_withSCSN", ichan] = ROOT.TH1F("h_e_4TS_withSCSN_chan"+str(chanmap[ichan]),
@@ -527,7 +533,9 @@ for ievt in xrange(nevts):
             hist["e_4TS_etaphi", depth].Fill(ieta, iphi, esum[ichan, "4TS_PS"])
             hist["e_4TS_etadepth", iphi].Fill(ieta, depth, esum[ichan, "4TS_PS"])
             hist["occupancy_event_etaphi", depth].Fill(ieta,iphi,1./nevts)  #a bit ugly
-                                                                                                                                                                
+            
+            x_25=0
+            y_25=0
             # Fill plot of wire chamber position for events with sufficient energy
             if esum[ichan, "4TS_PS"]>25.:
                 x = adjust["x", refchamb, runnum]*vec["x"+refchamb].at(0)
@@ -535,6 +543,17 @@ for ievt in xrange(nevts):
                 hist["e_wcC"  , ichan].Fill(x,y)
                 hist["e_wcC_x", ichan].Fill(x)
                 hist["e_wcC_y", ichan].Fill(y)
+                x_25 = adjust["x", refchamb, runnum]*vec["x"+refchamb].at(0)
+                y_25 = adjust["y", refchamb, runnum]*vec["y"+refchamb].at(0)
+            
+            # Fill plot of wire chamber position for all events added by Abdollah
+            if esum[ichan, "4TS_PS"]>-100000:  # Fill all events
+                x = adjust["x", refchamb, runnum]*vec["x"+refchamb].at(0)
+                y = adjust["y", refchamb, runnum]*vec["y"+refchamb].at(0)
+                hist["e_wcC_noTScut"  , ichan].Fill(x,y)
+                hist["e_wcC_x_noTScut", ichan].Fill(x)
+                hist["e_wcC_y_noTScut", ichan].Fill(y)
+
 
 #
 #print "Fraction of events with N hits in each WC view"
