@@ -130,6 +130,9 @@ struct TQIE8Info
     int ieta[NUMCHS];
     int depth[NUMCHS];
     double pulse[NUMCHS][NUMTS];
+    double pulse_adc[NUMCHS][NUMTS];
+    double ped[NUMCHS];
+    double ped_adc[NUMCHS];
 };
 
 struct TQIE11Info
@@ -141,7 +144,10 @@ struct TQIE11Info
     int depth[NUMCHS];
     double pulse[NUMCHS][NUMTS];
     double ped[NUMCHS];
+    double pulse_adc[NUMCHS][NUMTS];
+    double ped_adc[NUMCHS];
     bool capid_error[NUMCHS];
+    bool link_error[NUMCHS];
     bool soi[NUMCHS][NUMTS];
 };
 
@@ -151,7 +157,7 @@ struct TQIE11Info
 struct H2Triggers
 {
     //
-    //	Standard Triggers
+    //  Standard Triggers
     //
     int ped;
     int led;
@@ -160,7 +166,7 @@ struct H2Triggers
     string str;
 
     //
-    //	Added for completeness
+    //  Added for completeness
     //
     int fakeTrg;
     int inSpillTrg;
@@ -309,6 +315,9 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeHBHE->Branch("ieta", _hbheInfo.ieta, "ieta[numChs]/I");
     _treeHBHE->Branch("depth", _hbheInfo.depth, "depth[numChs]/I");
     _treeHBHE->Branch("pulse", _hbheInfo.pulse, "pulse[numChs][50]/D");
+    _treeHBHE->Branch("ped", _hbheInfo.ped, "ped[numChs]/D");
+    _treeHBHE->Branch("pulse_adc", _hbheInfo.pulse_adc, "pulse_adc[numChs][50]/D");
+    _treeHBHE->Branch("ped_adc", _hbheInfo.ped_adc, "ped_adc[numChs][50]/D");
 
     _file->cd("HFData");
     _treeHF = new TTree("Events", "Events");
@@ -318,6 +327,9 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeHF->Branch("ieta", _hfInfo.ieta, "ieta[numChs]/I");
     _treeHF->Branch("depth", _hfInfo.depth, "depth[numChs]/I");
     _treeHF->Branch("pulse", _hfInfo.pulse, "pulse[numChs][50]/D");
+    _treeHF->Branch("pulse_adc", _hfInfo.pulse_adc, "pulse_adc[numChs][50]/D");
+    _treeHF->Branch("ped", _hfInfo.ped, "ped[numChs]/D");
+    _treeHF->Branch("ped_adc", _hfInfo.ped_adc, "ped_adc[numChs][50]/D");
 
     _file->cd("QIE11Data");
     _treeQIE11 = new TTree("Events", "Events");
@@ -328,7 +340,10 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeQIE11->Branch("depth", _qie11Info.depth, "depth[numChs]/I");
     _treeQIE11->Branch("pulse", _qie11Info.pulse, "pulse[numChs][50]/D");
     _treeQIE11->Branch("ped", _qie11Info.ped, "ped[numChs]/D");
+    _treeQIE11->Branch("pulse_adc", _qie11Info.pulse_adc, "pulse_adc[numChs][50]/D");
+    _treeQIE11->Branch("ped_adc", _qie11Info.ped_adc, "ped_adc[numChs]/D");
     _treeQIE11->Branch("capid_error", _qie11Info.capid_error, "capid_error[numChs]/O");
+    _treeQIE11->Branch("link_error", _qie11Info.link_error, "link_error[numChs]/O");
     _treeQIE11->Branch("soi", _qie11Info.soi, "soi[numChs][50]/O");
 
     _file->cd("Triggers");
@@ -415,12 +430,12 @@ H2TestBeamAnalyzer::~H2TestBeamAnalyzer()
 }
 
 void H2TestBeamAnalyzer::getData(const edm::Event &iEvent, 
-		const edm::EventSetup &iSetup)
+                const edm::EventSetup &iSetup)
 {
     using namespace edm;
 
     //
-    //	Extracting All the Collections containing useful Info
+    //  Extracting All the Collections containing useful Info
     //
     edm::Handle<HBHEDigiCollection> hbheDigiCollection;
     edm::Handle<HFDigiCollection> hfDigiCollection;
@@ -443,7 +458,7 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     iEvent.getByToken(tok_HcalTBTiming_,timing);
     
     //
-    //	Extract Trigger Info
+    //  Extract Trigger Info
     //
     _triggers.ped = 0;
     _triggers.led = 0;
@@ -468,11 +483,11 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
         _triggers.inSpillTrg = 1;
 
     //
-    //	Extract Event Position
+    //  Extract Event Position
     //
-//	double tableX = eventPos->hfTableX();
-//	double tableY = eventPos->hfTableY();
-//	double tableV = eventPos->hfTableV();
+//      double tableX = eventPos->hfTableX();
+//      double tableY = eventPos->hfTableY();
+//      double tableV = eventPos->hfTableV();
     vector<double> xxx, yyy;
     eventPos->getChamberHits('A', xxx, yyy);
     wcX[0] = xxx;
@@ -515,9 +530,9 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
 
 
     //
-    //	Extract Beam Counters Info
+    //  Extract Beam Counters Info
     //
-    _BCData.cer1adc = beamCounters->CK1adc();	
+    _BCData.cer1adc = beamCounters->CK1adc();   
     _BCData.cer2adc = beamCounters->CK2adc();
     _BCData.cer3adc = beamCounters->CK3adc();
     _BCData.s1adc = beamCounters->S1adc();
@@ -531,7 +546,7 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     s4->Fill(_BCData.s4adc);
 
     //
-    //	Extract Timing Info	
+    //  Extract Timing Info     
     //
     _timing.s1Count = timing->S1Count();
     _timing.s2Count = timing->S2Count();
@@ -539,7 +554,7 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     _timing.s4Count = timing->S4Count();
     _timing.triggerTime = timing->triggerTime();
     _timing.ttcL1Atime = timing->ttcL1Atime();
-	
+        
     int numChs = 0;
     if (_verbosity>0)
     {
@@ -580,7 +595,7 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
             << "### S3Count: " << _timing.s3Count << endl
             << "### S4Count: " << _timing.s4Count << endl;
     }
-	
+        
     for (HBHEDigiCollection::const_iterator digi=hbheDigiCollection->begin();
          digi!=hbheDigiCollection->end(); ++digi)
     {
@@ -617,16 +632,26 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
         }
         
         //
-        //	Set the Branched arrays
+        //      Set the Branched arrays
         //
         _hbheInfo.iphi[numChs] = iphi;
         _hbheInfo.ieta[numChs] = ieta;
         _hbheInfo.depth[numChs] = depth;
         _hbheInfo.numTS = nTS;
-        
+	_hbheInfo.ped[numChs] = 0;
+        _hbheInfo.ped_adc[numChs] = 0;
+
         for (int iTS=0; iTS<nTS; iTS++)
+        {
             _hbheInfo.pulse[numChs][iTS] = adc2fC[digi->sample(iTS).adc()&0xff];
-        
+            _hbheInfo.pulse_adc[numChs][iTS] = digi->sample(iTS).adc()&0xff;
+            if (iTS < 3)
+            {
+                _hbheInfo.ped[numChs] += adc2fC[digi->sample(iTS).adc()&0xff];
+                _hbheInfo.ped_adc[numChs] += digi->sample(iTS).adc()&0xff;
+	    }
+        }
+
         if (_verbosity>1)
         {
             cout << "### Digi->Data:" << endl;
@@ -642,7 +667,7 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
 
     
     for (HFDigiCollection::const_iterator digi=hfDigiCollection->begin();
-			digi!=hfDigiCollection->end(); ++digi)
+                        digi!=hfDigiCollection->end(); ++digi)
     {
 
         int iphi = digi->id().iphi();
@@ -677,15 +702,25 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
         }
 
         //
-        //	Set the Branched arrays
+        //      Set the Branched arrays
         //
         _hfInfo.iphi[numChs] = iphi;
         _hfInfo.ieta[numChs] = ieta;
         _hfInfo.depth[numChs] = depth;
         _hfInfo.numTS = nTS;
+	_hfInfo.ped[numChs] = 0;
+        _hfInfo.ped_adc[numChs] = 0;
 
         for (int iTS=0; iTS<nTS; iTS++)
-            _hfInfo.pulse[numChs][iTS] = adc2fC[digi->sample(iTS).adc()&0xff];
+	{
+	    _hfInfo.pulse[numChs][iTS] = adc2fC[digi->sample(iTS).adc()&0xff];
+	    _hfInfo.pulse_adc[numChs][iTS] = digi->sample(iTS).adc()&0xff;
+            if (iTS < 3)
+            {
+                _hfInfo.ped[numChs] += adc2fC[digi->sample(iTS).adc()&0xff];
+                _hfInfo.ped_adc[numChs] += digi->sample(iTS).adc()&0xff;
+	    }
+	}
 
         if (_verbosity>1)
         {
@@ -706,7 +741,7 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     
     // This does not work:
     // for (QIE11DigiCollection::const_iterator digi=qie11DigiCollection->begin();
-    // 	 digi!=qie11DigiCollection->end(); ++digi)
+    //   digi!=qie11DigiCollection->end(); ++digi)
     //   cout << digi->samples() << endl;
     // But this apparently does..
     
@@ -756,6 +791,7 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
             Converter Convertadc2fC;
             float charge = Convertadc2fC.linearize(adc);
             _qie11Info.pulse[j][i] = charge;
+            _qie11Info.pulse_adc[j][i] = adc;
             _qie11Info.soi[j][i] = soi;
 
             if (_verbosity>0)
@@ -782,8 +818,9 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
         _qie11Info.ieta[j] = ieta;
         _qie11Info.depth[j] = depth;
         _qie11Info.ped[j] = ped_fc;
+        _qie11Info.ped_adc[j] = ped_adc;
         _qie11Info.capid_error[j] = qie11dc[j].capidError();
-        
+        _qie11Info.link_error[j] = qie11dc[j].linkError();
     }
 
     _qie11Info.numChs = qie11dc.size();
@@ -835,8 +872,8 @@ H2TestBeamAnalyzer::beginJob()
 void 
 H2TestBeamAnalyzer::endJob() 
 {
-//	_file->Write();
-//	_file->Close();
+//      _file->Write();
+//      _file->Close();
 }
 
 // ------------ method called when starting to processes a run  ------------
@@ -849,8 +886,8 @@ H2TestBeamAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&)
 void 
 H2TestBeamAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
 {
-//	_file->Write();
-//	_file->Close();
+//      _file->Write();
+//      _file->Close();
 }
 
 // ------------ method called when starting to processes a luminosity block  ------------
