@@ -109,7 +109,10 @@ def getText(ip, ip2, E_base_phase=0):
     return outText
 
 
-
+# Valid ieta, iphi and depth
+valid_ieta = xrange(16,27)
+valid_iphi = [3,4,5,6,8,10,11,13,14,15,16]
+valid_depth = xrange(1,8)
 
 calib = {}
 for channum in chanlist:
