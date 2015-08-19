@@ -100,32 +100,34 @@ for fileName in fileList:
     name = os.path.basename(fileName)
     
     #Check if file is an HTB*.root file
-    if len(name) == 15 and name[:3] == "HTB" and name[-5:] == ".root":
-        
-        stdoutf = open(os.devnull, 'wb') if mute else None
-        rsyncopt = "-q" if mute else "-v"
-        runNum = fileName[16:-5]
-        ana = "ana_h2_tb_run%s.root" % runNum
-        ana2 = "ana_tb_out_run%s.root" % str(int(runNum))
-        plotsDir = "tb_plots_run%s" % str(int(runNum))
-        
-        if verbose:
-            subprocess.call(["cmsRun", "h2testbeamanalyzer_cfg_verbose.py", runNum], stdout=stdoutf)
-        else:
-            subprocess.call(["cmsRun", "h2testbeamanalyzer_cfg.py", runNum], stdout=stdoutf)
-        subprocess.call(["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum))], stdout=stdoutf)
-        subprocess.call(["rm", "-rf", plotsDir], stdout=open(os.devnull, 'wb'))
-        print "Generating plots for run " + runNum
-        subprocess.call(["./tb_plots.py", "--i", ana2, "--o", plotsDir, "--r", str(int(runNum))], stdout=stdoutf)
-        print "Generating html for run " + runNum
-        subprocess.call(["./makeHtml.py", plotsDir], stdout=stdoutf)
-        print "Moving results of run " + runNum
-        subprocess.call(["rsync", "-a", rsyncopt, "--delete", plotsDir, destination], stdout=stdoutf)
-        subprocess.call(["rm", name])
-        
-        if delete:
-            subprocess.call(["rm", ana])
-            subprocess.call(["rm", ana2])
-            subprocess.call(["rm", "-rf", plotsDir])
-        print "Finished processing run %s. Results at http://cmshcalweb01.cern.ch/hcalTB/Analysis/%s" % (runNum, plotsDir)
+    if not (len(name) == 15 and name[:3] == "HTB" and name[-5:] == ".root"):
+        continue
+    
+    stdoutf = open(os.devnull, 'wb') if mute else None
+    rsyncopt = "-q" if mute else "-v"
+    runNum = fileName[16:-5]
+    ana = "ana_h2_tb_run%s.root" % runNum
+    ana2 = "ana_tb_out_run%s.root" % str(int(runNum))
+    plotsDir = "tb_plots_run%s" % str(int(runNum))
+    
+    if verbose:
+        subprocess.call(["cmsRun", "h2testbeamanalyzer_cfg_verbose.py", runNum], stdout=stdoutf)
+    else:
+        subprocess.call(["cmsRun", "h2testbeamanalyzer_cfg.py", runNum], stdout=stdoutf)
+    subprocess.call(["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum))], stdout=stdoutf)
+    subprocess.call(["rm", "-rf", plotsDir], stdout=open(os.devnull, 'wb'))
+    print "Generating plots for run " + runNum
+    subprocess.call(["./tb_plots.py", "--i", ana2, "--o", plotsDir, "--r", str(int(runNum))], stdout=stdoutf)
+    print "Generating html for run " + runNum
+    subprocess.call(["./makeHtml.py", plotsDir], stdout=stdoutf)
+    print "Moving results of run " + runNum
+    subprocess.call(["rsync", "-a", rsyncopt, "--delete", plotsDir, destination], stdout=stdoutf)
+    subprocess.call(["rm", name])
+    
+    if delete:
+        subprocess.call(["rm", ana])
+        subprocess.call(["rm", ana2])
+        subprocess.call(["rm", "-rf", plotsDir])
+    
+    print "Finished processing run %s. Results at http://cmshcalweb01.cern.ch/hcalTB/Analysis/%s" % (runNum, plotsDir)
 
