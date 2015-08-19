@@ -104,7 +104,6 @@ for fileName in fileList:
         continue
     
     stdoutf = open(os.devnull, 'wb') if mute else None
-    rsyncopt = "-q" if mute else "-v"
     runNum = fileName[16:-5]
     ana = "ana_h2_tb_run%s.root" % runNum
     ana2 = "ana_tb_out_run%s.root" % str(int(runNum))
@@ -121,7 +120,7 @@ for fileName in fileList:
     print "Generating html for run " + runNum
     subprocess.call(["./makeHtml.py", plotsDir], stdout=stdoutf)
     print "Moving results of run " + runNum
-    subprocess.call(["rsync", "-a", rsyncopt, "--delete", plotsDir, destination], stdout=stdoutf)
+    subprocess.call(["rsync", "-aq", "--delete", plotsDir, destination], stdout=stdoutf)
     subprocess.call(["rm", name])
     
     if delete:
