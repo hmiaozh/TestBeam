@@ -33,7 +33,7 @@ options, args = parser.parse_args()
 
 if len(args) != 1:
     print "Please specify input dir.  Exiting."
-    sys.exit()
+    sys.exit(1)
 
 indir  = args[0]+"/"
 title = options.title
@@ -47,8 +47,13 @@ rowWidth = options.rowWidth
 ##############################################
 if not os.path.isdir(indir) :
     print "Cannot find %s.  Exiting." % infile
-    sys.exit()
+    sys.exit(1)
 
+print "Input directory: " + indir
+os.chdir(indir)
+
+#if os.path.isfile("index.html") :
+#    print "%s already exists.  Exiting." % indir+"index.html"
 
 if title == "make":
     print indir
@@ -59,48 +64,38 @@ if title == "make":
     title = sindir[len(sindir)-1]
     print len(sindir)-1
     print title
-#if os.path.isfile(indir+"index.html") :
-#    print "%s already exists.  Exiting." % indir+"index.html"
 
-files = glob.glob(indir+'*'+ext)
+# generate HTML code and prepare thumbnails
+html = ""
+html += "<html>\n"
+html += "<head>\n"
+html += "<title>" + title +"</title>\n"
+html += "</head>\n"
+html += "<body>\n"
+html += "<h1>" + title + "</h1>\n"
+html += "<hr>\n"
+
+files = glob.glob('*' + ext)
 files.sort()
 
 for file in files:
-    base = os.path.splitext(file)[0]
     print "Processing", file
     
-    command = "convert %s.%s -resize %sx%s %s_small.%s" % (base, img, size, size, base, img)
-    #    command = "cp %s.%s %s_small.%s" % (base, img, base, img)
-    os.system(command)
-
-
-os.system("rm -f "+indir+"index.html")
-os.system("touch "+indir+"index.html")
-findex = open(indir+"index.html","w")
-
-print >> findex, "<h1> "+title+"</h1>"
-print >> findex, "<hr>\n"
-print >> findex, "<table>"
-
-
-if rowWidth == -1:
-    if int(size) <= 300:
-        rowWidth = 3
-    else:
-        rowWidth = 2
+    base = os.path.splitext(file)[0]
+    fname = "%s.%s" % (base, img)
+    fsmall = "%s_small.%s" % (base, img)
+    flink = "%s.%s" % (base, ext)
     
-nfile = 0
-for file in files:
-    base = os.path.basename(file).split("."+ext)[0]
+    command = "convert %s -resize %sx%s %s" % (fname, size, size, fsmall)
+    os.system(command)
+    html += '<a href="%s"><img src="%s"></a>\n' % (flink, fsmall)
 
-    if nfile == 0: print >> findex, "<tr>"
-    elif nfile % rowWidth == 0: print >> findex, "</tr>\n<tr>"
+html += "</body>\n"
+html += "</html>\n"
 
-    print >> findex, '<td><a href="%s.%s"><img src="%s_small.%s"></a></td>' % (base, ext, base, img)
-    nfile += 1
+# write out the index.html content
+findex = open("index.html", "w")
+findex.truncate()
+findex.write(html)
+findex.close()
 
-print >> findex, "</tr>\n</table>\n"
-
-
-
-findex.close()     
