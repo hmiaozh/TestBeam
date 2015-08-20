@@ -51,6 +51,10 @@ if outdir is not None:
 
 
 print "Setting ROOT options"
+
+# turn off 'Info' messages from ROOT
+ROOT.gErrorIgnoreLevel = ROOT.kWarning
+
 ROOT.gROOT.SetBatch()
 ROOT.gROOT.SetStyle("Plain")
 #ROOT.gStyle.SetOptStat(111111111)
@@ -198,6 +202,8 @@ def getText(ip, ip2, E_base_phase=0):
         outText.append("timed in for "+uA2gev[E_base_phase, "t"]+" GeV")
         #outText.append("phase = "+str(out_phase[E_base_phase])+" ns")
     return outText
+
+print "Generating plots..."
 
 # choose channel to plot along side all other channels in E_4TS  plots
 refChan = 1
