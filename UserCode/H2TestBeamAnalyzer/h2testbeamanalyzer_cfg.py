@@ -5,7 +5,7 @@ process = cms.Process("H2TestBeam")
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(5000) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 #
 #   Command Line Input(Copied from DQM for now)
@@ -93,7 +93,7 @@ process.es_ascii = cms.ESSource('HcalTextCalibrations',
                cms.PSet(
                 object = cms.string('ElectronicsMap'),
                 #file = cms.FileInPath('UserCode/H2TestBeamAnalyzer/EMAP_H2_VME_uHTR_04AUG2015.txt')  # EMAP here!
-                file = cms.FileInPath('UserCode/H2TestBeamAnalyzer/EMAP-QIE11-L00-18AUG2015.txt')
+                file = cms.FileInPath('UserCode/H2TestBeamAnalyzer/EMAP-QIE11-L00-19AUG2015-01.txt')
                )
         )
 )
