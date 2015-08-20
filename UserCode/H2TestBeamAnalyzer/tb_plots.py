@@ -495,6 +495,7 @@ canv = ROOT.TCanvas(cname, cname, 400, 424)
 pad = canv.GetPad(0)
 setPadPasMargin(pad)
 pad.SetLogy()
+pad.SetLogx(True)
 
 for ichan in chanlist:
     ieta = chanmap[ichan][0]
@@ -503,14 +504,14 @@ for ichan in chanlist:
 
     setHist(hist["e_4TS_PS", ichan], "Energy (uncalibrated)", "# Events", 0, 0, 1.3, pstyle[22, "col"])
     #hist["energy", ichan].GetXaxis().SetNdivisions(10,1)
-    max_x_bin = hist["e_4TS_PS", ichan].FindLastBinAbove(0)
-    use_max = 1000
-    if max_x_bin < 500: use_max = 500
-    if max_x_bin < 100: use_max = 100
-    if use_max == 1000: hist["e_4TS_PS", ichan].Rebin(10)
-    if use_max == 500: hist["e_4TS_PS", ichan].Rebin(5)
+    #max_x_bin = hist["e_4TS_PS", ichan].FindLastBinAbove(0)
+    #use_max = 1000
+    #if max_x_bin < 500: use_max = 500
+    #if max_x_bin < 100: use_max = 100
+    #if use_max == 1000: hist["e_4TS_PS", ichan].Rebin(10)
+    #if use_max == 500: hist["e_4TS_PS", ichan].Rebin(5)
     
-    hist["e_4TS_PS", ichan].GetXaxis().SetRangeUser(1,use_max)
+    #hist["e_4TS_PS", ichan].GetXaxis().SetRangeUser(1,use_max)
     hist["e_4TS_PS", ichan].SetStats(True)
     hist["e_4TS_PS", ichan].Draw()
     pad.Update()
