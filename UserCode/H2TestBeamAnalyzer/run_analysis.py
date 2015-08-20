@@ -110,18 +110,18 @@ for fileName in fileList:
     plotsDir = "tb_plots_run%s" % str(int(runNum))
     
     if verbose:
-        subprocess.call(["cmsRun", "h2testbeamanalyzer_cfg_verbose.py", runNum], stdout=stdoutf)
+        subprocess.check_call(["cmsRun", "h2testbeamanalyzer_cfg_verbose.py", runNum], stdout=stdoutf)
     else:
-        subprocess.call(["cmsRun", "h2testbeamanalyzer_cfg.py", runNum], stdout=stdoutf)
-    subprocess.call(["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum))], stdout=stdoutf)
-    subprocess.call(["rm", "-rf", plotsDir], stdout=open(os.devnull, 'wb'))
+        subprocess.check_call(["cmsRun", "h2testbeamanalyzer_cfg.py", runNum], stdout=stdoutf)
+    subprocess.check_call(["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum))], stdout=stdoutf)
+    subprocess.call(["rm", "-rf", plotsDir])
     print "Generating plots for run " + runNum
-    subprocess.call(["./tb_plots.py", "--i", ana2, "--o", plotsDir, "--r", str(int(runNum))], stdout=stdoutf)
+    subprocess.check_call(["./tb_plots.py", "--i", ana2, "--o", plotsDir, "--r", str(int(runNum))], stdout=stdoutf)
     print "Generating html for run " + runNum
-    subprocess.call(["./makeHtml.py", plotsDir], stdout=stdoutf)
+    subprocess.check_call(["./makeHtml.py", plotsDir], stdout=stdoutf)
     print "Moving results of run " + runNum
-    subprocess.call(["rsync", "-aq", "--delete", plotsDir, destination], stdout=stdoutf)
-    subprocess.call(["rm", name])
+    subprocess.check_call(["rsync", "-aq", "--delete", plotsDir, destination], stdout=stdoutf)
+    #subprocess.call(["rm", name])
     
     if delete:
         subprocess.call(["rm", ana])
