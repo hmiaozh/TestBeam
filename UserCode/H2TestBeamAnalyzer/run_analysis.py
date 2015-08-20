@@ -119,6 +119,7 @@ for fileName in fileList:
     subprocess.check_call(["./tb_plots.py", "--i", ana2, "--o", plotsDir, "--r", str(int(runNum))], stdout=stdoutf)
     print "Generating html for run " + runNum
     subprocess.check_call(["./makeHtml.py", plotsDir], stdout=stdoutf)
+    subprocess.check_call(["./makeMenu.sh", plotsDir], stdout=stdoutf)
     print "Moving results of run " + runNum
     subprocess.check_call(["rsync", "-aq", "--delete", plotsDir, destination], stdout=stdoutf)
     #subprocess.call(["rm", name])
