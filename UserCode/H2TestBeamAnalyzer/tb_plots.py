@@ -51,6 +51,10 @@ if outdir is not None:
 
 
 print "Setting ROOT options"
+
+# turn off 'Info' messages from ROOT
+ROOT.gErrorIgnoreLevel = ROOT.kWarning
+
 ROOT.gROOT.SetBatch()
 ROOT.gROOT.SetStyle("Plain")
 #ROOT.gStyle.SetOptStat(111111111)
@@ -198,6 +202,8 @@ def getText(ip, ip2, E_base_phase=0):
         outText.append("timed in for "+uA2gev[E_base_phase, "t"]+" GeV")
         #outText.append("phase = "+str(out_phase[E_base_phase])+" ns")
     return outText
+
+print "Generating plots..."
 
 # choose channel to plot along side all other channels in E_4TS  plots
 refChan = 1
@@ -435,21 +441,31 @@ for ichan in chanlist:
 for etaphi in etaphipairs.keys():
 
     number_of_depths = len(etaphipairs[etaphi])
-    textsize = 0.03; legx0 = 0.3; legx1 = 0.80; legy0 = 0.97 - 0.03*number_of_depths; legy1 = 1.00
+    textsize = 0.028; legx0 = 0.18; legx1 = 0.58; legy0 = 0.895-0.015*number_of_depths; legy1 = 0.895+0.015*number_of_depths
     leg = ROOT.TLegend(legx0, legy0, legx1, legy1)
     leg.SetFillColor(0)
     leg.SetTextSize(textsize)
-    leg.SetColumnSeparation(0.0)
-    leg.SetEntrySeparation(0.1)
+    #leg.SetNColumns(2)
+    leg.SetColumnSeparation(0.03)
+    leg.SetEntrySeparation(0.05)
     leg.SetMargin(0.2)
     
     first = True
+
+    maxy = 100.
+    for depth in sorted(etaphipairs[etaphi]):
+        ieta = etaphi[0]
+        iphi = etaphi[1]
+        ichan = chanmap[(ieta,iphi,depth)]
+        maxy = max(maxy,hist["avgpulse", ichan].GetMaximum())
+  
     for depth in sorted(etaphipairs[etaphi]):
         ieta = etaphi[0]
         iphi = etaphi[1]
         ichan = chanmap[(ieta,iphi,depth)]
                 
         setHist(hist["avgpulse", ichan], "Time sample", "Charge (fC)", 0, (0.,2400.), 1.3, depth_color_table[depth])
+        hist["avgpulse", ichan].SetMaximum(1.20 * maxy)
         hist["avgpulse", ichan].GetXaxis().SetNdivisions(10,1)
         hist["avgpulse", ichan].GetXaxis().SetLabelSize(0.035)
         hist["avgpulse", ichan].GetYaxis().SetLabelSize(0.035)
@@ -479,6 +495,7 @@ canv = ROOT.TCanvas(cname, cname, 400, 424)
 pad = canv.GetPad(0)
 setPadPasMargin(pad)
 pad.SetLogy()
+pad.SetLogx(True)
 
 for ichan in chanlist:
     ieta = chanmap[ichan][0]
@@ -487,14 +504,14 @@ for ichan in chanlist:
 
     setHist(hist["e_4TS_PS", ichan], "Energy (uncalibrated)", "# Events", 0, 0, 1.3, pstyle[22, "col"])
     #hist["energy", ichan].GetXaxis().SetNdivisions(10,1)
-    max_x_bin = hist["e_4TS_PS", ichan].FindLastBinAbove(0)
-    use_max = 1000
-    if max_x_bin < 500: use_max = 500
-    if max_x_bin < 100: use_max = 100
-    if use_max == 1000: hist["e_4TS_PS", ichan].Rebin(10)
-    if use_max == 500: hist["e_4TS_PS", ichan].Rebin(5)
+    #max_x_bin = hist["e_4TS_PS", ichan].FindLastBinAbove(0)
+    #use_max = 1000
+    #if max_x_bin < 500: use_max = 500
+    #if max_x_bin < 100: use_max = 100
+    #if use_max == 1000: hist["e_4TS_PS", ichan].Rebin(10)
+    #if use_max == 500: hist["e_4TS_PS", ichan].Rebin(5)
     
-    hist["e_4TS_PS", ichan].GetXaxis().SetRangeUser(1,use_max)
+    #hist["e_4TS_PS", ichan].GetXaxis().SetRangeUser(1,use_max)
     hist["e_4TS_PS", ichan].SetStats(True)
     hist["e_4TS_PS", ichan].Draw()
     pad.Update()
