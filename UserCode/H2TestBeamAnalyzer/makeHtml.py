@@ -96,6 +96,7 @@ files.sort()
 for file in files:
     #print "Processing", file
     sys.stdout.write(".")
+    sys.stdout.flush()
     
     base = os.path.splitext(file)[0]
     fname = "%s.%s" % (base, img)
