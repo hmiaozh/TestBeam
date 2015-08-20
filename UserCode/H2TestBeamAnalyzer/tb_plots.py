@@ -42,7 +42,7 @@ outdir = options.outdir
 runnum = options.runnum
 if infile is None:
     print "You did not provide an input file! Exiting"
-    sys.exit()
+    sys.exit(1)
 
 if outdir is not None:
     outdir += "/"
@@ -360,7 +360,7 @@ for depth in valid_depth:
     hist["occupancy_event_etaphi",depth].Draw("COLZ ")
 
     for end in [".pdf", ".gif"]:
-        canv.SaveAs(outdir+cname+"_depth"+str(depth)+end)
+        canv.SaveAs(outdir+cname+"--depth"+str(depth)+end)
 
 ##################################
 # Plot Average energy in eta-phi
@@ -387,7 +387,7 @@ for depth in valid_depth:
     hist["e_4TS_etaphi",depth].Draw("COLZ ")
 
     for end in [".pdf", ".gif"]:
-        canv.SaveAs(outdir+cname+"_depth"+str(depth)+end)
+        canv.SaveAs(outdir+cname+"--depth"+str(depth)+end)
 
 cname = "b_energy_etadepth"
 #ROOT.gStyle.SetOptTitle(1)
@@ -412,7 +412,7 @@ for iphi in valid_iphi:
 
 
     for end in [".pdf", ".gif"]:
-        canv.SaveAs(outdir+cname+"_iphi"+str(iphi).zfill(2)+end)
+        canv.SaveAs(outdir+cname+"--iphi"+str(iphi).zfill(2)+end)
 
 ROOT.gStyle.SetOptTitle(0)
 
@@ -467,7 +467,7 @@ for etaphi in etaphipairs.keys():
         leg.Draw()
         
     for end in [".pdf", ".gif"]:
-        canv.SaveAs(outdir+cname+"_ieta"+str(ieta)+"_iphi"+str(iphi)+end)
+        canv.SaveAs(outdir+cname+"--ieta"+str(ieta)+"_iphi"+str(iphi)+end)
 
 
 ##################################
@@ -517,7 +517,7 @@ for ichan in chanlist:
     leg.Draw()
         
     for end in [".pdf", ".gif"]:
-        canv.SaveAs(outdir+cname+"_ieta"+str(ieta)+"_iphi"+str(iphi)+"_depth"+str(depth)+end)
+        canv.SaveAs(outdir+cname+"--ieta"+str(ieta)+"_iphi"+str(iphi)+"_depth"+str(depth)+end)
 
 ROOT.gStyle.SetOptStat(0)
 
@@ -543,7 +543,7 @@ for ichan in chanlist:
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
     label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
-    cname = "e_energy_wcC_"+label
+    cname = "e_energy_wcC--"+label
     canv = ROOT.TCanvas(cname, cname, 400, 424)
     pad = canv.GetPad(0)
     #    pad.SetLogz()
@@ -585,7 +585,7 @@ for ichan in chanlist:
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
     label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
-    cname = "e_energy_wcC_noTScut_"+label
+    cname = "e_energy_wcC_noTScut--"+label
     canv = ROOT.TCanvas(cname, cname, 400, 424)
     pad = canv.GetPad(0)
     #    pad.SetLogz()
@@ -625,7 +625,7 @@ for ichan in chanlist:
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
     label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
-    cname = "e_energy_wcC_efficiency_"+label
+    cname = "e_energy_wcC_efficiency--"+label
     canv = ROOT.TCanvas(cname, cname, 400, 424)
     pad = canv.GetPad(0)
     #    pad.SetLogz()
@@ -654,7 +654,7 @@ for ichan in chanlist:
     depth = chanmap[ichan][2]
     label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
     for ixy in ["x", "y"]:
-        cname = "e_energy_wcC_"+ixy+"_"+label
+        cname = "e_energy_wcC_"+ixy+"--"+label
         canv = ROOT.TCanvas(cname, cname, 400, 424)
         pad = canv.GetPad(0)
         setPadPasMargin(pad, 0.25)
@@ -683,7 +683,7 @@ for ichan in chanlist:
 
 setHist(hist["e_4TS_PS", refChan], "Energy in 4TS (LinADC)", "Events", (0.,300.), (0.5, 3.e4), 1.3, pstyle[22, "col"])
 for ichan in chanlist:
-    cname = "energy_4TS_chan"+str(ichan)
+    cname = "energy_4TS--chan"+str(ichan)
     canv = ROOT.TCanvas(cname, cname, 400, 424)
     pad = canv.GetPad(0)
     pad.SetLogy()
@@ -736,5 +736,5 @@ for ichan in chanlist:
     leg.Draw()
         
     for end in [".pdf", ".gif"]:
-        canv.SaveAs(outdir+cname+"_ieta"+str(ieta)+"_iphi"+str(iphi)+"_depth"+str(depth)+end)
+        canv.SaveAs(outdir+cname+"--ieta"+str(ieta)+"_iphi"+str(iphi)+"_depth"+str(depth)+end)
 
