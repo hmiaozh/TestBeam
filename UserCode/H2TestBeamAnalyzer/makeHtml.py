@@ -5,6 +5,8 @@ import optparse
 import commands
 import os
 import glob
+import subprocess
+import time
 
 #######################
 # Get options
@@ -65,6 +67,19 @@ if title == "make":
     print len(sindir)-1
     print title
 
+procs = []
+
+# wait until number of active processes is less than 'maxproc'
+def wait_nproc(maxproc, poll_interval = 0.1):
+    while True:
+        # get a number of active subprocesses
+        nact = 0
+        for p in procs:
+            if p.poll() is None: nact += 1
+        
+        if nact <= maxproc: break
+        else: time.sleep(poll_interval)
+
 # generate HTML code and prepare thumbnails
 html = ""
 html += "<html>\n"
@@ -86,9 +101,14 @@ for file in files:
     fsmall = "%s_small.%s" % (base, img)
     flink = "%s.%s" % (base, ext)
     
-    command = "convert %s -resize %sx%s %s" % (fname, size, size, fsmall)
-    os.system(command)
+    wait_nproc(10)
+    p = subprocess.Popen(['convert', fname, "-resize", "%sx%s" % (size, size), fsmall])
+    #p = subprocess.call(['convert', fname, "-resize", "%sx%s" % (size, size), fsmall])
+    procs.append(p)
     html += '<a href="%s"><img src="%s"></a>\n' % (flink, fsmall)
+
+# wait until all background jobs are finished
+wait_nproc(0)
 
 html += "</body>\n"
 html += "</html>\n"
