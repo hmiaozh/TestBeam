@@ -94,7 +94,8 @@ files = glob.glob('*' + ext)
 files.sort()
 
 for file in files:
-    print "Processing", file
+    #print "Processing", file
+    sys.stdout.write(".")
     
     base = os.path.splitext(file)[0]
     fname = "%s.%s" % (base, img)
@@ -106,6 +107,8 @@ for file in files:
     #p = subprocess.call(['convert', fname, "-resize", "%sx%s" % (size, size), fsmall])
     procs.append(p)
     html += '<a href="%s"><img src="%s"></a>\n' % (flink, fsmall)
+
+sys.stdout.write("\n")
 
 # wait until all background jobs are finished
 wait_nproc(0)
