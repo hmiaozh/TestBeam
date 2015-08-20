@@ -237,6 +237,8 @@ for ichan in chanlist:
 # Define histograms
 ####################################################
 
+outtfile = ROOT.TFile(outfile, "recreate")
+
 hist = {}
 
 # Define wire chamber histograms
@@ -696,13 +698,7 @@ for ievt in xrange(start, start + nevts_to_run):
 #else:
 #    method = "recreate"
 
-print "Finished Run %5i." % runnum
-
-method = "recreate"
-outtfile = ROOT.TFile(outfile,method)
-
-for histo in sorted(hist.values()):
-    outtfile.Delete(histo.GetName()+";*")
-    histo.Write()
+outtfile.Write()
 outtfile.Close()
 
+print "Finished Run %5i." % runnum
