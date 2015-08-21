@@ -37,37 +37,45 @@ parser.add_option ('-s', dest="sync", action="store_true", default=False, help="
 
 options, args = parser.parse_args()
 
-
 all = options.all
 delete = options.delete
-runDest = options.runDest
-runs = options.runs
+op_runDest = options.runDest
+op_runs = options.runs
 outputLoc = options.outputLoc
 verbose = options.verbose
 mute = options.mute
 force = options.force
 doUndone = options.doUndone
-inputLoc = options.inputLoc
-cmsRun = options.cmsRun
-tb_ana = options.tb_ana
-tb_plots = options.tb_plots
-makeHtml = options.makeHtml
-sync = options.sync
+op_inputLoc = options.inputLoc
+op_cmsRun = options.cmsRun
+op_tb_ana = options.tb_ana
+op_tb_plots = options.tb_plots
+op_makeHtml = options.makeHtml
+op_sync = options.sync
 clobber = options.clobber
+
+logLevel = 0
+FATAL = 5
+INFO = 1
+DIAG = 0
+
+def writeout(severity, line):
+    if (severity >= logLevel): print "[%i] %s" % (severity,line)
 
 if len(sys.argv) == 1:
     parser.print_help()
     sys.exit(1)
 
-
 # Determine the set of runs to be processed.
+# The input argument is used with ls to determine matching run numbers
 # If the input argument contains a hyphen, take it to be a range of runs.
-# In this case, set the wildcard to '*' but set runList
+# In this case, set the wildcard to '*' and set runList
 
+runs = op_runs
 if all:
     runs = '*'
 if not runs:
-    print "No runs specified. Use -r or --all"
+    writeout(FATAL,"No runs specified. Use -r or --all")
     sys.exit(1)
 
 runList = []
@@ -80,11 +88,7 @@ if '-' in runs:
         runList = range(loRun,hiRun+1) 
         runs = '*'
 
-print "runDest =",runDest
-if not runDest:
-    print "fixing runDest"
-    runDest = "/home/daq/Analysis/HcalTestBeam/data_spool_mirror"
-    if socket.gethostname() is not "cmshcaltb05": runDest = "."
+writeout(DIAG,"runs = %s and runList = %s" % (runs,runList))
 
 #envTest = subprocess.Popen(['$CMSSW_BASE'], stdout=subprocess.PIPE)
 #envTest.wait()
@@ -97,26 +101,32 @@ if not runDest:
 
 # Run all the steps unless one or more steps is specified
 
-if (cmsRun == False) & (tb_ana == False) & (tb_plots == False) & (makeHtml == False) & (sync == False):
-    cmsRun = True
-    tb_ana = True
-    tb_plots = True
-    makeHtml = True
-    sync = True
+do_cmsRun = op_cmsRun
+do_tb_ana = op_tb_ana
+do_tb_plots = op_tb_plots
+do_makeHtml = op_makeHtml
+do_sync = op_sync
+
+# If no specific run stage options are specified, the default is to run all stages
+if (not op_cmsRun) and (not op_tb_ana) and (not op_tb_plots) and (not op_makeHtml) and (not op_sync):
+    do_cmsRun = True
+    do_tb_ana = True
+    do_tb_plots = True
+    do_makeHtml = True
+    do_sync = True
 
 # Determine the first and last steps to run
+if do_sync: firstStep = 4
+if do_makeHtml: firstStep = 3
+if do_tb_plots: firstStep = 2
+if do_tb_ana: firstStep = 1
+if do_cmsRun: firstStep = 0
 
-if sync: firstStep = 4
-if makeHtml: firstStep = 3
-if tb_plots: firstStep = 2
-if tb_ana: firstStep = 1
-if cmsRun: firstStep = 0
-
-if cmsRun: lastStep = 0
-if tb_ana: lastStep = 1
-if tb_plots: lastStep = 2
-if makeHtml: lastStep = 3
-if sync: lastStep = 4
+if do_cmsRun: lastStep = 0
+if do_tb_ana: lastStep = 1
+if do_tb_plots: lastStep = 2
+if do_makeHtml: lastStep = 3
+if do_sync: lastStep = 4
 
 filePrefixList = ["HTB_","ana_h2_tb_run","ana_tb_out_run","tb_plots_run","tb_plots_run","tb_plots_run"]
 fileSuffixList = [".root",".root",".root","","",""]
@@ -124,12 +134,23 @@ fileSuffixList = [".root",".root",".root","","",""]
 inputFileFormat = [filePrefixList[firstStep],fileSuffixList[firstStep]]
 outputFileFormat = [filePrefixList[lastStep+1],fileSuffixList[lastStep+1]]
 
-
-# Based on the contents of the input and output directories and command line options, determine which files to process
-
+inputLoc = op_inputLoc
 if not inputLoc:
     inputLoc = "/data/spool"
-    if socket.gethostname() is not "cmshcaltb05": inputLoc = "daq@cmshcaltb02.cern.ch:/data/spool"
+    if socket.gethostname() is not "cmshcaltb05":
+        inputLoc = "daq@cmshcaltb02.cern.ch:/data/spool"
+        if firstStep > 0: inputLoc = "."
+    writeout(DIAG,"setting inputLoc = %s" % inputLoc)
+writeout(INFO,"Using input location: %s" % inputLoc)    
+
+runDest = op_runDest
+if not runDest:
+    if socket.gethostname() is not "cmshcaltb05": runDest = "."
+    writeout(DIAG,"setting runDest = %s" % runDest)
+writeout(INFO,"Using temporary run directory: %s" % runDest)    
+
+        
+# Based on the contents of the input and output directories and command line options, determine which files to process
 
 inputLoginInfo = ""
 inputIsRemote = False
@@ -138,9 +159,13 @@ if ':' in inputLoc:
     inputLoginInfo = inputLoc.split(':')[0]
     inputLoc = inputLoc.split(':')[1]
 
-inputFileSpec = inputLoc.rstrip('/') + '/' + inputFileFormat[0] + '*' + runs + inputFileFormat[1]
-inputCommand = 'ls ' + inputFileSpec
-print 'inputCommand = ',inputCommand
+run_glob = runs
+if '*' not in runs: run_glob = '*' + runs   #'*' helps with leading zeroes
+inputFileSpec = inputLoc.rstrip('/') + '/' + inputFileFormat[0] + run_glob + inputFileFormat[1]
+unix_file_list = "ls "
+if firstStep >= 3: unix_file_list = "ls -d " 
+inputCommand = unix_file_list + inputFileSpec
+writeout(DIAG,"inputCommand = %s" % inputCommand)
 
 # At this point, the following are set: inputLoc, inputLoginInfo, inputIsRemote, inputLoginInfo, inputCommand
 
@@ -148,7 +173,6 @@ if inputIsRemote:
     ls1 = subprocess.Popen(['ssh', inputLoginInfo, inputCommand], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     ls1.wait()
     out, err =  ls1.communicate()
-    print out,err
 else:
     ls1 = subprocess.Popen(inputCommand, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)    
     ls1.wait()
@@ -156,6 +180,10 @@ else:
 
 inputFileList = out.split()
 inputFileList.sort(reverse=True)
+
+if not inputFileList: 
+    writeout(FATAL,"No input files matching %s to process." % inputFileSpec)
+    sys.exit(1)
 
 # If a runList is defined, select only those runs and reset the inputFileList
 
@@ -169,12 +197,11 @@ if len(runList) > 0:
             if runnum in runList: temp_input_file_list.append(oneInputFile)
     inputFileList = temp_input_file_list                        
 
-if verbose: 
-    print "Attempting to find input files that match:", inputLoginInfo + ':' + inputFileSpec
+    writeout(DIAG, "Attempting to find input files that match:" + inputLoginInfo + ':' + inputFileSpec)
     if len(inputFileList) == 0:
-        print("No files found.")
+        writeout(DIAG, "No files found.")
     else:
-        print("\n".join(inputFileList))
+        writeout(DIAG, "\n".join(inputFileList))
 
 #Now check output location        
                                                      
@@ -222,12 +249,12 @@ else:
     runNumbersFoundList.sort(reverse=True)
     outputExistingFilesList.sort(reverse=True)
 
-    if verbose:
-        print "Files that already appear in the output directory", outputDirectory
-        if len(outputExistingFilesList) == 0:
-            print("No Files found.")
-        else:
-            print("\n".join(outputExistingFilesList))
+    
+    writeout(DIAG,"Files that already appear in the output directory %s" % outputDirectory)
+    if len(outputExistingFilesList) == 0:
+        writeout(DIAG, "No files found.")
+    else:
+        writeout(DIAG, "\n".join(outputExistingFilesList))
 
     processFileList = []
     for inputFileName in inputFileList:
@@ -238,122 +265,124 @@ else:
                 break
         if doProcess: processFileList.append(inputFileName)        
                                                                                                                                                                   
-if verbose: 
-    print "Planning to process the following input data files:"
-    if len(processFileList) == 0:
-        print("None.")
-    else:
-        print("\n".join(processFileList))
+writeout(INFO,"Planning to process the following input data files:")
+if len(processFileList) == 0:
+    writeout(INFO, "None.")
+else:
+    writeout(INFO, "\n ".join(processFileList))
     
 runNumberPattern = re.compile(inputFileFormat[0]+"(0*[0-9]+)")
 
+# Here we really start the processing
+
 for fileName in processFileList:
+    
     runNum = -1
     m = runNumberPattern.search(fileName)
     if m: runNum = m.group(1)
     if runNum == -1: continue
     
-    print "Getting run number %s" % runNum
+    writeout(INFO, "Processing run number %s" % runNum)
     
     ana = filePrefixList[1] + runNum + fileSuffixList[1]
     ana2 = filePrefixList[2] + runNum + fileSuffixList[2]
     plotsDir = filePrefixList[3] + runNum + fileSuffixList[3]
 
     # If the input file is remote, we need to make a local copy
-    
     if inputIsRemote:
         rsyncPath = inputLoginInfo + ':' + fileName
-        print rsyncPath, runDest
+        writeout(INFO, "Transfering %s to %s" % (rsyncPath, runDest))
         subprocess.call(["rsync", "-av", rsyncPath, runDest])
     
-    if cmsRun:
+    if do_cmsRun:
         subprocess.call(["cmsRun", "h2testbeamanalyzer_cfg.py", runNum])
-    if tb_ana:
+    if do_tb_ana:
         subprocess.call(["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum))])
         #subprocess.call(["rm", "-rf", plotsDir])
-    if tb_plots:
+    if do_tb_plots:
         print "Generating plots for run " + runNum
         subprocess.call(["./tb_plots.py", "--i", ana2, "--o", plotsDir, "--r", str(int(runNum))])
-    if makeHtml:
+    if do_makeHtml:
         print "Generating html for run " + runNum
         subprocess.call(["./makeHtml.py", plotsDir])
-    #if sync:
-    #    print "Moving results of run " + runNum
-    #    subprocess.call(["rsync", "-av", "--delete", plotsDir, outputLoginInfo + outputDirectory])
+        subprocess.call(["./makeMenu.sh", plotsDir])
+    if do_sync:
+        print "Moving results of run " + runNum
+        subprocess.call(["rsync", "-av", plotsDir, outputLoginInfo + outputDirectory])
     
 quit()
 
 
-fileList = processFileList
-
-for fileName in fileList:
-    name = fileName[12:]
-    runNum = fileName[16:-5]
-    if len(runNum) == 6:
-        print "Getting run number %s" % runNum
-        rsyncPath = "daq@cmshcaltb02:%s" % fileName
-        if verbose:
-            subprocess.call(["rsync", "-av", rsyncPath, runDest])
-        else:
-            subprocess.call(["rsync", "-aq", rsyncPath, runDest])
-        symLinkPath = runDest + '/' + name
-        if runDest != '.':
-            link = subprocess.Popen(["ln", "-s", symLinkPath, "."], stdout=open(os.devnull, 'wb'), stderr=subprocess.PIPE)
-            out, err = link.communicate()
-            if err[:2] == "ln":
-                if force:
-                    print "Warning, run %s has already been staged for processing. -f used, proceeding anyway..." % runNum
-                else:
-                    print "Warning, run %s has already been staged for processing, skipping." % runNum
-                    fileList.remove(fileName)
-###########################
-#Run analysis
-for fileName in fileList:
-    name = fileName[12:]
-    runNum = fileName[16:-5]
-    #Check if file is an HTB*.root file
-    if len(name) == 15 and name[:3] == "HTB" and name[-5:] == ".root":
-        if cmsRun:
-            if verbose:
-                subprocess.call(["cmsRun", "h2testbeamanalyzer_cfg_verbose.py", runNum])
-            elif 1:
-                subprocess.call(["cmsRun", "h2testbeamanalyzer_cfg.py", runNum], stdout=open(os.devnull, 'wb'))
-            else:
-                subprocess.call(["cmsRun", "h2testbeamanalyzer_cfg.py", runNum])
-        ana = "ana_h2_tb_run%s.root" % runNum
-        ana2 = "ana_tb_out_run%s.root" % str(int(runNum))
-        plotsDir = "tb_plots_run%s" % str(int(runNum))
-        if mute:
-            if tb_ana:
-                subprocess.call(["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum))], stdout=open(os.devnull, 'wb'))
-                subprocess.call(["rm", "-rf", plotsDir], stdout=open(os.devnull, 'wb'))
-            if tb_plots:
-                print "Generating plots for run " + runNum
-                subprocess.call(["./tb_plots.py", "--i", ana2, "--o", plotsDir, "--r", str(int(runNum))], stdout=open(os.devnull, 'wb'))
-            if makeHtml:
-                print "Generating html for run " + runNum
-                subprocess.call(["./makeHtml.py", plotsDir], st2dout=open(os.devnull, 'wb'))
-            #if sync:
-            #    print "Moving results of run " + runNum
-            #   subprocess.call(["rsync", "-aq", "--delete", plotsDir, outputLoc], stdout=open(os.devnull, 'wb'))
-        else:
-            if tb_ana:
-                subprocess.call(["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum))])
-                subprocess.call(["rm", "-rf", plotsDir])
-            if tb_plots:
-                print "Generating plots for run " + runNum
-                subprocess.call(["./tb_plots.py", "--i", ana2, "--o", plotsDir, "--r", str(int(runNum))])
-            if makeHtml:
-                print "Generating html for run " + runNum
-                subprocess.call(["./makeHtml.py", plotsDir])
-                subprocess.call(["./makeMenu.sh", plotsDir])
-            #if sync:
-            #    print "Moving results of run " + runNum
-            #    subprocess.call(["rsync", "-av", "--delete", plotsDir, outputLoc])
-        subprocess.call(["rm", name])
-        if delete:
-            subprocess.call(["rm", ana])
-            subprocess.call(["rm", ana2])
-            subprocess.call(["rm", "-rf", plotsDir])
-        if sync:
-            print "Finished processing run %s. Results at http://cmshcalweb01.cern.ch/hcalTB/Analysis/%s" % (runNum, plotsDir)
+#fileList = processFileList
+#
+#for fileName in fileList:
+#    name = fileName[12:]
+#    runNum = fileName[16:-5]
+#    if len(runNum) == 6:
+#        print "Getting run number %s" % runNum
+#        rsyncPath = "daq@cmshcaltb02:%s" % fileName
+#        if verbose:
+#            subprocess.call(["rsync", "-av", rsyncPath, runDest])
+#        else:
+#            subprocess.call(["rsync", "-aq", rsyncPath, runDest])
+#        symLinkPath = runDest + '/' + name
+#        if runDest != '.':
+#            link = subprocess.Popen(["ln", "-s", symLinkPath, "."], stdout=open(os.devnull, 'wb'), stderr=subprocess.PIPE)
+#            out, err = link.communicate()
+#            if err[:2] == "ln":
+#                if force:
+#                    print "Warning, run %s has already been staged for processing. -f used, proceeding anyway..." % runNum
+#                else:
+#                    print "Warning, run %s has already been staged for processing, skipping." % runNum
+#                    fileList.remove(fileName)
+############################
+##Run analysis
+#for fileName in fileList:
+#    name = fileName[12:]
+#    runNum = fileName[16:-5]
+#    #Check if file is an HTB*.root file
+#    if len(name) == 15 and name[:3] == "HTB" and name[-5:] == ".root":
+#        if do_cmsRun:
+#            if verbose:
+#                subprocess.call(["cmsRun", "h2testbeamanalyzer_cfg_verbose.py", runNum])
+#            elif 1:
+#                subprocess.call(["cmsRun", "h2testbeamanalyzer_cfg.py", runNum], stdout=open(os.devnull, 'wb'))
+#            else:
+#                subprocess.call(["cmsRun", "h2testbeamanalyzer_cfg.py", runNum])
+#        ana = "ana_h2_tb_run%s.root" % runNum
+#        ana2 = "ana_tb_out_run%s.root" % str(int(runNum))
+#        plotsDir = "tb_plots_run%s" % str(int(runNum))
+#        if mute:
+#            if do_tb_ana:
+#                subprocess.call(["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum))], stdout=open(os.devnull, 'wb'))
+#                subprocess.call(["rm", "-rf", plotsDir], stdout=open(os.devnull, 'wb'))
+#            if do_tb_plots:
+#                print "Generating plots for run " + runNum
+#                subprocess.call(["./tb_plots.py", "--i", ana2, "--o", plotsDir, "--r", str(int(runNum))], stdout=open(os.devnull, 'wb'))
+#            if do_makeHtml:
+#                print "Generating html for run " + runNum
+#                subprocess.call(["./makeHtml.py", plotsDir], st2dout=open(os.devnull, 'wb'))
+#            #if do_sync:
+#            #    print "Moving results of run " + runNum
+#            #   subprocess.call(["rsync", "-aq", "--delete", plotsDir, outputLoc], stdout=open(os.devnull, 'wb'))
+#        else:
+#            if do_tb_ana:
+#                subprocess.call(["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum))])
+#                subprocess.call(["rm", "-rf", plotsDir])
+#            if do_tb_plots:
+#                print "Generating plots for run " + runNum
+#                subprocess.call(["./tb_plots.py", "--i", ana2, "--o", plotsDir, "--r", str(int(runNum))])
+#            if do_makeHtml:
+#                print "Generating html for run " + runNum
+#                subprocess.call(["./makeHtml.py", plotsDir])
+#                subprocess.call(["./makeMenu.sh", plotsDir])
+#            #if do_sync:
+#            #    print "Moving results of run " + runNum
+#            #    subprocess.call(["rsync", "-av", "--delete", plotsDir, outputLoc])
+#        subprocess.call(["rm", name])
+#        if delete:
+#            subprocess.call(["rm", ana])
+#            subprocess.call(["rm", ana2])
+#            subprocess.call(["rm", "-rf", plotsDir])
+#        if do_sync:
+#            print "Finished processing run %s. Results at http://cmshcalweb01.cern.ch/hcalTB/Analysis/%s" % (runNum, plotsDir)
