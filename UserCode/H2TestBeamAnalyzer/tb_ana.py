@@ -212,17 +212,17 @@ vname["qie11"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse", "ped", "p
 vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC"]
 
 
-ROOT.gROOT.ProcessLine("struct hbhe_struct {Int_t numChs; Int_t numTS; Int_t iphi[120]; Int_t ieta[120]; Int_t depth[120]; Double_t pulse[6000];};")
+ROOT.gROOT.ProcessLine("struct hbhe_struct {Int_t numChs; Int_t numTS; Int_t iphi[300]; Int_t ieta[300]; Int_t depth[300]; Double_t pulse[15000];};")
 shbhe = ROOT.hbhe_struct()
 for ivname in vname["hbhe"]:
     ntp["hbhe"].SetBranchAddress(ivname, ROOT.AddressOf(shbhe, ivname))
 
-ROOT.gROOT.ProcessLine("struct hf_struct {Int_t numChs; Int_t numTS; Int_t iphi[120]; Int_t ieta[120]; Int_t depth[120]; Double_t pulse[6000];};")  # Treat pulse like 1D array of length 120*50
+ROOT.gROOT.ProcessLine("struct hf_struct {Int_t numChs; Int_t numTS; Int_t iphi[300]; Int_t ieta[300]; Int_t depth[300]; Double_t pulse[15000];};")  # Treat pulse like 1D array of length 300*50
 shf = ROOT.hf_struct()
 for ivname in vname["hf"]:
     ntp["hf"].SetBranchAddress(ivname, ROOT.AddressOf(shf, ivname))
 
-ROOT.gROOT.ProcessLine("struct qie11_struct {Int_t numChs; Int_t numTS; Int_t iphi[120]; Int_t ieta[120]; Int_t depth[120]; Double_t pulse[6000]; Double_t ped[120]; Double_t pulse_adc[6000]; Double_t ped_adc[120]; bool capid_error[120]; bool link_error[120]; bool soi[6000];};")  # Treat pulse like 1D array of length 120*50
+ROOT.gROOT.ProcessLine("struct qie11_struct {Int_t numChs; Int_t numTS; Int_t iphi[300]; Int_t ieta[300]; Int_t depth[300]; Double_t pulse[15000]; Double_t ped[300]; Double_t pulse_adc[15000]; Double_t ped_adc[300]; bool capid_error[300]; bool link_error[300]; bool soi[15000];};")  # Treat pulse like 1D array of length 300*50
 sqie11 = ROOT.qie11_struct()
 for ivname in vname["qie11"]:
     ntp["qie11"].SetBranchAddress(ivname, ROOT.AddressOf(sqie11, ivname))
