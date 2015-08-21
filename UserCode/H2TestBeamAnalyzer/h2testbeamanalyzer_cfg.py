@@ -98,7 +98,7 @@ process.es_ascii = cms.ESSource('HcalTextCalibrations',
         input = cms.VPSet(
                cms.PSet(
                 object = cms.string('ElectronicsMap'),
-                file = cms.FileInPath('UserCode/H2TestBeamAnalyzer/EMAP-QIE11-L00-21AUG2015-03.txt')  # EMAP here!
+                file = cms.FileInPath('UserCode/H2TestBeamAnalyzer/EMAP-QIE11-L00-21AUG2015-04.txt')  # EMAP here!
                )
         )
 )
