@@ -67,12 +67,18 @@ process.hcalAnalyzer = cms.EDAnalyzer('H2TestBeamAnalyzer',
         Verbosity = cms.untracked.int32(0)
 )
 
+process.hcalADCHists = cms.EDAnalyzer('adcHists')
+
 #
 #   For Debugging: Create a Pool Output Module
 #
 process.output = cms.OutputModule(
         'PoolOutputModule',
         fileName = cms.untracked.string('cmsrun_out_h2_tb_run'+runNumber+'.root')
+)
+
+process.TFileService = cms.Service("TFileService",
+       fileName = cms.string("analysis.root"),
 )
 
 process.load('Configuration.Geometry.GeometryIdeal_cff')
@@ -92,8 +98,7 @@ process.es_ascii = cms.ESSource('HcalTextCalibrations',
         input = cms.VPSet(
                cms.PSet(
                 object = cms.string('ElectronicsMap'),
-                #file = cms.FileInPath('UserCode/H2TestBeamAnalyzer/EMAP_H2_VME_uHTR_04AUG2015.txt')  # EMAP here!
-                file = cms.FileInPath('UserCode/H2TestBeamAnalyzer/EMAP-QIE11-L00-19AUG2015-01.txt')
+                file = cms.FileInPath('UserCode/H2TestBeamAnalyzer/EMAP-QIE11-L00-21AUG2015-01.txt')  # EMAP here!
                )
         )
 )
@@ -101,7 +106,7 @@ process.es_prefer = cms.ESPrefer('HcalTextCalibrations', 'es_ascii')
 
 process.dump = cms.EDAnalyzer("HcalDigiDump")
 
-process.p = cms.Path(process.tbunpack*process.hcalDigis*process.hcalAnalyzer)
-#process.p = cms.Path(process.tbunpack*process.hcalDigis*process.dump*process.hcalAnalyzer)
+process.p = cms.Path(process.tbunpack*process.hcalDigis*process.hcalAnalyzer*process.hcalADCHists)
+# process.p = cms.Path(process.tbunpack*process.hcalDigis*process.dump*process.hcalAnalyzer)
 # process.outpath = cms.EndPath(process.output)
 
