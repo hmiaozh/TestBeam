@@ -212,12 +212,12 @@ vname["qie11"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse", "ped", "p
 vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC"]
 
 
-ROOT.gROOT.ProcessLine("struct hbhe_struct {Int_t numChs; Int_t numTS; Int_t iphi[300]; Int_t ieta[300]; Int_t depth[300]; Double_t pulse[15000];};")
+ROOT.gROOT.ProcessLine("struct hbhe_struct {Int_t numChs; Int_t numTS; Int_t iphi[300]; Int_t ieta[300]; Int_t depth[300]; Double_t pulse[15000]; Double_t pulse_adc[15000]; Double_t ped[300]; Double_t ped_adc[300];};")
 shbhe = ROOT.hbhe_struct()
 for ivname in vname["hbhe"]:
     ntp["hbhe"].SetBranchAddress(ivname, ROOT.AddressOf(shbhe, ivname))
 
-ROOT.gROOT.ProcessLine("struct hf_struct {Int_t numChs; Int_t numTS; Int_t iphi[300]; Int_t ieta[300]; Int_t depth[300]; Double_t pulse[15000];};")  # Treat pulse like 1D array of length 300*50
+ROOT.gROOT.ProcessLine("struct hf_struct {Int_t numChs; Int_t numTS; Int_t iphi[300]; Int_t ieta[300]; Int_t depth[300]; Double_t pulse[15000];  Double_t pulse_adc[15000]; Double_t ped[300]; Double_t ped_adc[300];};")  # Treat pulse like 1D array of length 300*50
 shf = ROOT.hf_struct()
 for ivname in vname["hf"]:
     ntp["hf"].SetBranchAddress(ivname, ROOT.AddressOf(shf, ivname))
@@ -554,13 +554,15 @@ for ievt in xrange(start, start + nevts_to_run):
         if test_chan in chansToFind:
             chansToFind.remove(test_chan)
             fchan[chanmap[test_chan]] = rchan
-	    fread[rchan] = shbhe
+            fread[test_chan] = shbhe
+	    #fread[rchan] = shbhe
     for rchan in xrange(sqie11.numChs):
         test_chan = (sqie11.ieta[rchan], sqie11.iphi[rchan], sqie11.depth[rchan])
         if test_chan in chansToFind:
             chansToFind.remove(test_chan)
             fchan[chanmap[test_chan]] = rchan
-	    fread[rchan] = sqie11
+	    #fread[rchan] = sqie11
+            fread[test_chan] = sqie11
     
     if verbose:
         print "fchan:", fchan
@@ -592,23 +594,25 @@ for ievt in xrange(start, start + nevts_to_run):
     #            break
     #if not clean: continue
 
-
     charge = {} 
     energy = {}   
    
     for ichan,rchan in fchan.iteritems():
 
+        ieta, iphi, depth = chanmap[ichan]
+
         if verbose:
             print "processing ichan %s, rchan %s" % (ichan, rchan)
+            print "corresponding to ieta %s, iphi %s, depth %s" % (ieta, iphi, depth)
 
         # Pull charges and energies for each time sample, convert to fC when appropriate
-        nts = fread[rchan].numTS
+        nts = fread[(ieta,iphi,depth)].numTS
         for its in xrange(nts):
             if adc:
-                charge[ichan,its] = fread[rchan].pulse_adc[rchan*50+its]  #[row][col] -> [row*n_cols + col]
+                charge[ichan,its] = fread[(ieta,iphi,depth)].pulse_adc[rchan*50+its]  #[row][col] -> [row*n_cols + col]
                 energy[ichan,its] = charge[ichan,its]
             else:
-                charge[ichan,its] = fread[rchan].pulse[rchan*50+its]  #[row][col] -> [row*n_cols + col]
+                charge[ichan,its] = fread[(ieta,iphi,depth)].pulse[rchan*50+its]  #[row][col] -> [row*n_cols + col]
                 energy[ichan,its] = charge[ichan,its]*calib[ichan]
 
         if verbose:
@@ -620,12 +624,12 @@ for ievt in xrange(start, start + nevts_to_run):
         #for its in ped_ts_list:   
         #    ped_esum += energy[ichan,its]
         #ped_avg = ped_esum/len(ped_ts_list)    
-        esum[ichan, "PED"] = fread[rchan].ped[rchan]*calib[ichan]
-        esum[ichan, "PED_ADC"] = fread[rchan].ped_adc[rchan]
+        esum[ichan, "PED"] = fread[(ieta,iphi,depth)].ped[rchan]*calib[ichan]
+        esum[ichan, "PED_ADC"] = fread[(ieta,iphi,depth)].ped_adc[rchan]
 
         if verbose:
-            print "Pedestal (fC) = %s" % (fread[rchan].ped[rchan])
-            print "Pedestal (ADC counts) = %s" % (fread[rchan].ped_adc[rchan])
+            print "Pedestal (fC) = %s" % (fread[(ieta,iphi,depth)].ped[rchan])
+            print "Pedestal (ADC counts) = %s" % (fread[(ieta,iphi,depth)].ped_adc[rchan])
 
         # Compute signal and pedestal-subtracted signal
         ts_list = xrange(4,4+sigTS) # [4,5,6,7]   #time samples in which to sum charge for signal (4-7 by default)
@@ -646,7 +650,8 @@ for ievt in xrange(start, start + nevts_to_run):
 
         # Fill LinkError plot
         if fillEplots:
-            hist["link_error", ichan].Fill(fread[rchan].link_error[rchan])
+            if hasattr(fread[(ieta,iphi,depth)], 'link_error'):
+                hist["link_error", ichan].Fill(fread[(ieta,iphi,depth)].link_error[rchan])
 
 
         # Fill pulse shape plot

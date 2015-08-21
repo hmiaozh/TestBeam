@@ -230,6 +230,7 @@ depth_color_table[4] = 4
 depth_color_table[5] = 6
 depth_color_table[6] = 7
 depth_color_table[7] = 11 
+depth_color_table[8] = ROOT.kOrange -3 
 
 tfile = ROOT.TFile(infile)
 
