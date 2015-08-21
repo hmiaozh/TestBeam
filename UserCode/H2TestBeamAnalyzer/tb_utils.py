@@ -110,9 +110,22 @@ def getText(ip, ip2, E_base_phase=0):
 
 
 # Valid ieta, iphi and depth
-valid_ieta = xrange(16,27)
-valid_iphi = [3,4,5,6,8,9,10,11,13,14,15,16]
-valid_depth = xrange(1,9)
+
+
+all_ieta = [k[0] for k in chanmap.keys() if type(k) is not int]
+all_iphi = [k[1] for k in chanmap.keys() if type(k) is not int]
+all_depth = [k[2] for k in chanmap.keys() if type(k) is not int]
+
+ieta_set = set(all_ieta)
+iphi_set = set(all_iphi)
+depth_set = set(all_depth)
+
+valid_ieta = sorted(list(ieta_set))
+valid_iphi =  sorted(list(iphi_set))
+valid_depth = sorted(list(depth_set))
+#valid_ieta = xrange(16,27)
+#valid_iphi = [3,4,5,6,8,9,10,11,13,14,15,16]
+#valid_depth = xrange(1,9)
 
 calib = {}
 for channum in chanlist:
