@@ -198,7 +198,6 @@ ntp["hf"] = file.Get("HFData/Events")
 ntp["qie11"] = file.Get("QIE11Data/Events")
 ntp["wc"] = file.Get("WCData/Events")
 
-
 ############################
 # Prepare for tree reading
 ############################           
@@ -346,7 +345,7 @@ for depth in valid_depth:
 for iphi in valid_iphi:
     hist["e_4TS_etadepth",iphi] = ROOT.TProfile2D("Energy_Avg_phi"+str(iphi),"Average Energy per event in each ieta,depth for iphi "+str(iphi), 
                                                   (valid_ieta[-1] - valid_ieta[0])+3, valid_ieta[0]-1.5, valid_ieta[-1]+1.5, 
-                                                  (valid_iphi[-1] - valid_iphi[0])+3, valid_iphi[0]-1.5, valid_iphi[-1]+1.5, 
+                                                  (valid_depth[-1] - valid_depth[0])+3, valid_depth[0]-1.5, valid_depth[-1]+1.5, 
                                                   0., 10000.)
     
     
