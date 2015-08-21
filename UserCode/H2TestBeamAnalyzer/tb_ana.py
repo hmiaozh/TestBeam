@@ -336,18 +336,18 @@ for ichan in chanlist:
 
 for depth in valid_depth:
     hist["e_4TS_etaphi",depth] = ROOT.TProfile2D("Energy_Avg_depth"+str(depth),"Average Energy per event in each ieta,iphi for depth "+str(depth), 
-                                                 (valid_ieta[-1] - valid_ieta[0])+2, valid_ieta[0]-1.5, valid_ieta[-1]+1.5, 
-                                                 (valid_iphi[-1] - valid_iphi[0])+2, valid_iphi[0]-1.5, valid_iphi[-1]+1.5, 
-                                                 0., 4000.)
+                                                 (valid_ieta[-1] - valid_ieta[0])+3, valid_ieta[0]-1.5, valid_ieta[-1]+1.5, 
+                                                 (valid_iphi[-1] - valid_iphi[0])+3, valid_iphi[0]-1.5, valid_iphi[-1]+1.5, 
+                                                 0., 10000.)
     hist["occupancy_event_etaphi",depth] = ROOT.TH2F("Occ_Event_depth_"+str(depth),"Fraction of Events with a hit in each ieta,iphi for depth "+str(depth), 
-                                                     (valid_ieta[-1] - valid_ieta[0])+2, valid_ieta[0]-1.5, valid_ieta[-1]+1.5,
-                                                     (valid_iphi[-1] - valid_iphi[0])+2, valid_iphi[0]-1.5, valid_iphi[-1]+1.5)
+                                                     (valid_ieta[-1] - valid_ieta[0])+3, valid_ieta[0]-1.5, valid_ieta[-1]+1.5,
+                                                     (valid_iphi[-1] - valid_iphi[0])+3, valid_iphi[0]-1.5, valid_iphi[-1]+1.5)
 
 for iphi in valid_iphi:
     hist["e_4TS_etadepth",iphi] = ROOT.TProfile2D("Energy_Avg_phi"+str(iphi),"Average Energy per event in each ieta,depth for iphi "+str(iphi), 
-                                                  (valid_ieta[-1] - valid_ieta[0])+2, valid_ieta[0]-1.5, valid_ieta[-1]+1.5, 
-                                                  (valid_iphi[-1] - valid_iphi[0])+2, valid_iphi[0]-1.5, valid_iphi[-1]+1.5, 
-                                                  0., 4000.)
+                                                  (valid_ieta[-1] - valid_ieta[0])+3, valid_ieta[0]-1.5, valid_ieta[-1]+1.5, 
+                                                  (valid_iphi[-1] - valid_iphi[0])+3, valid_iphi[0]-1.5, valid_iphi[-1]+1.5, 
+                                                  0., 10000.)
     
     
     
