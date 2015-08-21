@@ -1,17 +1,17 @@
 from tb_chanmap import *
 
-def setPadPasMargin(pad, rightMargin=0.05):                                                                                   
-  pad.SetFrameFillStyle(1001)                                                                                                 
-  pad.SetTicks()                                                                                                              
-  pad.SetTopMargin(0)                                                                                                         
-  pad.SetFillColor(0)                                                                                                         
-  leftMargin   = 0.16                                                                                                         
-  topMargin    = 0.1                                                                                                          
-  bottomMargin = 0.15                                                                                                         
-  pad.SetLeftMargin(leftMargin)                                                                                               
-  pad.SetRightMargin(rightMargin)                                                                                             
-  pad.SetTopMargin(topMargin)                                                                                                 
-  pad.SetBottomMargin(bottomMargin)                                                                                           
+def setPadPasMargin(pad, rightMargin=0.05):
+  pad.SetFrameFillStyle(1001)
+  pad.SetTicks()
+  pad.SetTopMargin(0)
+  pad.SetFillColor(0)
+  leftMargin   = 0.16
+  topMargin    = 0.1
+  bottomMargin = 0.15
+  pad.SetLeftMargin(leftMargin)
+  pad.SetRightMargin(rightMargin)
+  pad.SetTopMargin(topMargin)
+  pad.SetBottomMargin(bottomMargin)
 
 
 def setHistBasic(hist):
@@ -35,8 +35,8 @@ def setHist(hist, xtitle, ytitle, xrange, yrange, yoff, color, style=1):
     hist.SetLineColor(color)
     hist.SetLineStyle(style)
     hist.SetLineWidth(2)
-    hist.GetYaxis().SetTitleOffset(yoff)                                                                               
-    if yrange != 0:                                                                             
+    hist.GetYaxis().SetTitleOffset(yoff)
+    if yrange != 0:
         hist.GetYaxis().SetRangeUser(yrange[0], yrange[1])
     if xrange != 0:
         hist.GetXaxis().SetRangeUser(xrange[0], xrange[1])
@@ -47,10 +47,10 @@ def setHist2D(hist, xtitle, ytitle, ztitle, xrange, yrange, zrange, xoff, yoff, 
     hist.GetYaxis().SetTitle(ytitle)
     hist.GetXaxis().SetTitle(xtitle)
     hist.GetZaxis().SetTitle(ztitle)
-    hist.GetYaxis().SetTitleOffset(yoff)                                                                               
-    hist.GetXaxis().SetTitleOffset(xoff)                                                                               
-    hist.GetZaxis().SetTitleOffset(zoff)                                                                               
-    if yrange != 0:                                                                             
+    hist.GetYaxis().SetTitleOffset(yoff)
+    hist.GetXaxis().SetTitleOffset(xoff)
+    hist.GetZaxis().SetTitleOffset(zoff)
+    if yrange != 0:
         hist.GetYaxis().SetRangeUser(yrange[0], yrange[1])
     if xrange != 0:
         hist.GetXaxis().SetRangeUser(xrange[0], xrange[1])
@@ -66,19 +66,19 @@ def setGraph(hist, xtitle, ytitle, xrange, yrange, yoff, color, mstyle, msize):
     hist.SetMarkerSize (msize)
     hist.GetYaxis().SetTitle(ytitle)
     hist.GetXaxis().SetTitle(xtitle)
-    hist.GetYaxis().SetLabelSize(0.045)                                                                                
-    hist.GetYaxis().SetTitleSize(0.055)                                                                                
-    hist.GetYaxis().SetTitleOffset(yoff)                                                                               
-    hist.GetXaxis().SetLabelSize(0.045)                                                                                
-    hist.GetXaxis().SetTitleSize(0.055)                                                                                
-    hist.GetXaxis().SetNdivisions(506)                                                                                 
-    hist.GetXaxis().SetTitleOffset(1.15)                                                                               
-    hist.GetXaxis().SetLabelFont(62)                                                                                   
-    hist.GetYaxis().SetLabelFont(62)                                                                                   
-    hist.GetXaxis().SetTitleFont(62)                                                                                   
-    hist.GetYaxis().SetTitleFont(62)                                                                                   
+    hist.GetYaxis().SetLabelSize(0.045)
+    hist.GetYaxis().SetTitleSize(0.055)
+    hist.GetYaxis().SetTitleOffset(yoff)
+    hist.GetXaxis().SetLabelSize(0.045)
+    hist.GetXaxis().SetTitleSize(0.055)
+    hist.GetXaxis().SetNdivisions(506)
+    hist.GetXaxis().SetTitleOffset(1.15)
+    hist.GetXaxis().SetLabelFont(62)
+    hist.GetYaxis().SetLabelFont(62)
+    hist.GetXaxis().SetTitleFont(62)
+    hist.GetYaxis().SetTitleFont(62)
     hist.GetXaxis().SetNdivisions(412,1)
-    if yrange != 0:                                                                             
+    if yrange != 0:
         hist.GetYaxis().SetRangeUser(yrange[0], yrange[1])
     if xrange != 0:
         hist.GetXaxis().SetRangeUser(xrange[0], xrange[1])
