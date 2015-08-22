@@ -56,10 +56,10 @@ process.hcalDigis = cms.EDProducer("HcalRawToDigi",
 
 process.hcalDigis.FEDs = cms.untracked.vint32(700,928)
 
-emapFileShort = emapFile.rsplit('.',1)[0]
+emapFileShort = emapFile.rsplit('.',1)[0].rsplit('/')[-1]
 
 process.hcalAnalyzer = cms.EDAnalyzer('H2TestBeamAnalyzer',
-        OutFileName = cms.untracked.string('ana_h2_tb_run'+runNumber+emapFileShort+'.root'),
+        OutFileName = cms.untracked.string('ana_h2_tb_run'+runNumber+'_'+emapFileShort+'.root'),
         Verbosity = cms.untracked.int32(doVerbose)
 )
 
