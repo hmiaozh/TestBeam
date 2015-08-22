@@ -11,7 +11,6 @@
 EMAP_default = "EMAP-QIE11-L00-21AUG2015-04.txt"
 EMAP_specialODU = "EMAP-QIE11-SPECIAL-ODU-22AUG2015-02.txt"
 
-
 #######################
 # table for Aug 13
 # Phase 2 eta-phi scan
@@ -245,3 +244,14 @@ for dictionary in [runTable_pions_ODU12, runTable_pions_Aug15,
                    runTable_Aug15, runTable_Aug14, runTable_Aug13,
                    runTable_Ph2_Aug14, runTable_Ph2_Aug15]:
         runTable_all.update(dictionary)
+
+def getEmapFromRun(run):
+        if run in runTable_all: 
+            emapFile = runTable_all[run][6]
+        else:
+            if run <= 8823:
+               emapFile = EMAP_default
+            else:
+               emapFile = EMAP_specialODU
+        return emapFile
+
