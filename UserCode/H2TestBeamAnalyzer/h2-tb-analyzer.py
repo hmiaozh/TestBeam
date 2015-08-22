@@ -5,7 +5,7 @@ import subprocess
 import optparse
 import re
 
-from runlists import *
+from runlists import getEmapFromRun
 
 parser = optparse.OptionParser("usage: %prog <input filename> [options]")
 
@@ -47,12 +47,7 @@ if options.emap:
     emapFile = prefix + options.emap.split('/')[-1]
     print "Using EMAP: ",emapFile       
 else:
-    if rn <= 8823:
-        emapFile = prefix + EMAP_default
-    else:
-        emapFile = prefix + EMAP_specialODU
-    if rn in runTable_all: emapFile = prefix + runTable_all[rn][6]
-
+    emapFile = prefix + getEmapFromRun(int(runNumber))
     print "No EMAP Specified.  Using EMAP ",emapFile
 
 command = ["cmsRun","h2-tb-analyzer-run.py",inputFile,emapFile,str(int(doVerbose)),str(numEvents),runNumber]
