@@ -17,7 +17,7 @@ EMAP_specialODU = "EMAP-QIE11-SPECIAL-ODU-22AUG2015-02.txt"
 # Phase 2 eta-phi scan
 #######################
 
-runTable = {}
+runTable_Aug13 = {}
 
 runTable_Aug13[8530] = (8100, 40500, 300000, "", "", "1", EMAP_default)
 runTable_Aug13[8531] = (8200, 40500, 300000, "", "", "1", EMAP_default)
