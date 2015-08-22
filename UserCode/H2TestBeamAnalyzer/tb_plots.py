@@ -95,113 +95,6 @@ blueArray  = array.array('d', blue)
 ROOT.TColor.CreateGradientColorTable(NRGBs, stopsArray, redArray, greenArray, blueArray, NCont)
 ROOT.gStyle.SetNumberContours(NCont)
 
-def setPadPasMargin(pad, rightMargin=0.05):                                                                                   
-  pad.SetFrameFillStyle(1001)                                                                                                 
-  pad.SetTicks()                                                                                                              
-  pad.SetTopMargin(0)                                                                                                         
-  pad.SetFillColor(0)                                                                                                         
-  leftMargin   = 0.16                                                                                                         
-  topMargin    = 0.1                                                                                                          
-  bottomMargin = 0.15                                                                                                         
-  pad.SetLeftMargin(leftMargin)                                                                                               
-  pad.SetRightMargin(rightMargin)                                                                                             
-  pad.SetTopMargin(topMargin)                                                                                                 
-  pad.SetBottomMargin(bottomMargin)                                                                                           
-
-
-def setHistBasic(hist):
-    hist.GetYaxis().SetLabelSize(0.045)
-    hist.GetYaxis().SetTitleSize(0.055)
-    hist.GetXaxis().SetLabelSize(0.045)
-    hist.GetXaxis().SetTitleSize(0.055)
-    hist.GetXaxis().SetTitleOffset(1.15)
-    hist.GetXaxis().SetLabelFont(62)
-    hist.GetYaxis().SetLabelFont(62)
-    hist.GetXaxis().SetTitleFont(62)
-    hist.GetYaxis().SetTitleFont(62)
-    hist.GetXaxis().SetNdivisions(406,1)
-    return 0
-
-def setHist(hist, xtitle, ytitle, xrange_, yrange_, yoff, color=-1, style=-1):
-    setHistBasic(hist)
-    hist.GetYaxis().SetTitle(ytitle)
-    hist.GetXaxis().SetTitle(xtitle)
-    if color > 0:
-        hist.SetLineColor(color)
-    if style > 0:
-        hist.SetLineStyle(style)
-    hist.SetLineWidth(2)
-    hist.GetYaxis().SetTitleOffset(yoff)                                                                               
-    if yrange_ != 0:                                                                             
-        hist.GetYaxis().SetRangeUser(yrange_[0], yrange_[1])
-    if xrange_ != 0:
-        hist.GetXaxis().SetRangeUser(xrange_[0], xrange_[1])
-    return 0
-
-def setHist2D(hist, xtitle, ytitle, ztitle, xrange_, yrange_, zrange_, xoff, yoff, zoff):
-    setHistBasic(hist)
-    hist.GetYaxis().SetTitle(ytitle)
-    hist.GetXaxis().SetTitle(xtitle)
-    hist.GetZaxis().SetTitle(ztitle)
-    hist.GetYaxis().SetTitleOffset(yoff)                                                                               
-    hist.GetXaxis().SetTitleOffset(xoff)                                                                               
-    hist.GetZaxis().SetTitleOffset(zoff)                                                                               
-    if yrange_ != 0:                                                                             
-        hist.GetYaxis().SetRangeUser(yrange_[0], yrange_[1])
-    if xrange_ != 0:
-        hist.GetXaxis().SetRangeUser(xrange_[0], xrange_[1])
-    if zrange_ != 0:
-        hist.GetZaxis().SetRangeUser(zrange_[0], zrange_[1])
-    return 0
-
-def setGraph(hist, xtitle, ytitle, xrange_, yrange_, yoff, color, mstyle, msize):
-    hist.SetMarkerStyle(mstyle)
-    hist.SetMarkerColor(color)
-    hist.SetLineColor  (color)
-    hist.SetFillColor  (0)
-    hist.SetMarkerSize (msize)
-    hist.GetYaxis().SetTitle(ytitle)
-    hist.GetXaxis().SetTitle(xtitle)
-    hist.GetYaxis().SetLabelSize(0.045)                                                                                
-    hist.GetYaxis().SetTitleSize(0.055)                                                                                
-    hist.GetYaxis().SetTitleOffset(yoff)                                                                               
-    hist.GetXaxis().SetLabelSize(0.045)                                                                                
-    hist.GetXaxis().SetTitleSize(0.055)                                                                                
-    hist.GetXaxis().SetTitleOffset(1.15)                                                                               
-    hist.GetXaxis().SetLabelFont(62)                                                                                   
-    hist.GetYaxis().SetLabelFont(62)                                                                                   
-    hist.GetXaxis().SetTitleFont(62)                                                                                   
-    hist.GetYaxis().SetTitleFont(62)                                                                                   
-    hist.GetXaxis().SetNdivisions(406,1)
-    if yrange_ != 0:                                                                             
-        hist.GetYaxis().SetRangeUser(yrange_[0], yrange_[1])
-    if xrange_ != 0:
-        hist.GetXaxis().SetRangeUser(xrange_[0], xrange_[1])
-    return 0
-    
-def addHists(hist1, hist2, name):
-    hfist3 = hist1.Clone(name)
-    hist3.Add(hist2)
-    return hist3
-
-def getText(ip, ip2, E_base_phase=0):
-    outText = []
-    if ip == "05" : ipA = "0.5"
-    else : ipA = ip
-    if ip2 == "05": ipB = "0.5"
-    else : ipB = ip2
-    name = "Peak current = "
-    if ipB == 0:
-        outText.append(name+ipA+" #muA")
-    else:
-        outText.append(name+ipA+" #muA + "+ipB+" #muA")
-    outText.append("E_{tot} = "+uA2gev[ip, "t"]+" GeV")
-    if E_base_phase == "0":
-        outText.append("not timed in")
-    else:
-        outText.append("timed in for "+uA2gev[E_base_phase, "t"]+" GeV")
-        #outText.append("phase = "+str(out_phase[E_base_phase])+" ns")
-    return outText
 
 print "Generating plots..."
 
@@ -223,14 +116,23 @@ pstyle[12, "col"] = 28
 pstyle[24, "col"] = 3
 
 depth_color_table = {}
-depth_color_table[1] = 1
-depth_color_table[2] = 2
-depth_color_table[3] = 8
-depth_color_table[4] = 4 
-depth_color_table[5] = 6
-depth_color_table[6] = 7
-depth_color_table[7] = 11 
-depth_color_table[8] = ROOT.kOrange -3 
+depth_color_table[1] = ROOT.kBlack
+depth_color_table[2] = ROOT.kRed
+depth_color_table[3] = ROOT.kGreen+2
+depth_color_table[4] = ROOT.kBlue+1
+depth_color_table[5] = ROOT.kMagenta+1
+depth_color_table[6] = ROOT.kCyan+1
+depth_color_table[7] = ROOT.kOrange -3 
+depth_color_table[8] = ROOT.kRed+2
+depth_color_table[9] = ROOT.kRed-6
+depth_color_table[10] = ROOT.kGreen-6
+depth_color_table[11] = ROOT.kBlue-7
+depth_color_table[12] = ROOT.kBlue-9
+depth_color_table[13] = ROOT.kMagenta+3
+depth_color_table[14] = ROOT.kMagenta-6
+depth_color_table[15] = ROOT.kCyan+3
+depth_color_table[16] = ROOT.kCyan+4
+depth_color_table[17] = ROOT.kOrange 
 
 tfile = ROOT.TFile(infile)
 
