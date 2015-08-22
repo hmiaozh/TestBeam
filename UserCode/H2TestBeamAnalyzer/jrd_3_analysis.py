@@ -56,6 +56,7 @@ clobber = options.clobber
 
 logLevel = 0
 FATAL = 5
+LEV4 = 4
 INFO = 1
 DIAG = 0
 
@@ -204,29 +205,29 @@ if len(runList) > 0:
         writeout(DIAG, "\n  ".join(inputFileList))
 
 #Now check output location        
-                                                     
+ 
+outputPattern = re.compile(outputFileFormat[0]+"(0*[0-9]+)"+outputFileFormat[1])
+        
+if not outputLoc:
+    outputLoc = "/hcalTB/Analysis"
+    if socket.gethostname() != "cmshcaltb05": outputLoc = "daq@cmshcaltb05.cern.ch:/hcalTB/Analysis"
+
+outputLoginInfo = ""
+outputIsRemote = False
+if ':' in outputLoc:
+    outputIsRemote = True     #if the output location has a colon, assume a network location
+    outputLoginInfo = outputLoc.split(':')[0]  #everything before the colon
+    outputLoc = outputLoc.split(':')[1]  #everything after the colon
+
+outputDirectory = outputLoc.rstrip('/')
+outputCommand = 'ls ' + outputDirectory
+    
+                                                                                                                                                                                                                                                                  
 if clobber:
     processFileList = inputFileList
 
 else:
 
-    outputPattern = re.compile(outputFileFormat[0]+"(0*[0-9]+)"+outputFileFormat[1])
-            
-    if not outputLoc:
-        outputLoc = "/hcalTB/Analysis"
-        if socket.gethostname() != "cmshcaltb05": outputLoc = "daq@cmshcaltb05.cern.ch:/hcalTB/Analysis"
-    
-    outputLoginInfo = ""
-    outputIsRemote = False
-    if ':' in outputLoc:
-        outputIsRemote = True     #if the output location has a colon, assume a network location
-        outputLoginInfo = outputLoc.split(':')[0]  #everything before the colon
-        outputLoc = outputLoc.split(':')[1]  #everything after the colon
-
-    #Get files from cmshcaltb02
-    outputDirectory = outputLoc.rstrip('/')
-    outputCommand = 'ls ' + outputDirectory
-    
     if outputIsRemote:
         ls2 = subprocess.Popen(['ssh', outputLoginInfo, outputCommand], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         ls2.wait()
@@ -305,10 +306,17 @@ for fileName in processFileList:
         subprocess.call(["./makeHtml.py", plotsDir])
         subprocess.call(["./makeMenu.sh", plotsDir])
     if do_sync:
-        print "Moving results of run " + runNum
-        subprocess.call(["rsync", "-av", plotsDir, outputLoginInfo + outputDirectory])
-    
-quit()
+        writeout(LEV4,">> Stage 5: Copying Plots Directory %s to %s" % (plotsDir, outputDirectory))
+        if outputIsRemote:
+            command = ["rsync", "-a", plotsDir, outputLoginInfo + ':' + outputDirectory]
+            writeout(LEV4,">> Executing \"%s\"" % " ".join(command))            
+            subprocess.call(command)
+        else:
+            command = ["cp -r", plotsDir, outputDirectory]
+            writeout(LEV4,">> Executing \"%s\"" % " ".join(command))            
+            subprocess.call(command)
+
+# quit()
 
 
 #fileList = processFileList
