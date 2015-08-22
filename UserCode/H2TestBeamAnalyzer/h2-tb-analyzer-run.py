@@ -56,8 +56,10 @@ process.hcalDigis = cms.EDProducer("HcalRawToDigi",
 
 process.hcalDigis.FEDs = cms.untracked.vint32(700,928)
 
+emapFileShort = emapFile.rsplit('.',1)[0]
+
 process.hcalAnalyzer = cms.EDAnalyzer('H2TestBeamAnalyzer',
-        OutFileName = cms.untracked.string('ana_h2_tb_run'+runNumber+'.root'),
+        OutFileName = cms.untracked.string('ana_h2_tb_run'+runNumber+emapFileShort+'.root'),
         Verbosity = cms.untracked.int32(doVerbose)
 )
 
@@ -68,7 +70,7 @@ process.hcalADCHists = cms.EDAnalyzer('adcHists')
 #
 process.output = cms.OutputModule(
         'PoolOutputModule',
-        fileName = cms.untracked.string('cmsrun_out_h2_tb_run'+runNumber+'.root')
+        fileName = cms.untracked.string('cmsrun_out_h2_tb_run'+runNumber+emapFileShort+'.root')
 )
 
 process.TFileService = cms.Service("TFileService",

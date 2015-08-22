@@ -295,7 +295,10 @@ for fileName in processFileList:
         subprocess.call(["rsync", "-av", rsyncPath, runDest])
     
     if do_cmsRun:
-        subprocess.call(["cmsRun", "h2testbeamanalyzer_cfg.py", runNum])
+        writeout(LEV4,">> Stage 1: Executing cmsRun for Run %s" % runNum)
+        command = ["./h2-tb-analyzer.py", runDest + '/' + fileName ]
+        writeout(LEV4,">> Executing \"%s\"" % " ".join(command))
+        #subprocess.call(command)
     if do_tb_ana:
         writeout(LEV4,">> Stage 2: Running Analyzer (tb_ana) for Run %s" % runNum)
         command = ["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum))]
