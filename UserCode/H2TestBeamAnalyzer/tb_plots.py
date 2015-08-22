@@ -165,7 +165,9 @@ for ichan in chanlist:
     depth = chanmap[ichan][2]
     label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
     hist["avgpulse", ichan] = tfile.Get("AvgPulse_"+label)
-    hist["linkerror", ichan] = tfile.Get("Link_Error_"+label)
+    hlink = tfile.Get("Link_Error_"+label)
+    if hlink:
+        hist["linkerror", ichan] = hlink
     hist["e_4TS_PS", ichan] = tfile.Get("Energy_"+label) 
     hist["e_wcC"   , ichan] = tfile.Get("h_e_wcC_"+label)
     hist["e_wcC_x" , ichan] = tfile.Get("h_e_wcC_x_"+label)
@@ -640,21 +642,22 @@ for ichan in chanlist:
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
 
-    setHist(hist["linkerror", ichan], "Link Error", "# Events", 0, 0, 1.3)
-    hist["linkerror", ichan].Draw()
-    pad.Update()
+    if ("linkerror", ichan) in hist:
+        setHist(hist["linkerror", ichan], "Link Error", "# Events", 0, 0, 1.3)
+        hist["linkerror", ichan].Draw()
+        pad.Update()
 
-    textsize = 0.03; legx0 = 0.23; legx1 = 0.68; legy0 = 0.82; legy1 = 0.88
-    leg = ROOT.TLegend(legx0, legy0, legx1, legy1)
-    leg.SetFillColor(0)
-    leg.SetTextSize(textsize)
-    leg.SetColumnSeparation(0.0)
-    leg.SetEntrySeparation(0.1)
-    leg.SetMargin(0.2)
+        textsize = 0.03; legx0 = 0.23; legx1 = 0.68; legy0 = 0.82; legy1 = 0.88
+        leg = ROOT.TLegend(legx0, legy0, legx1, legy1)
+        leg.SetFillColor(0)
+        leg.SetTextSize(textsize)
+        leg.SetColumnSeparation(0.0)
+        leg.SetEntrySeparation(0.1)
+        leg.SetMargin(0.2)
 
-    leg.AddEntry(hist["linkerror", ichan], "ieta="+str(ieta)+"  "+"iphi="+str(iphi)+"  "+"depth="+str(depth))
-    leg.Draw()
+        leg.AddEntry(hist["linkerror", ichan], "ieta="+str(ieta)+"  "+"iphi="+str(iphi)+"  "+"depth="+str(depth))
+        leg.Draw()
         
-    for end in [".pdf", ".gif"]:
-        canv.SaveAs(outdir+cname+"--ieta"+str(ieta)+"_iphi"+str(iphi)+"_depth"+str(depth)+end)
+        for end in [".pdf", ".gif"]:
+            canv.SaveAs(outdir+cname+"--ieta"+str(ieta)+"_iphi"+str(iphi)+"_depth"+str(depth)+end)
 

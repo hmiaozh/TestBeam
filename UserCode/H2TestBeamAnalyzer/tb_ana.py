@@ -650,6 +650,7 @@ for ievt in xrange(start, start + nevts_to_run):
             # Only make link error plot if we have the information
             if hasattr(fread[(ieta,iphi,depth)], 'link_error'):
                 if ("link_error", ichan) not in hist:
+                    label = "ieta%s_iphi%s_depth%s" % (ieta, iphi, depth)
                     hist["link_error", ichan] = ROOT.TH1F("Link_Error_" +label, "Link Errors for "+label,   2, 0, 2)
 
                 hist["link_error", ichan].Fill(fread[(ieta,iphi,depth)].link_error[rchan])
