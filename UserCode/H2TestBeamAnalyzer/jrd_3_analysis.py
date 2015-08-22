@@ -55,6 +55,7 @@ op_sync = options.sync
 clobber = options.clobber
 
 logLevel = 0
+
 FATAL = 5
 LEV4 = 4
 INFO = 1
@@ -296,15 +297,24 @@ for fileName in processFileList:
     if do_cmsRun:
         subprocess.call(["cmsRun", "h2testbeamanalyzer_cfg.py", runNum])
     if do_tb_ana:
-        subprocess.call(["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum))])
+        writeout(LEV4,">> Stage 2: Running Analyzer (tb_ana) for Run %s" % runNum)
+        command = ["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum))]
+        writeout(LEV4,">> Executing \"%s\"" % " ".join(command))
+        subprocess.call(command)
         #subprocess.call(["rm", "-rf", plotsDir])
     if do_tb_plots:
-        print "Generating plots for run " + runNum
-        subprocess.call(["./tb_plots.py", "--i", ana2, "--o", plotsDir, "--r", str(int(runNum))])
+        writeout(LEV4,">> Stage 3: Generating Plots Directory %s" % plotsDir)
+        command = ["./tb_plots.py", "--i", ana2, "--o", plotsDir, "--r", str(int(runNum))]
+        writeout(LEV4,">> Executing \"%s\"" % " ".join(command)) 
+        subprocess.call(command)
     if do_makeHtml:
-        print "Generating html for run " + runNum
-        subprocess.call(["./makeHtml.py", plotsDir])
-        subprocess.call(["./makeMenu.sh", plotsDir])
+        writeout(LEV4,">> Stage 4: Generating HTML in Plots Directory %s" % plotsDir)
+        command = ["./makeHtml.py", plotsDir]
+        writeout(LEV4,">> Executing \"%s\"" % " ".join(command)) 
+        subprocess.call(command)
+        writeout(LEV4,">> Executing \"%s\"" % " ".join(command)) 
+        command = ["./makeMenu.sh", plotsDir]
+        subprocess.call(command)
     if do_sync:
         writeout(LEV4,">> Stage 5: Copying Plots Directory %s to %s" % (plotsDir, outputDirectory))
         if outputIsRemote:
