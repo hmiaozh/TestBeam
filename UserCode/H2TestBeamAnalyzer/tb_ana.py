@@ -331,7 +331,6 @@ for ichan in chanlist:
     #print "Nbins: %i, lowedge: "%(hist["e_4TS_noPS", ichan].GetNbinsX())
     #print [hist["e_4TS_noPS", ichan].GetXaxis().GetBinLowEdge(i) for i in xrange(1,247)]
     hist["e_4TS_PS",   ichan] = ROOT.TH1F("Energy_"     +label, "Energy_"         +label, 247, edges10)
-    hist["link_error", ichan] = ROOT.TH1F("Link_Error_" +label, "Link Errors for "+label,   2, 0, 2)
 
 for depth in valid_depth:
     hist["e_4TS_etaphi",depth] = ROOT.TProfile2D("Energy_Avg_depth"+str(depth),"Average Energy per event in each ieta,iphi for depth "+str(depth), 
@@ -648,7 +647,12 @@ for ievt in xrange(start, start + nevts_to_run):
 
         # Fill LinkError plot
         if fillEplots:
+            # Only make link error plot if we have the information
             if hasattr(fread[(ieta,iphi,depth)], 'link_error'):
+                if ("link_error", ichan) not in hist:
+                    label = "ieta%s_iphi%s_depth%s" % (ieta, iphi, depth)
+                    hist["link_error", ichan] = ROOT.TH1F("Link_Error_" +label, "Link Errors for "+label,   2, 0, 2)
+
                 hist["link_error", ichan].Fill(fread[(ieta,iphi,depth)].link_error[rchan])
 
 
