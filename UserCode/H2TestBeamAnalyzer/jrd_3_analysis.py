@@ -137,7 +137,7 @@ outputFileFormat = [filePrefixList[lastStep+1],fileSuffixList[lastStep+1]]
 inputLoc = op_inputLoc
 if not inputLoc:
     inputLoc = "/data/spool"
-    if socket.gethostname() is not "cmshcaltb05":
+    if socket.gethostname() != "cmshcaltb05":
         inputLoc = "daq@cmshcaltb02.cern.ch:/data/spool"
         if firstStep > 0: inputLoc = "."
     writeout(DIAG,"setting inputLoc = %s" % inputLoc)
@@ -145,7 +145,7 @@ writeout(INFO,"Using input location: %s" % inputLoc)
 
 runDest = op_runDest
 if not runDest:
-    if socket.gethostname() is not "cmshcaltb05": runDest = "."
+    if socket.gethostname() != "cmshcaltb05": runDest = "."
     writeout(DIAG,"setting runDest = %s" % runDest)
 writeout(INFO,"Using temporary run directory: %s" % runDest)    
 
@@ -201,7 +201,7 @@ if len(runList) > 0:
     if len(inputFileList) == 0:
         writeout(DIAG, "No files found.")
     else:
-        writeout(DIAG, "\n".join(inputFileList))
+        writeout(DIAG, "\n  ".join(inputFileList))
 
 #Now check output location        
                                                      
@@ -214,7 +214,7 @@ else:
             
     if not outputLoc:
         outputLoc = "/hcalTB/Analysis"
-        if socket.gethostname() is not "cmshcaltb05": outputLoc = "daq@cmshcaltb05.cern.ch:/hcalTB/Analysis"
+        if socket.gethostname() != "cmshcaltb05": outputLoc = "daq@cmshcaltb05.cern.ch:/hcalTB/Analysis"
     
     outputLoginInfo = ""
     outputIsRemote = False
@@ -250,11 +250,9 @@ else:
     outputExistingFilesList.sort(reverse=True)
 
     
-    writeout(DIAG,"Files that already appear in the output directory %s" % outputDirectory)
-    if len(outputExistingFilesList) == 0:
-        writeout(DIAG, "No files found.")
-    else:
-        writeout(DIAG, "\n".join(outputExistingFilesList))
+    if len(outputExistingFilesList) > 0:
+        writeout(DIAG,"Files that already appear in the output directory %s:" % outputDirectory)
+        writeout(DIAG, "\n  ".join(outputExistingFilesList))
 
     processFileList = []
     for inputFileName in inputFileList:
