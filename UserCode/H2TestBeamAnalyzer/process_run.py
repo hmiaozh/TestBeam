@@ -352,7 +352,7 @@ for fileName in processFileList:
             writeout(LEV4,">> Executing \"%s\"" % " ".join(command))            
             subprocess.call(command)
         else:
-            command = ["cp -r", plotsDir, outputDirectory]
+            command = ["cp", "-r", plotsDir, outputDirectory]
             writeout(LEV4,">> Executing \"%s\"" % " ".join(command))            
             subprocess.call(command)
 
