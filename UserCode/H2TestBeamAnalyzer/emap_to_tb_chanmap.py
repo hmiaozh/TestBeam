@@ -1,12 +1,14 @@
 #!/usr/bin/python
 #Takes electronics channel map with first two lines as header, properties delimited by spaces, and writes the code for the chanmap in tb_utils.py, to be copied and pasted
 import sys
+import subprocess
 
 if len(sys.argv) != 2:
     print "Usage: ./emap_to_tb_chanmap.py [emap file]"
 else:
-    f = open('tb_chanmap.py', 'w')
     filename = sys.argv[1]
+    emapFileShort = filename.rsplit('.',1)[0].rsplit('/')[-1]
+    f = open('tb_chanmap.py', 'w')
     with open(filename, 'r') as inFile:
         lines = inFile.readlines()
         i = 0
@@ -30,3 +32,5 @@ else:
 	    f.write("\n")
         f.write("\n")
         f.write("chanlist = range(1,%i)\n" % (i+1))
+        f.close()
+	subprocess.call(["cp","tb_chanmap.py","tb_chanmap_"+emapFileShort+".py"]) 

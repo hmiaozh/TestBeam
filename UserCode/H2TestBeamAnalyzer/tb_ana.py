@@ -3,8 +3,6 @@
 print "Importing modules"
 import sys
 import optparse
-from tb_chanmap import *
-from tb_utils import *
 import os
 import ROOT
 import array
@@ -81,6 +79,10 @@ parser.add_option ('--adc', dest='adc',
 parser.add_option ('--verbose', dest='verbose', 
                    action='store_true', default=False,
                    help="Turn on verbose mode")
+parser.add_option ('-e', dest='emap',
+                   default=None,
+                   help="EMAP filename in order to read specific tb_chanmap")
+
 
 options, args = parser.parse_args()
 
@@ -93,6 +95,7 @@ nevents = options.nevents
 sigTS = options.sigTS
 start = options.start
 adc = options.adc
+emapFile = options.emap
 
 # Do some sanity checks
 if infile is None: 
@@ -104,6 +107,14 @@ if outfile is None:
 if runnum is None:
     print "You did not provide a run number! Exiting."
     sys.exit()
+
+# Import appropriate channel mapping
+chanmapFile = "tb_chanmap"
+if emapFile:
+    emapFileShort = emapFile.rsplit('.',1)[0].rsplit('/')[-1]
+    chanmapFile = "tb_chanmap_"+emapFileShort
+__import__(chanmapFile)
+from tb_utils import *
 
 
 #######################

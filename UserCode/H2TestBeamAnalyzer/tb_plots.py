@@ -7,8 +7,6 @@ import os
 import ROOT
 import array
 import time
-from tb_chanmap import *
-from tb_utils import *
 from math import exp, sqrt, log
 
 #######################
@@ -30,6 +28,9 @@ parser.add_option ('-r', '--r', dest='runnum', type='int',
                    help="Run number")
 parser.add_option ('--pe_only', action="store_true",
                    dest="doPE", default=False)
+parser.add_option ('-e', dest='emap',
+                   default=None,
+                   help="EMAP filename in order to read specific tb_chanmap")
 
 #parser.add_option ('--tout', action="store_true",
 #                   dest="tout", default=False)
@@ -40,9 +41,19 @@ doPE   = options.doPE
 infile = options.infile
 outdir = options.outdir
 runnum = options.runnum
+emapFile = options.emap
+
 if infile is None:
     print "You did not provide an input file! Exiting"
     sys.exit(1)
+
+# Import appropriate channel mapping
+chanmapFile = "tb_chanmap"
+if emapFile:
+    emapFileShort = emapFile.rsplit('.',1)[0].rsplit('/')[-1]
+    chanmapFile = "tb_chanmap_"+emapFileShort
+__import__(chanmapFile)
+from tb_utils import *
 
 if outdir is not None:
     outdir += "/"
