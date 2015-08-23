@@ -1,64 +1,67 @@
 from tb_chanmap import *
 
-def setPadPasMargin(pad, rightMargin=0.05):                                                                                   
-  pad.SetFrameFillStyle(1001)                                                                                                 
-  pad.SetTicks()                                                                                                              
-  pad.SetTopMargin(0)                                                                                                         
-  pad.SetFillColor(0)                                                                                                         
-  leftMargin   = 0.16                                                                                                         
-  topMargin    = 0.1                                                                                                          
-  bottomMargin = 0.15                                                                                                         
-  pad.SetLeftMargin(leftMargin)                                                                                               
-  pad.SetRightMargin(rightMargin)                                                                                             
-  pad.SetTopMargin(topMargin)                                                                                                 
-  pad.SetBottomMargin(bottomMargin)                                                                                           
-
+def setPadPasMargin(pad, rightMargin=0.05):
+    pad.SetFrameFillStyle(1001)
+    pad.SetTicks()
+    pad.SetTopMargin(0)
+    pad.SetFillColor(0)
+    leftMargin   = 0.16
+    topMargin    = 0.1
+    bottomMargin = 0.15
+    pad.SetLeftMargin(leftMargin)
+    pad.SetRightMargin(rightMargin)
+    pad.SetTopMargin(topMargin)
+    pad.SetBottomMargin(bottomMargin)
+    
 
 def setHistBasic(hist):
     hist.GetYaxis().SetLabelSize(0.045)
     hist.GetYaxis().SetTitleSize(0.055)
     hist.GetXaxis().SetLabelSize(0.045)
     hist.GetXaxis().SetTitleSize(0.055)
-    hist.GetXaxis().SetNdivisions(506)
+    #hist.GetXaxis().SetNdivisions(506)
     hist.GetXaxis().SetTitleOffset(1.15)
     hist.GetXaxis().SetLabelFont(62)
     hist.GetYaxis().SetLabelFont(62)
     hist.GetXaxis().SetTitleFont(62)
     hist.GetYaxis().SetTitleFont(62)
-    hist.GetXaxis().SetNdivisions(412,1)
+    hist.GetXaxis().SetNdivisions(406,1)
     return 0
 
-def setHist(hist, xtitle, ytitle, xrange, yrange, yoff, color, style=1):
+
+def setHist(hist, xtitle, ytitle, xrange_, yrange_, yoff, color=-1, style=-1):
     setHistBasic(hist)
     hist.GetYaxis().SetTitle(ytitle)
     hist.GetXaxis().SetTitle(xtitle)
-    hist.SetLineColor(color)
-    hist.SetLineStyle(style)
+    if color > 0:
+        hist.SetLineColor(color)
+    if style > 0:
+        hist.SetLineStyle(style)
     hist.SetLineWidth(2)
-    hist.GetYaxis().SetTitleOffset(yoff)                                                                               
-    if yrange != 0:                                                                             
-        hist.GetYaxis().SetRangeUser(yrange[0], yrange[1])
-    if xrange != 0:
-        hist.GetXaxis().SetRangeUser(xrange[0], xrange[1])
+    hist.GetYaxis().SetTitleOffset(yoff)
+    if yrange_ != 0:
+        hist.GetYaxis().SetRangeUser(yrange_[0], yrange_[1])
+    if xrange_ != 0:
+        hist.GetXaxis().SetRangeUser(xrange_[0], xrange_[1])
     return 0
 
-def setHist2D(hist, xtitle, ytitle, ztitle, xrange, yrange, zrange, xoff, yoff, zoff):
+def setHist2D(hist, xtitle, ytitle, ztitle, xrange_, yrange_, zrange_, xoff, yoff, zoff):
     setHistBasic(hist)
     hist.GetYaxis().SetTitle(ytitle)
     hist.GetXaxis().SetTitle(xtitle)
     hist.GetZaxis().SetTitle(ztitle)
-    hist.GetYaxis().SetTitleOffset(yoff)                                                                               
-    hist.GetXaxis().SetTitleOffset(xoff)                                                                               
-    hist.GetZaxis().SetTitleOffset(zoff)                                                                               
-    if yrange != 0:                                                                             
-        hist.GetYaxis().SetRangeUser(yrange[0], yrange[1])
-    if xrange != 0:
-        hist.GetXaxis().SetRangeUser(xrange[0], xrange[1])
-    if zrange != 0:
-        hist.GetZaxis().SetRangeUser(zrange[0], zrange[1])
+    hist.GetYaxis().SetTitleOffset(yoff)
+    hist.GetXaxis().SetTitleOffset(xoff)
+    hist.GetZaxis().SetTitleOffset(zoff)
+    if yrange_ != 0:
+        hist.GetYaxis().SetRangeUser(yrange_[0], yrange_[1])
+    if xrange_ != 0:
+        hist.GetXaxis().SetRangeUser(xrange_[0], xrange_[1])
+    if zrange_ != 0:
+        hist.GetZaxis().SetRangeUser(zrange_[0], zrange_[1])
     return 0
 
-def setGraph(hist, xtitle, ytitle, xrange, yrange, yoff, color, mstyle, msize):
+def setGraph(hist, xtitle, ytitle, xrange_, yrange_, yoff, color, mstyle, msize):
     hist.SetMarkerStyle(mstyle)
     hist.SetMarkerColor(color)
     hist.SetLineColor  (color)
@@ -66,24 +69,23 @@ def setGraph(hist, xtitle, ytitle, xrange, yrange, yoff, color, mstyle, msize):
     hist.SetMarkerSize (msize)
     hist.GetYaxis().SetTitle(ytitle)
     hist.GetXaxis().SetTitle(xtitle)
-    hist.GetYaxis().SetLabelSize(0.045)                                                                                
-    hist.GetYaxis().SetTitleSize(0.055)                                                                                
-    hist.GetYaxis().SetTitleOffset(yoff)                                                                               
-    hist.GetXaxis().SetLabelSize(0.045)                                                                                
-    hist.GetXaxis().SetTitleSize(0.055)                                                                                
-    hist.GetXaxis().SetNdivisions(506)                                                                                 
-    hist.GetXaxis().SetTitleOffset(1.15)                                                                               
-    hist.GetXaxis().SetLabelFont(62)                                                                                   
-    hist.GetYaxis().SetLabelFont(62)                                                                                   
-    hist.GetXaxis().SetTitleFont(62)                                                                                   
-    hist.GetYaxis().SetTitleFont(62)                                                                                   
-    hist.GetXaxis().SetNdivisions(412,1)
-    if yrange != 0:                                                                             
-        hist.GetYaxis().SetRangeUser(yrange[0], yrange[1])
-    if xrange != 0:
-        hist.GetXaxis().SetRangeUser(xrange[0], xrange[1])
+    hist.GetYaxis().SetLabelSize(0.045)
+    hist.GetYaxis().SetTitleSize(0.055)
+    hist.GetYaxis().SetTitleOffset(yoff)
+    hist.GetXaxis().SetLabelSize(0.045)
+    hist.GetXaxis().SetTitleSize(0.055)
+    hist.GetXaxis().SetTitleOffset(1.15)
+    hist.GetXaxis().SetLabelFont(62)
+    hist.GetYaxis().SetLabelFont(62)
+    hist.GetXaxis().SetTitleFont(62)
+    hist.GetYaxis().SetTitleFont(62)
+    hist.GetXaxis().SetNdivisions(406,1)
+    if yrange_ != 0:
+        hist.GetYaxis().SetRangeUser(yrange_[0], yrange_[1])
+    if xrange_ != 0:
+        hist.GetXaxis().SetRangeUser(xrange_[0], xrange_[1])
     return 0
-    
+
 def addHists(hist1, hist2, name):
     hfist3 = hist1.Clone(name)
     hist3.Add(hist2)
@@ -109,16 +111,29 @@ def getText(ip, ip2, E_base_phase=0):
     return outText
 
 
+
 # Valid ieta, iphi and depth
-valid_ieta = xrange(16,27)
-valid_iphi = [3,4,5,6,8,10,11,13,14,15,16]
-valid_depth = xrange(1,8)
+
+all_ieta = [k[0] for k in chanmap.keys() if type(k) is not int]
+all_iphi = [k[1] for k in chanmap.keys() if type(k) is not int]
+all_depth = [k[2] for k in chanmap.keys() if type(k) is not int]
+
+ieta_set = set(all_ieta)
+iphi_set = set(all_iphi)
+depth_set = set(all_depth)
+
+valid_ieta = sorted(list(ieta_set))
+valid_iphi =  sorted(list(iphi_set))
+valid_depth = sorted(list(depth_set))
+#valid_ieta = xrange(16,27)
+#valid_iphi = [3,4,5,6,8,9,10,11,13,14,15,16]
+#valid_depth = xrange(1,9)
 
 calib = {}
 for channum in chanlist:
     calib[channum] = 1.
 
-runList = xrange(8300,8700)
+runList = xrange(8300,9000)
 
 chanType = {}
 for channum in chanlist:
@@ -148,7 +163,7 @@ for channum in chanlist:
 #edges[22, 7526] = [25.-80. , 25., -5.      , -5.+15.]  #"T6"
 #edges[23, 7526] = [15.-80. , 15., -1.      , -1.+15.]  #"mix 7 LS"
 
-# ped,   1pe,   2pe,    chi2  
+# ped,   1pe,   2pe,    chi2
 pecal = {}
 for channum in chanlist:
     pecal[channum] = [13.33, 35.19, 57.06, 164.45]

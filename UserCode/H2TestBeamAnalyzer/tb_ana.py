@@ -3,8 +3,6 @@
 print "Importing modules"
 import sys
 import optparse
-from tb_chanmap import *
-from tb_utils import *
 import os
 import ROOT
 import array
@@ -81,6 +79,10 @@ parser.add_option ('--adc', dest='adc',
 parser.add_option ('--verbose', dest='verbose', 
                    action='store_true', default=False,
                    help="Turn on verbose mode")
+parser.add_option ('-e', dest='emap',
+                   default=None,
+                   help="EMAP filename in order to read specific tb_chanmap")
+
 
 options, args = parser.parse_args()
 
@@ -93,6 +95,7 @@ nevents = options.nevents
 sigTS = options.sigTS
 start = options.start
 adc = options.adc
+emapFile = options.emap
 
 # Do some sanity checks
 if infile is None: 
@@ -104,6 +107,14 @@ if outfile is None:
 if runnum is None:
     print "You did not provide a run number! Exiting."
     sys.exit()
+
+# Import appropriate channel mapping
+chanmapFile = "tb_chanmap"
+if emapFile:
+    emapFileShort = emapFile.rsplit('.',1)[0].rsplit('/')[-1]
+    chanmapFile = "tb_chanmap_"+emapFileShort
+__import__(chanmapFile)
+from tb_utils import *
 
 
 #######################
@@ -198,7 +209,6 @@ ntp["hf"] = file.Get("HFData/Events")
 ntp["qie11"] = file.Get("QIE11Data/Events")
 ntp["wc"] = file.Get("WCData/Events")
 
-
 ############################
 # Prepare for tree reading
 ############################           
@@ -212,17 +222,17 @@ vname["qie11"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse", "ped", "p
 vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC"]
 
 
-ROOT.gROOT.ProcessLine("struct hbhe_struct {Int_t numChs; Int_t numTS; Int_t iphi[120]; Int_t ieta[120]; Int_t depth[120]; Double_t pulse[6000];};")
+ROOT.gROOT.ProcessLine("struct hbhe_struct {Int_t numChs; Int_t numTS; Int_t iphi[300]; Int_t ieta[300]; Int_t depth[300]; Double_t pulse[15000]; Double_t pulse_adc[15000]; Double_t ped[300]; Double_t ped_adc[300];};")
 shbhe = ROOT.hbhe_struct()
 for ivname in vname["hbhe"]:
     ntp["hbhe"].SetBranchAddress(ivname, ROOT.AddressOf(shbhe, ivname))
 
-ROOT.gROOT.ProcessLine("struct hf_struct {Int_t numChs; Int_t numTS; Int_t iphi[120]; Int_t ieta[120]; Int_t depth[120]; Double_t pulse[6000];};")  # Treat pulse like 1D array of length 120*50
+ROOT.gROOT.ProcessLine("struct hf_struct {Int_t numChs; Int_t numTS; Int_t iphi[300]; Int_t ieta[300]; Int_t depth[300]; Double_t pulse[15000];  Double_t pulse_adc[15000]; Double_t ped[300]; Double_t ped_adc[300];};")  # Treat pulse like 1D array of length 300*50
 shf = ROOT.hf_struct()
 for ivname in vname["hf"]:
     ntp["hf"].SetBranchAddress(ivname, ROOT.AddressOf(shf, ivname))
 
-ROOT.gROOT.ProcessLine("struct qie11_struct {Int_t numChs; Int_t numTS; Int_t iphi[120]; Int_t ieta[120]; Int_t depth[120]; Double_t pulse[6000]; Double_t ped[120]; Double_t pulse_adc[6000]; Double_t ped_adc[120]; bool capid_error[120]; bool link_error[120]; bool soi[6000];};")  # Treat pulse like 1D array of length 120*50
+ROOT.gROOT.ProcessLine("struct qie11_struct {Int_t numChs; Int_t numTS; Int_t iphi[300]; Int_t ieta[300]; Int_t depth[300]; Double_t pulse[15000]; Double_t ped[300]; Double_t pulse_adc[15000]; Double_t ped_adc[300]; bool capid_error[300]; bool link_error[300]; bool soi[15000];};")  # Treat pulse like 1D array of length 300*50
 sqie11 = ROOT.qie11_struct()
 for ivname in vname["qie11"]:
     ntp["qie11"].SetBranchAddress(ivname, ROOT.AddressOf(sqie11, ivname))
@@ -332,22 +342,21 @@ for ichan in chanlist:
     #print "Nbins: %i, lowedge: "%(hist["e_4TS_noPS", ichan].GetNbinsX())
     #print [hist["e_4TS_noPS", ichan].GetXaxis().GetBinLowEdge(i) for i in xrange(1,247)]
     hist["e_4TS_PS",   ichan] = ROOT.TH1F("Energy_"     +label, "Energy_"         +label, 247, edges10)
-    hist["link_error", ichan] = ROOT.TH1F("Link_Error_" +label, "Link Errors for "+label,   2, 0, 2)
 
 for depth in valid_depth:
     hist["e_4TS_etaphi",depth] = ROOT.TProfile2D("Energy_Avg_depth"+str(depth),"Average Energy per event in each ieta,iphi for depth "+str(depth), 
-                                                 (valid_ieta[-1] - valid_ieta[0])+2, valid_ieta[0]-1.5, valid_ieta[-1]+1.5, 
-                                                 (valid_iphi[-1] - valid_iphi[0])+2, valid_iphi[0]-1.5, valid_iphi[-1]+1.5, 
-                                                 0., 4000.)
+                                                 (valid_ieta[-1] - valid_ieta[0])+3, valid_ieta[0]-1.5, valid_ieta[-1]+1.5, 
+                                                 (valid_iphi[-1] - valid_iphi[0])+3, valid_iphi[0]-1.5, valid_iphi[-1]+1.5, 
+                                                 0., 10000.)
     hist["occupancy_event_etaphi",depth] = ROOT.TH2F("Occ_Event_depth_"+str(depth),"Fraction of Events with a hit in each ieta,iphi for depth "+str(depth), 
-                                                     (valid_ieta[-1] - valid_ieta[0])+2, valid_ieta[0]-1.5, valid_ieta[-1]+1.5,
-                                                     (valid_iphi[-1] - valid_iphi[0])+2, valid_iphi[0]-1.5, valid_iphi[-1]+1.5)
+                                                     (valid_ieta[-1] - valid_ieta[0])+3, valid_ieta[0]-1.5, valid_ieta[-1]+1.5,
+                                                     (valid_iphi[-1] - valid_iphi[0])+3, valid_iphi[0]-1.5, valid_iphi[-1]+1.5)
 
 for iphi in valid_iphi:
     hist["e_4TS_etadepth",iphi] = ROOT.TProfile2D("Energy_Avg_phi"+str(iphi),"Average Energy per event in each ieta,depth for iphi "+str(iphi), 
-                                                  (valid_ieta[-1] - valid_ieta[0])+2, valid_ieta[0]-1.5, valid_ieta[-1]+1.5, 
-                                                  (valid_iphi[-1] - valid_iphi[0])+2, valid_iphi[0]-1.5, valid_iphi[-1]+1.5, 
-                                                  0., 4000.)
+                                                  (valid_ieta[-1] - valid_ieta[0])+3, valid_ieta[0]-1.5, valid_ieta[-1]+1.5, 
+                                                  (valid_depth[-1] - valid_depth[0])+3, valid_depth[0]-1.5, valid_depth[-1]+1.5, 
+                                                  0., 10000.)
     
     
     
@@ -554,13 +563,15 @@ for ievt in xrange(start, start + nevts_to_run):
         if test_chan in chansToFind:
             chansToFind.remove(test_chan)
             fchan[chanmap[test_chan]] = rchan
-	    fread[rchan] = shbhe
+            fread[test_chan] = shbhe
+	    #fread[rchan] = shbhe
     for rchan in xrange(sqie11.numChs):
         test_chan = (sqie11.ieta[rchan], sqie11.iphi[rchan], sqie11.depth[rchan])
         if test_chan in chansToFind:
             chansToFind.remove(test_chan)
             fchan[chanmap[test_chan]] = rchan
-	    fread[rchan] = sqie11
+	    #fread[rchan] = sqie11
+            fread[test_chan] = sqie11
     
     if verbose:
         print "fchan:", fchan
@@ -592,23 +603,25 @@ for ievt in xrange(start, start + nevts_to_run):
     #            break
     #if not clean: continue
 
-
     charge = {} 
     energy = {}   
    
     for ichan,rchan in fchan.iteritems():
 
+        ieta, iphi, depth = chanmap[ichan]
+
         if verbose:
             print "processing ichan %s, rchan %s" % (ichan, rchan)
+            print "corresponding to ieta %s, iphi %s, depth %s" % (ieta, iphi, depth)
 
         # Pull charges and energies for each time sample, convert to fC when appropriate
-        nts = fread[rchan].numTS
+        nts = fread[(ieta,iphi,depth)].numTS
         for its in xrange(nts):
             if adc:
-                charge[ichan,its] = fread[rchan].pulse_adc[rchan*50+its]  #[row][col] -> [row*n_cols + col]
+                charge[ichan,its] = fread[(ieta,iphi,depth)].pulse_adc[rchan*50+its]  #[row][col] -> [row*n_cols + col]
                 energy[ichan,its] = charge[ichan,its]
             else:
-                charge[ichan,its] = fread[rchan].pulse[rchan*50+its]  #[row][col] -> [row*n_cols + col]
+                charge[ichan,its] = fread[(ieta,iphi,depth)].pulse[rchan*50+its]  #[row][col] -> [row*n_cols + col]
                 energy[ichan,its] = charge[ichan,its]*calib[ichan]
 
         if verbose:
@@ -620,12 +633,12 @@ for ievt in xrange(start, start + nevts_to_run):
         #for its in ped_ts_list:   
         #    ped_esum += energy[ichan,its]
         #ped_avg = ped_esum/len(ped_ts_list)    
-        esum[ichan, "PED"] = fread[rchan].ped[rchan]*calib[ichan]
-        esum[ichan, "PED_ADC"] = fread[rchan].ped_adc[rchan]
+        esum[ichan, "PED"] = fread[(ieta,iphi,depth)].ped[rchan]*calib[ichan]
+        esum[ichan, "PED_ADC"] = fread[(ieta,iphi,depth)].ped_adc[rchan]
 
         if verbose:
-            print "Pedestal (fC) = %s" % (fread[rchan].ped[rchan])
-            print "Pedestal (ADC counts) = %s" % (fread[rchan].ped_adc[rchan])
+            print "Pedestal (fC) = %s" % (fread[(ieta,iphi,depth)].ped[rchan])
+            print "Pedestal (ADC counts) = %s" % (fread[(ieta,iphi,depth)].ped_adc[rchan])
 
         # Compute signal and pedestal-subtracted signal
         ts_list = xrange(4,4+sigTS) # [4,5,6,7]   #time samples in which to sum charge for signal (4-7 by default)
@@ -646,7 +659,13 @@ for ievt in xrange(start, start + nevts_to_run):
 
         # Fill LinkError plot
         if fillEplots:
-            hist["link_error", ichan].Fill(fread[rchan].link_error[rchan])
+            # Only make link error plot if we have the information
+            if hasattr(fread[(ieta,iphi,depth)], 'link_error'):
+                if ("link_error", ichan) not in hist:
+                    label = "ieta%s_iphi%s_depth%s" % (ieta, iphi, depth)
+                    hist["link_error", ichan] = ROOT.TH1F("Link_Error_" +label, "Link Errors for "+label,   2, 0, 2)
+
+                hist["link_error", ichan].Fill(fread[(ieta,iphi,depth)].link_error[rchan])
 
 
         # Fill pulse shape plot

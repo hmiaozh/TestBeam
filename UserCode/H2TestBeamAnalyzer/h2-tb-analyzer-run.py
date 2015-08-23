@@ -1,35 +1,29 @@
 import FWCore.ParameterSet.Config as cms
 
+import sys
+if len(sys.argv) != 7:
+    print len(sys.argv)
+    print "### ERROR: No Run File has been provided"
+    print "### Usage: cmsRun h2-tb-analyzer-run.py <input file> <emap file> <verbose flag> <num events> <run number>"
+    sys.exit(1)
+
+inputFile = sys.argv[2]
+emapFile = sys.argv[3]
+doVerbose = int(sys.argv[4])
+numEvents = int(sys.argv[5])
+if numEvents == 0: numEvents = -1
+runNumber = sys.argv[6]
+
 process = cms.Process("H2TestBeam")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
-
-#
-#   Command Line Input(Copied from DQM for now)
-#
-import sys
-if len(sys.argv)!= 3:
-    print "### ERROR: No Run File has been provided"
-    print "### Use: cmsRun h2testbeamanalyzer_cfg.py <run number>"
-    sys.exit(1)
-
-#
-#   Change the filename to process
-#
-runNumber = sys.argv[2]
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(numEvents) )
 
 process.source = cms.Source("HcalTBSource",
-    # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
-#       'root://eoscms//eos/cms/store/group/comm_hcal/LS1/USC_226003.root'
-#       'root://eoscms//eos/cms/store/group/comm_hcal/LS1/USC_227057.root'
-#       'file:/afs/cern.ch/work/v/vkhriste/CMSSW/CMSSW_6_0_1/src/UserCode/H2TestBeamAnalyzer/data_H2_TB/HTB_007385.root' 
-#       'file:/data/spool/HTB_' + runNumber + '.root'
-#       'file:/afs/cern.ch/user/j/jhirsch/HTB_007480.root'
-        'file:./HTB_'+runNumber+'.root'
+        'file:'+inputFile
     )
 )
 
@@ -62,9 +56,11 @@ process.hcalDigis = cms.EDProducer("HcalRawToDigi",
 
 process.hcalDigis.FEDs = cms.untracked.vint32(700,928)
 
+emapFileShort = emapFile.rsplit('.',1)[0].rsplit('/')[-1]
+
 process.hcalAnalyzer = cms.EDAnalyzer('H2TestBeamAnalyzer',
-        OutFileName = cms.untracked.string('ana_h2_tb_run'+runNumber+'.root'),
-        Verbosity = cms.untracked.int32(0)
+        OutFileName = cms.untracked.string('ana_h2_tb_run'+runNumber+'_'+emapFileShort+'.root'),
+        Verbosity = cms.untracked.int32(doVerbose)
 )
 
 process.hcalADCHists = cms.EDAnalyzer('adcHists')
@@ -74,7 +70,7 @@ process.hcalADCHists = cms.EDAnalyzer('adcHists')
 #
 process.output = cms.OutputModule(
         'PoolOutputModule',
-        fileName = cms.untracked.string('cmsrun_out_h2_tb_run'+runNumber+'.root')
+        fileName = cms.untracked.string('cmsrun_out_h2_tb_run'+runNumber+emapFileShort+'.root')
 )
 
 process.TFileService = cms.Service("TFileService",
@@ -98,7 +94,7 @@ process.es_ascii = cms.ESSource('HcalTextCalibrations',
         input = cms.VPSet(
                cms.PSet(
                 object = cms.string('ElectronicsMap'),
-                file = cms.FileInPath('UserCode/H2TestBeamAnalyzer/EMAP-QIE11-L00-21AUG2015-04.txt')  # EMAP here!
+                file = cms.FileInPath(emapFile)  # EMAP here!
                )
         )
 )
@@ -106,7 +102,9 @@ process.es_prefer = cms.ESPrefer('HcalTextCalibrations', 'es_ascii')
 
 process.dump = cms.EDAnalyzer("HcalDigiDump")
 
-process.p = cms.Path(process.tbunpack*process.hcalDigis*process.hcalAnalyzer*process.hcalADCHists)
-# process.p = cms.Path(process.tbunpack*process.hcalDigis*process.dump*process.hcalAnalyzer)
-# process.outpath = cms.EndPath(process.output)
+if doVerbose:
+    process.p = cms.Path(process.tbunpack*process.hcalDigis*process.dump*process.hcalAnalyzer*process.hcalADCHists)
+else:
+    process.p = cms.Path(process.tbunpack*process.hcalDigis*process.hcalAnalyzer*process.hcalADCHists)
 
+# process.outpath = cms.EndPath(process.output)
