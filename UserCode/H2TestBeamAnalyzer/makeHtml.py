@@ -17,19 +17,19 @@ parser = optparse.OptionParser("usage: %prog [options]\
 
 parser.add_option ('--t', dest='title', type='string',
                    default = 'Plots',
-                   help="Title of html page.")
+                   help="Title of html page. (Default: %default)")
 parser.add_option ('--s', dest='size', type='int',
                    default = 400,
-                   help="Size of displayed plots.")
+                   help="Size of displayed plots. Ignored for now.")
 parser.add_option ('--rw', dest='rowWidth', type='int',
                    default = 3,
-                   help="Size of displayed plots.")
+                   help="Number of plots per row. (Default: %default)")
 parser.add_option ('--ext', type="string",
                    dest="ext", default="pdf",
-                   help="Format of linked image.")
+                   help="Format of linked image. (Default: %default)")
 parser.add_option ('--img', type='string',
                    dest="img", default="gif",
-                   help="Format of displayed image.")
+                   help="Format of displayed image. (Default: %default)")
 options, args = parser.parse_args()
 
 
@@ -95,24 +95,25 @@ files.sort()
 
 for file in files:
     #print "Processing", file
-    sys.stdout.write(".")
-    sys.stdout.flush()
+    #sys.stdout.write(".")
+    #sys.stdout.flush()
     
     base = os.path.splitext(file)[0]
     fname = "%s.%s" % (base, img)
-    fsmall = "%s_small.%s" % (base, img)
+    #fsmall = "%s_small.%s" % (base, img)
     flink = "%s.%s" % (base, ext)
     
-    wait_nproc(10)
-    p = subprocess.Popen(['convert', fname, "-resize", "%sx%s" % (size, size), fsmall])
+    # It appears that the ROOT made gifs are already pretty small, so no need to create them. 
+    #wait_nproc(10)
+    #p = subprocess.Popen(['convert', fname, "-resize", "%sx%s" % (size, size), fsmall])
     #p = subprocess.call(['convert', fname, "-resize", "%sx%s" % (size, size), fsmall])
-    procs.append(p)
-    html += '<a href="%s"><img src="%s"></a>\n' % (flink, fsmall)
+    #procs.append(p)
+    html += '<a href="%s"><img src="%s"></a>\n' % (flink, fname)
 
 sys.stdout.write("\n")
 
 # wait until all background jobs are finished
-wait_nproc(0)
+#wait_nproc(0)
 
 html += "</body>\n"
 html += "</html>\n"
