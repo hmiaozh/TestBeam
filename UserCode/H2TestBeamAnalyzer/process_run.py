@@ -342,8 +342,8 @@ for fileName in processFileList:
         command = ["./makeHtml.py", plotsDir]
         writeout(LEV4,">> Executing \"%s\"" % " ".join(command)) 
         subprocess.call(command)
-        writeout(LEV4,">> Executing \"%s\"" % " ".join(command)) 
         command = ["./makeMenu.sh", plotsDir]
+        writeout(LEV4,">> Executing \"%s\"" % " ".join(command)) 
         subprocess.call(command)
     if do_sync:
         writeout(LEV4,">> Stage 5: Copying Plots Directory %s to %s" % (plotsDir, outputDirectory))
