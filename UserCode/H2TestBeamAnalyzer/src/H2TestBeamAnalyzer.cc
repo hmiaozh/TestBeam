@@ -304,7 +304,7 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeHBHE->Branch("pulse", _hbheInfo.pulse, "pulse[numChs][50]/D");
     _treeHBHE->Branch("ped", _hbheInfo.ped, "ped[numChs]/D");
     _treeHBHE->Branch("pulse_adc", _hbheInfo.pulse_adc, "pulse_adc[numChs][50]/D");
-    _treeHBHE->Branch("ped_adc", _hbheInfo.ped_adc, "ped_adc[numChs][50]/D");
+    _treeHBHE->Branch("ped_adc", _hbheInfo.ped_adc, "ped_adc[numChs]/D");
 
     _file->cd("HFData");
     _treeHF = new TTree("Events", "Events");
@@ -316,7 +316,7 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeHF->Branch("pulse", _hfInfo.pulse, "pulse[numChs][50]/D");
     _treeHF->Branch("pulse_adc", _hfInfo.pulse_adc, "pulse_adc[numChs][50]/D");
     _treeHF->Branch("ped", _hfInfo.ped, "ped[numChs]/D");
-    _treeHF->Branch("ped_adc", _hfInfo.ped_adc, "ped_adc[numChs][50]/D");
+    _treeHF->Branch("ped_adc", _hfInfo.ped_adc, "ped_adc[numChs]/D");
 
     _file->cd("QIE11Data");
     _treeQIE11 = new TTree("Events", "Events");
