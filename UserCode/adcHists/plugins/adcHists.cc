@@ -23,6 +23,7 @@
 #include <map>
 #include <string>
 #include <sstream>
+#include <vector>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -34,7 +35,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "DataFormats/HcalDigi/interface/HcalDigiCollections.h"
-#include "UserCode/adcHists/include/ADC_Conversion.h"
+#include "UserCode/H2TestBeamAnalyzer/src/ADC_Conversion.h"
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
@@ -93,14 +94,23 @@ private:
     virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
     virtual void endJob() override;
 
+    edm::EDGetTokenT<HBHEDigiCollection> tok_HBHEDigiCollection_;
     edm::EDGetTokenT<QIE11DigiCollection> tok_QIE11DigiCollection_;
     edm::EDGetTokenT<HcalTBTriggerData> tok_HcalTBTriggerData_;
+    edm::EDGetTokenT<HcalTBTiming> tok_HcalTBTiming_;
+
+    double gain_;
+    
+    void fillHist(std::map<std::string, TH1*>& hists, std::string name, float value, int nbins, double bins[]);
+    void fillHist(std::map<std::string, TH1*>& hists, std::string name, float value, int nbins, float ll, float ul);
 
     TH1* hq;
 
-    std::map<std::string, TH1*> spectra;
+    std::map<std::string, TH1*> hists;
     
     edm::Service<TFileService> fs;
+
+    std::vector<double> binsQIE11;
 };
 
 adcHists::adcHists(const edm::ParameterSet& iConfig)
@@ -109,8 +119,12 @@ adcHists::adcHists(const edm::ParameterSet& iConfig)
 
     hq = fs->make<TH1D>("allMu", "allMu", 247, edges10);
 
+    tok_HBHEDigiCollection_ = consumes<HBHEDigiCollection>(edm::InputTag("hcalDigis"));
     tok_QIE11DigiCollection_ = consumes<QIE11DigiCollection>(edm::InputTag("hcalDigis"));
     tok_HcalTBTriggerData_ = consumes<HcalTBTriggerData>(edm::InputTag("tbunpack"));
+    tok_HcalTBTiming_ = consumes<HcalTBTiming>(edm::InputTag("tbunpack"));
+
+    gain_ = iConfig.getUntrackedParameter<double>("gain");
 }
 
 
@@ -119,9 +133,40 @@ adcHists::~adcHists()
     
 }
 
+void adcHists::fillHist(std::map<std::string, TH1*>& hists, std::string name, float value, int nbins, double bins[])
+{
+    auto hist = hists.find(name);
+    if(hist == hists.end())
+    {
+	hists[name] = fs->make<TH1D>(name.c_str(), name.c_str(), nbins, bins);
+	hists[name]->Fill(value);
+    }
+    else
+    {
+	hist->second->Fill(value);
+    }
+}
+
+void adcHists::fillHist(std::map<std::string, TH1*>& hists, std::string name, float value, int nbins, float ll, float ul)
+{
+    auto hist = hists.find(name);
+    if(hist == hists.end())
+    {
+	hists[name] = fs->make<TH1D>(name.c_str(), name.c_str(), nbins, ll, ul);
+	hists[name]->Fill(value);
+    }
+    else
+    {
+	hist->second->Fill(value);
+    }
+}
+
 void adcHists::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
     using namespace edm;
+
+    edm::Handle<HBHEDigiCollection> hbheDigiCollection;
+    iEvent.getByToken(tok_HBHEDigiCollection_,hbheDigiCollection);
 
     edm::Handle<QIE11DigiCollection> hqie11dc;
     iEvent.getByToken(tok_QIE11DigiCollection_, hqie11dc);
@@ -129,19 +174,44 @@ void adcHists::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     edm::Handle<HcalTBTriggerData> trigData;
     iEvent.getByToken(tok_HcalTBTriggerData_, trigData);
 
+    edm::Handle<HcalTBTiming> timing;
+    iEvent.getByToken(tok_HcalTBTiming_,timing);
+
     //Reject any event which was not a beam trigger and only a beam trigger inside the spill window
     //if(trigData->wasInSpillPedestalTrigger() || trigData->wasOutSpillPedestalTrigger() || trigData->wasSpillIgnorantPedestalTrigger()) return;
     //if(trigData->wasLEDTrigger())   return;
     //if(trigData->wasLaserTrigger()) return;
-    if(!trigData->wasBeamTrigger()) return;
     //if(trigData->wasFakeTrigger())  return;
     //if(!trigData->wasInSpill())     return;
 
+    double s1Count = timing->S1Count();
+    double s2Count = timing->S2Count();
+    double s3Count = timing->S3Count();
+    double s4Count = timing->S4Count();
+    double triggerTime = timing->triggerTime();
+    double ttcL1Atime = timing->ttcL1Atime();
+
+    fillHist(hists, "s1Count", s1Count, 100, 0, 100);
+    fillHist(hists, "s2Count", s2Count, 100, 0, 100);
+    fillHist(hists, "s3Count", s3Count, 100, 0, 100);
+    fillHist(hists, "s4Count", s4Count, 100, 0, 100);
+    fillHist(hists, "triggerTime", triggerTime, 1000, 0, 20000);
+    fillHist(hists, "ttcL1Atime", ttcL1Atime, 1000, 0, 20000);
+
     //ADC to nominal charge converter 
-    Converter converter;
+    Converter converter(gain_);
+
+    //for(auto& digi : *hbheDigiCollection)
+    //{
+    //	//float ped = (digi.sample(0).adc() + digi.sample(1).adc() + digi.sample(2).adc())/3.0;
+    //	//float q = digi.sample(4).adc() + digi.sample(5).adc() + digi.sample(6).adc() - 3*ped;
+    //	//float qNosub = digi.sample(4).adc() + digi.sample(5).adc() + digi.sample(6).adc();
+    //}
+
+    std::map<std::string, float> towerSum;
 
     const QIE11DigiCollection& qie11dc = *hqie11dc;
-    for (int j=0; j < qie11dc.size(); j++)
+    for (int j=0; j < qie11dc.size(); ++j)
     {
         // Extract info on detector location
         DetId detid = qie11dc[j].detid();
@@ -149,33 +219,73 @@ void adcHists::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
         int ieta = hcaldetid.ieta();
         int iphi = hcaldetid.iphi();
         int depth = hcaldetid.depth();
-        
-        float adc[10];
-        for(int i = 0; i < 10; i++)
+
+        float adc[10];//, tdc[10];
+        for(int i = 0; i < 10; ++i)
         {
             adc[i] = converter.linearize(qie11dc[j][i].adc());
+	    //tdc[i] = float(qie11dc[j][i].tdc())/2.0;	
         }
+
+	float tdc = -999.0;
+
+	for(int i = 4; i <= 8; ++i)
+	{
+	    if(qie11dc[j][i].tdc() != 62 && qie11dc[j][i].tdc() != 63)
+	    {
+		tdc = (i - 4)*25.0 + float(qie11dc[j][i].tdc())/2.0;
+		break;
+	    }
+	}
 
 	float ped = (adc[0] + adc[1] + adc[2])/3.0;
 	float q = adc[4] + adc[5] + adc[6] - 3*ped;
+	float qNosub = adc[4] + adc[5] + adc[6];
 
-	std::stringstream hname;
-	hname << ieta << "_" << iphi << "_" << depth;
+	std::stringstream hnum;
+	hnum << ieta << "_" << iphi << "_" << depth;
 	
-	auto hist = spectra.find(hname.str());
-	if(hist == spectra.end())
-	{
-	    spectra[hname.str()] = fs->make<TH1D>(hname.str().c_str(), hname.str().c_str(), 247, edges10);
-	    spectra[hname.str()]->Fill(q);
+	std::stringstream tnum;
+	tnum << ieta << "_" << iphi;
+
+	if(trigData->wasBeamTrigger())
+	{    
+	    fillHist(hists, "beam_adc_" + hnum.str(), q, 247, binsQIE11.data());
+
+	    towerSum[tnum.str()] += q;
+	    fillHist(hists, "tower_adc_" + tnum.str(), q, 247, binsQIE11.data());
+	    
+	    fillHist(hists, "beam_tdc_" + hnum.str(), tdc, 250, 0, 125);
+	    
+	    hq->Fill(q);
 	}
 	else
 	{
-	    hist->second->Fill(q);
+	    fillHist(hists, "ped_adc_" + hnum.str(), q, 247, binsQIE11.data());
+	    
+	    fillHist(hists, "ped_tdc_" + hnum.str(), tdc, 250, 0, 125);
 	}
 
-	hq->Fill(q);
+	fillHist(hists, "adc_nosub_" + hnum.str(), qNosub, 247, binsQIE11.data());
+    }
 
-	//std::cout << ped << q;
+    double qCluster_all = 0.0;
+
+    for(auto& tower : towerSum)
+    {
+	fillHist(hists, "towerSum_adc_" + tower.first, tower.second, 247, binsQIE11.data());
+	qCluster_all += tower.second;
+    }
+
+    if(towerSum.size())
+    {
+	double qCluster_17_5 = towerSum["16_5"] + towerSum["17_5"] + towerSum["18_5"] + towerSum["16_6"] + towerSum["17_6"] + towerSum["18_6"];
+	double qCluster_18_5 = towerSum["17_5"] + towerSum["18_5"] + towerSum["19_5"] + towerSum["17_6"] + towerSum["18_6"] + towerSum["19_6"];
+	double qCluster_19_5 = towerSum["18_5"] + towerSum["19_5"] + towerSum["20_5"] + towerSum["18_6"] + towerSum["19_6"] + towerSum["20_6"];
+	fillHist(hists, "cluster_adc_17_5", qCluster_17_5, 247, binsQIE11.data());
+	fillHist(hists, "cluster_adc_18_5", qCluster_18_5, 247, binsQIE11.data());
+	fillHist(hists, "cluster_adc_19_5", qCluster_19_5, 247, binsQIE11.data());
+	fillHist(hists, "cluster_adc_all",  qCluster_all,  247, binsQIE11.data());
     }
 }
 
@@ -183,17 +293,18 @@ void adcHists::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 // ------------ method called once each job just before starting event loop  ------------
 void adcHists::beginJob()
 {
+    for(double& binEdge : edges10) binsQIE11.push_back(binEdge*gain_);
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
-void adcHists::endJob() 
+void adcHists::endJob()
 {
     for(int i = 1; i <= hq->GetNbinsX(); i++)
     {
 	hq->SetBinContent(i, hq->GetBinContent(i)/hq->GetBinWidth(i));
     }
 
-    for(auto& hist : spectra)
+    for(auto& hist : hists)
     {
 	for(int i = 1; i <= hist.second->GetNbinsX(); i++)
 	{
