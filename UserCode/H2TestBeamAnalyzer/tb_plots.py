@@ -418,7 +418,7 @@ for ichan in chanlist:
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
 
-    setHist(hist["e_4TS_PS", ichan], "Energy (uncalibrated)", "# Events", 0, 0, 1.3, pstyle[22, "col"])
+    setHist(hist["e_4TS_PS", ichan], "Energy (uncalibrated)", "# Events / fC", 0, 0, 1.3, pstyle[22, "col"])
     #hist["energy", ichan].GetXaxis().SetNdivisions(10,1)
     #max_x_bin = hist["e_4TS_PS", ichan].FindLastBinAbove(0)
     #use_max = 1000
@@ -429,6 +429,7 @@ for ichan in chanlist:
     
     #hist["e_4TS_PS", ichan].GetXaxis().SetRangeUser(1,use_max)
     hist["e_4TS_PS", ichan].SetStats(True)
+    hist["e_4TS_PS", ichan].Scale(1,"width")
     hist["e_4TS_PS", ichan].Draw()
     pad.Update()
     hist["e_4TS_PS", ichan].FindObject("stats").SetX1NDC(0.7)
