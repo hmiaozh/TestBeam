@@ -81,6 +81,31 @@ double edges10[248] = {
   291000, 302000, 316000, 329000, 343000, 356000, 370000, 384000, 398000
 };
 
+double qie8adc2fC[]={
+    -0.5,0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5,9.5, 10.5,11.5,12.5,
+    13.5,15.,17.,19.,21.,23.,25.,27.,29.5,32.5,35.5,38.5,42.,46.,50.,54.5,59.5,
+    64.5,59.5,64.5,69.5,74.5,79.5,84.5,89.5,94.5,99.5,104.5,109.5,114.5,119.5,
+    124.5,129.5,137.,147.,157.,167.,177.,187.,197.,209.5,224.5,239.5,254.5,272.,
+    292.,312.,334.5,359.5,384.5,359.5,384.5,409.5,434.5,459.5,484.5,509.5,534.5,
+    559.5,584.5,609.5,634.5,659.5,684.5,709.5,747.,797.,847.,897.,947.,997.,
+    1047.,1109.5,1184.5,1259.5,1334.5,1422.,1522.,1622.,1734.5,1859.5,1984.5,
+    1859.5,1984.5,2109.5,2234.5,2359.5,2484.5,2609.5,2734.5,2859.5,2984.5,
+    3109.5,3234.5,3359.5,3484.5,3609.5,3797.,4047.,4297.,4547.,4797.,5047.,
+    5297.,5609.5,5984.5,6359.5,6734.5,7172.,7672.,8172.,8734.5,9359.5,9984.5};
+
+double edges8[]={
+    -0.5,0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5,9.5, 10.5,11.5,12.5,
+    13.5,15.,17.,19.,21.,23.,25.,27.,29.5,32.5,35.5,38.5,42.,46.,50.,54.5,59.5,
+    64.5,69.5,74.5,79.5,84.5,89.5,94.5,99.5,104.5,109.5,114.5,119.5,
+    124.5,129.5,137.,147.,157.,167.,177.,187.,197.,209.5,224.5,239.5,254.5,272.,
+    292.,312.,334.5,359.5,384.5,409.5,434.5,459.5,484.5,509.5,534.5,
+    559.5,584.5,609.5,634.5,659.5,684.5,709.5,747.,797.,847.,897.,947.,997.,
+    1047.,1109.5,1184.5,1259.5,1334.5,1422.,1522.,1622.,1734.5,1859.5,1984.5,
+    2109.5,2234.5,2359.5,2484.5,2609.5,2734.5,2859.5,2984.5,
+    3109.5,3234.5,3359.5,3484.5,3609.5,3797.,4047.,4297.,4547.,4797.,5047.,
+    5297.,5609.5,5984.5,6359.5,6734.5,7172.,7672.,8172.,8734.5,9359.5,9984.5};
+
+
 class adcHists : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
 public:
     explicit adcHists(const edm::ParameterSet&);
@@ -110,7 +135,7 @@ private:
     
     edm::Service<TFileService> fs;
 
-    std::vector<double> binsQIE11;
+    std::vector<double> binsQIE8, binsQIE11;
 };
 
 adcHists::adcHists(const edm::ParameterSet& iConfig)
@@ -201,14 +226,37 @@ void adcHists::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     //ADC to nominal charge converter 
     Converter converter(gain_);
 
-    //for(auto& digi : *hbheDigiCollection)
-    //{
-    //	//float ped = (digi.sample(0).adc() + digi.sample(1).adc() + digi.sample(2).adc())/3.0;
-    //	//float q = digi.sample(4).adc() + digi.sample(5).adc() + digi.sample(6).adc() - 3*ped;
-    //	//float qNosub = digi.sample(4).adc() + digi.sample(5).adc() + digi.sample(6).adc();
-    //}
-
     std::map<std::string, float> towerSum;
+
+    for(auto& digi : *hbheDigiCollection)
+    {
+	int iphi = digi.id().iphi();
+        int ieta = digi.id().ieta();
+        int depth = digi.id().depth();
+	
+    	//float ped = (qie8adc2fC[digi.sample(0).adc()&0xff] + qie8adc2fC[digi.sample(1).adc()&0xff] + qie8adc2fC[digi.sample(2).adc()&0xff])/3.0;
+    	//float q = qie8adc2fC[digi.sample(4).adc()&0xff] + qie8adc2fC[digi.sample(5).adc()&0xff] + qie8adc2fC[digi.sample(6).adc()&0xff] - 3*ped;
+
+	float q = digi.sample(5).adc()&0xff;
+
+	std::stringstream hnum;
+	hnum << ieta << "_" << iphi << "_" << depth;
+
+	std::stringstream tnum;
+	tnum << ieta << "_" << iphi;
+	
+	if(trigData->wasBeamTrigger())
+	{    
+	    fillHist(hists, "beam_adc_" + hnum.str(), q, 128, 0, 128); //binsQIE8.size() - 1, binsQIE8.data());
+
+	    towerSum[tnum.str()] += q;
+	    fillHist(hists, "tower_adc_" + tnum.str(), q, binsQIE8.size() - 1, binsQIE8.data());
+	}
+	else
+	{
+	    fillHist(hists, "ped_adc_" + hnum.str(), q, binsQIE8.size() - 1, binsQIE8.data());
+	}
+    }
 
     const QIE11DigiCollection& qie11dc = *hqie11dc;
     for (int j=0; j < qie11dc.size(); ++j)
@@ -294,6 +342,7 @@ void adcHists::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 void adcHists::beginJob()
 {
     for(double& binEdge : edges10) binsQIE11.push_back(binEdge*gain_);
+    for(double& binEdge : edges8)  binsQIE8.push_back(binEdge);
 }
 
 // ------------ method called once each job just after ending the event loop  ------------

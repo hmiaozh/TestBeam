@@ -79,7 +79,7 @@ public:
                 sensitivity = baseSensitivity * pow(8.0, double(exp)) * pow(2.0, subrange);
 
                 // Add sensitivity * (location in subrange) to base charge
-                fc[exp * 64 + man] = (inputCharge[exp * 5 + subrange] + ((man - adcBase[subrange])) * sensitivity) * gain;
+                fc[exp * 64 + man] = (inputCharge[exp * 5 + subrange] + ((man - adcBase[subrange])) * sensitivity) / gain;
                 //fc[exp * 64 + man] = inputCharge[exp * 5 + subrange] + ((man - adcBase[subrange]) + .5) * sensitivity;
             }
         }
