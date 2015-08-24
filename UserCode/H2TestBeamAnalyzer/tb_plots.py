@@ -405,11 +405,11 @@ for etaphi in etaphipairs.keys():
         else:
             hist["avgpulse", ichan].Draw("hist same")
 
-        leg.AddEntry(hist["avgpulse", ichan], "ieta="+str(ieta)+"  "+"iphi="+str(iphi)+"  "+"depth="+str(depth))
+        leg.AddEntry(hist["avgpulse", ichan], "iphi="+str(iphi)+"  "+"ieta="+str(ieta)+"  "+"depth="+str(depth))
         leg.Draw()
         
     for end in [".pdf", ".gif"]:
-        canv.SaveAs(outdir+cname+"--ieta"+str(ieta).zfill(2)+"_iphi"+str(iphi).zfill(2)+end)
+        canv.SaveAs(outdir+cname+"--iphi"+str(iphi).zfill(2)+"_ieta"+str(ieta).zfill(2)+end)
 
 
 ##################################
@@ -457,11 +457,11 @@ for ichan in chanlist:
     leg.SetEntrySeparation(0.1)
     leg.SetMargin(0.2)
 
-    leg.AddEntry(hist["e_4TS_PS", ichan], "ieta="+str(ieta)+"  "+"iphi="+str(iphi)+"  "+"depth="+str(depth))
+    leg.AddEntry(hist["e_4TS_PS", ichan], "iphi="+str(iphi)+"  "+"ieta="+str(ieta)+"  "+"depth="+str(depth))
     leg.Draw()
         
     for end in [".pdf", ".gif"]:
-        canv.SaveAs(outdir+cname+"--ieta"+str(ieta).zfill(2)+"_iphi"+str(iphi).zfill(2)+"_depth"+str(depth)+end)
+        canv.SaveAs(outdir+cname+"--iphi"+str(iphi).zfill(2)+"_ieta"+str(ieta).zfill(2)+"_depth"+str(depth)+end)
 
 ROOT.gStyle.SetOptStat(0)
 
@@ -486,7 +486,7 @@ for ichan in chanlist:
     ieta = chanmap[ichan][0]
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
-    label = "ieta" + str(ieta).zfill(2) + "_iphi" + str(iphi).zfill(2) + "_depth" + str(depth)
+    label = "iphi" + str(iphi).zfill(2) + "_ieta" + str(ieta).zfill(2) + "_depth" + str(depth)
     cname = "e_energy_wcC--"+label
     canv = ROOT.TCanvas(cname, cname, 400, 424)
     pad = canv.GetPad(0)
@@ -503,7 +503,7 @@ for ichan in chanlist:
         ledge[iedge, ichan].Draw()
     textsize = 0.03; xstart = 0.2; ystart = 0.85
     latex = ROOT.TLatex(); latex.SetNDC(); latex.SetTextAlign(12); latex.SetTextSize(textsize)    
-    latex.DrawLatex(xstart, ystart, "ieta="+str(ieta)+"  "+"iphi="+str(iphi)+"  "+"depth="+str(depth))
+    latex.DrawLatex(xstart, ystart, "iphi="+str(iphi)+"  "+"ieta="+str(ieta)+"  "+"depth="+str(depth))
     for end in [".pdf", ".gif"]:
         canv.SaveAs(outdir+cname+end)
 
@@ -528,7 +528,7 @@ for ichan in chanlist:
     ieta = chanmap[ichan][0]
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
-    label = "ieta" + str(ieta).zfill(2) + "_iphi" + str(iphi).zfill(2) + "_depth" + str(depth)
+    label = "iphi" + str(iphi).zfill(2) + "_ieta" + str(ieta).zfill(2) + "_depth" + str(depth)
     cname = "e_energy_wcC_noTScut--"+label
     canv = ROOT.TCanvas(cname, cname, 400, 424)
     pad = canv.GetPad(0)
@@ -544,7 +544,7 @@ for ichan in chanlist:
         ledge[iedge, ichan].Draw()
     textsize = 0.03; xstart = 0.2; ystart = 0.85
     latex = ROOT.TLatex(); latex.SetNDC(); latex.SetTextAlign(12); latex.SetTextSize(textsize)
-    latex.DrawLatex(xstart, ystart, "ieta="+str(ieta)+"  "+"iphi="+str(iphi)+"  "+"depth="+str(depth))
+    latex.DrawLatex(xstart, ystart, "iphi="+str(iphi)+"  "+"ieta="+str(ieta)+"  "+"depth="+str(depth))
     for end in [".pdf", ".gif"]:
         canv.SaveAs(outdir+cname+end)
 
@@ -568,7 +568,7 @@ for ichan in chanlist:
     ieta = chanmap[ichan][0]
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
-    label = "ieta" + str(ieta).zfill(2) + "_iphi" + str(iphi).zfill(2) + "_depth" + str(depth)
+    label = "iphi" + str(iphi).zfill(2) + "_ieta" + str(ieta).zfill(2) + "_depth" + str(depth)
     cname = "e_energy_wcC_efficiency--"+label
     canv = ROOT.TCanvas(cname, cname, 400, 424)
     pad = canv.GetPad(0)
@@ -585,7 +585,7 @@ for ichan in chanlist:
         ledge[iedge, ichan].Draw()
     textsize = 0.03; xstart = 0.2; ystart = 0.85
     latex = ROOT.TLatex(); latex.SetNDC(); latex.SetTextAlign(12); latex.SetTextSize(textsize);latex.SetTextColor(2)
-    latex.DrawLatex(xstart, ystart, "ieta="+str(ieta)+"  "+"iphi="+str(iphi)+"  "+"depth="+str(depth)+ "   'Efficiency'")
+    latex.DrawLatex(xstart, ystart, "iphi="+str(iphi)+"  "+"ieta="+str(ieta)+"  "+"depth="+str(depth)+ "   'Efficiency'")
     for end in [".pdf", ".gif"]:
         canv.SaveAs(outdir+cname+end)
 
@@ -596,7 +596,7 @@ for ichan in chanlist:
     ieta = chanmap[ichan][0]
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
-    label = "ieta" + str(ieta).zfill(2) + "_iphi" + str(iphi).zfill(2) + "_depth" + str(depth)
+    label = "iphi" + str(iphi).zfill(2) + "_ieta" + str(ieta).zfill(2) + "_depth" + str(depth)
     for ixy in ["x", "y"]:
         cname = "e_energy_wcC_"+ixy+"--"+label
         canv = ROOT.TCanvas(cname, cname, 400, 424)
@@ -608,7 +608,7 @@ for ichan in chanlist:
         #    ledge[ixy+iedge, ichan].Draw()
         textsize = 0.03; xstart = 0.2; ystart = 0.85
         latex = ROOT.TLatex(); latex.SetNDC(); latex.SetTextAlign(12); latex.SetTextSize(textsize)    
-        latex.DrawLatex(xstart, ystart, "ieta="+str(ieta)+"  "+"iphi="+str(iphi)+"  "+"depth="+str(depth))
+        latex.DrawLatex(xstart, ystart, "iphi="+str(iphi)+"  "+"ieta="+str(ieta)+"  "+"depth="+str(depth))
         ###for end in [".pdf", ".gif"]:
         ###    canv.SaveAs(outdir+cname+end)
 
@@ -677,9 +677,9 @@ for ichan in chanlist:
         leg.SetEntrySeparation(0.1)
         leg.SetMargin(0.2)
 
-        leg.AddEntry(hist["linkerror", ichan], "ieta="+str(ieta)+"  "+"iphi="+str(iphi)+"  "+"depth="+str(depth))
+        leg.AddEntry(hist["linkerror", ichan], "iphi="+str(iphi)+"  "+"ieta="+str(ieta)+"  "+"depth="+str(depth))
         leg.Draw()
         
         for end in [".pdf", ".gif"]:
-            canv.SaveAs(outdir+cname+"--ieta"+str(ieta).zfill(2)+"_iphi"+str(iphi).zfill(2)+"_depth"+str(depth)+end)
+            canv.SaveAs(outdir+cname+"--iphi"+str(iphi).zfill(2)+"_ieta"+str(ieta).zfill(2)+"_depth"+str(depth)+end)
 
