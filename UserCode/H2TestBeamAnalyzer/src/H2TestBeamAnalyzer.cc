@@ -448,75 +448,30 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     //
     //  Extract Trigger Info
     //
-    _triggers.ped = 0;
-    _triggers.led = 0;
-    _triggers.laser = 0;
-    _triggers.beam = 0;
-    _triggers.fakeTrg = 0;
-    _triggers.inSpillTrg = 0;
-    _triggers.str = trigData->runNumberSequenceId();
-    if (trigData->wasInSpillPedestalTrigger() || 
-            trigData->wasOutSpillPedestalTrigger() ||
-            trigData->wasSpillIgnorantPedestalTrigger())
-        _triggers.ped = 1;
-    if (trigData->wasLEDTrigger())
-        _triggers.led = 1;
-    if (trigData->wasLaserTrigger())
-        _triggers.laser = 1;
-    if (trigData->wasBeamTrigger())
-        _triggers.beam = 1;
-    if (trigData->wasFakeTrigger())
-        _triggers.fakeTrg = 1;
-    if (trigData->wasInSpill())
-        _triggers.inSpillTrg = 1;
-
+    _triggers.ped       = (trigData->wasInSpillPedestalTrigger() || 
+                           trigData->wasOutSpillPedestalTrigger() ||
+                           trigData->wasSpillIgnorantPedestalTrigger());
+    _triggers.led        = trigData->wasLEDTrigger();
+    _triggers.laser      = trigData->wasLaserTrigger();
+    _triggers.beam       = trigData->wasBeamTrigger();
+    _triggers.fakeTrg    = trigData->wasFakeTrigger();
+    _triggers.inSpillTrg = trigData->wasInSpill();
+    _triggers.str        = trigData->runNumberSequenceId();
+    
     //
     //  Extract Event Position
     //
-//      double tableX = eventPos->hfTableX();
-//      double tableY = eventPos->hfTableY();
-//      double tableV = eventPos->hfTableV();
-    vector<double> xxx, yyy;
-    eventPos->getChamberHits('A', xxx, yyy);
-    wcX[0] = xxx;
-    wcY[0] = yyy;
-    xxx.clear();
-    yyy.clear();
-
-    eventPos->getChamberHits('B', xxx, yyy);
-    wcX[1] = xxx;
-    wcY[1] = yyy;
-    xxx.clear(); yyy.clear();
-
-    eventPos->getChamberHits('C', xxx, yyy);
-    wcX[2] = xxx;
-    wcY[2] = yyy;
-    xxx.clear();
-    yyy.clear();
-
-    eventPos->getChamberHits('D', xxx, yyy);
-    wcX[3] = xxx;
-    wcY[3] = yyy;
-    xxx.clear();
-    yyy.clear();
-
-    eventPos->getChamberHits('E', xxx, yyy);
-    wcX[4] = xxx;
-    wcY[4] = yyy;
-    xxx.clear();
-    yyy.clear();
-
-    for (int i=0; i<5; i++)
-    {
-        for (vector<double>::iterator it=wcX[i].begin(); 
-                it!=wcX[i].end(); ++it)
-            x[i]->Fill(*it);
-        for (vector<double>::iterator it=wcY[i].begin(); 
-                it!=wcY[i].end(); ++it)
-            y[i]->Fill(*it);
+    const char chambers[5] = {'A', 'B', 'C', 'D', 'E'};
+    for (size_t i = 0; i < 5; ++i) {
+      vector<double> xxx, yyy;
+      eventPos->getChamberHits(chambers[i], xxx, yyy);
+      wcX[i] = xxx;
+      wcY[i] = yyy;
+      
+      for (size_t j = 0; j < xxx.size(); ++j) x[i]->Fill(xxx[j]);
+      for (size_t j = 0; j < yyy.size(); ++j) y[i]->Fill(yyy[j]);
     }
-
-
+    
     //
     //  Extract Beam Counters Info
     //
@@ -542,8 +497,7 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     _timing.s4Count = timing->S4Count();
     _timing.triggerTime = timing->triggerTime();
     _timing.ttcL1Atime = timing->ttcL1Atime();
-        
-    int numChs = 0;
+    
     if (_verbosity>0)
     {
         cout << "### Before Loop: " << endl
@@ -558,8 +512,8 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
             << "### Laser Trigger: " << _triggers.laser << endl
             << "### Beam Trigger: " << _triggers.beam << endl
             << "### In Spill Trigger: " << _triggers.inSpillTrg << endl;
-
-/*      cout << "### Wire Chamber A: NHits=" << _vWCData[0].x.size() << endl
+        /*
+        cout << "### Wire Chamber A: NHits=" << _vWCData[0].x.size() << endl
             << "### Wire Chamber B: NHits=" << _vWCData[1].x.size() << endl
             << "### Wire Chamber C: NHits=" << _vWCData[2].x.size() << endl
             << "### Wire Chamber D: NHits=" << _vWCData[3].x.size() << endl
@@ -583,7 +537,9 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
             << "### S3Count: " << _timing.s3Count << endl
             << "### S4Count: " << _timing.s4Count << endl;
     }
-        
+    
+    int numChs = 0;
+    
     for (HBHEDigiCollection::const_iterator digi=hbheDigiCollection->begin();
          digi!=hbheDigiCollection->end(); ++digi)
     {
@@ -593,21 +549,21 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
         int depth = digi->id().depth();
         int nTS = digi->size();
         
-        int fiberChanId = digi->elecId().fiberChanId();
-        int fiberIndex = digi->elecId().fiberIndex();
-        int slbChannelIndex = digi->elecId().slbChannelIndex();
-        int slbSiteNumber = digi->elecId().slbSiteNumber();
-        string slbChannelCode = digi->elecId().slbChannelCode();
-        int htrChanId = digi->elecId().htrChanId();
-        int spigot = digi->elecId().spigot();
-        int dccid = digi->elecId().dccid();
-        int htrSlot = digi->elecId().htrSlot();
-        int htrTopBottom = digi->elecId().htrTopBottom();
-        int readoutVMECrateId = digi->elecId().readoutVMECrateId();
-        int linearIndex = digi->elecId().linearIndex();
-        
         if (_verbosity>1)
         {
+            int fiberChanId = digi->elecId().fiberChanId();
+            int fiberIndex = digi->elecId().fiberIndex();
+            int slbChannelIndex = digi->elecId().slbChannelIndex();
+            int slbSiteNumber = digi->elecId().slbSiteNumber();
+            string slbChannelCode = digi->elecId().slbChannelCode();
+            int htrChanId = digi->elecId().htrChanId();
+            int spigot = digi->elecId().spigot();
+            int dccid = digi->elecId().dccid();
+            int htrSlot = digi->elecId().htrSlot();
+            int htrTopBottom = digi->elecId().htrTopBottom();
+            int readoutVMECrateId = digi->elecId().readoutVMECrateId();
+            int linearIndex = digi->elecId().linearIndex();
+            
             cout << "### Digi->elecId:" << endl;
             cout << fiberChanId << "  " << fiberIndex << "  "
             << slbChannelIndex << "  " << slbSiteNumber << "  "
@@ -626,24 +582,26 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
         _hbheInfo.ieta[numChs] = ieta;
         _hbheInfo.depth[numChs] = depth;
         _hbheInfo.numTS = nTS;
-	float ped_fc = 0;
-	float ped_adc = 0;
         
-	for (int iTS=0; iTS<nTS; iTS++)
-	{
-	    _hbheInfo.pulse[numChs][iTS] = adc2fC[digi->sample(iTS).adc()&0xff];
-	    _hbheInfo.pulse_adc[numChs][iTS] = digi->sample(iTS).adc()&0xff;
-	    if (iTS < 3)
-	    {
-	        ped_fc += adc2fC[digi->sample(iTS).adc()&0xff];
-		ped_adc += digi->sample(iTS).adc()&0xff;
-	    }
-	}
-	
+        float ped_fc = 0;
+        float ped_adc = 0;
+        
+        for (int iTS=0; iTS<nTS; iTS++)
+        {
+            const unsigned char adc = digi->sample(iTS).adc() & 0xff;
+            _hbheInfo.pulse[numChs][iTS] = adc2fC[adc];
+            _hbheInfo.pulse_adc[numChs][iTS] = adc;
+            if (iTS < 3)
+            {
+                ped_fc += adc2fC[adc];
+                ped_adc += adc;
+            }
+        }
+        
         _hbheInfo.ped[numChs] = ped_fc/3.;
         _hbheInfo.ped_adc[numChs] = ped_adc/3.;
         
-	if (_verbosity>1)
+        if (_verbosity>1)
         {
             cout << "### Digi->Data:" << endl;
             for (int iTS=0; iTS<nTS; iTS++)
@@ -666,21 +624,21 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
         int depth = digi->id().depth();
         int nTS = digi->size();
 
-        int fiberChanId = digi->elecId().fiberChanId();
-        int fiberIndex = digi->elecId().fiberIndex();
-        int slbChannelIndex = digi->elecId().slbChannelIndex();
-        int slbSiteNumber = digi->elecId().slbSiteNumber();
-        string slbChannelCode = digi->elecId().slbChannelCode();
-        int htrChanId = digi->elecId().htrChanId();
-        int spigot = digi->elecId().spigot();
-        int dccid = digi->elecId().dccid();
-        int htrSlot = digi->elecId().htrSlot();
-        int htrTopBottom = digi->elecId().htrTopBottom();
-        int readoutVMECrateId = digi->elecId().readoutVMECrateId();
-        int linearIndex = digi->elecId().linearIndex();
-
         if (_verbosity>1)
         {
+            int fiberChanId = digi->elecId().fiberChanId();
+            int fiberIndex = digi->elecId().fiberIndex();
+            int slbChannelIndex = digi->elecId().slbChannelIndex();
+            int slbSiteNumber = digi->elecId().slbSiteNumber();
+            string slbChannelCode = digi->elecId().slbChannelCode();
+            int htrChanId = digi->elecId().htrChanId();
+            int spigot = digi->elecId().spigot();
+            int dccid = digi->elecId().dccid();
+            int htrSlot = digi->elecId().htrSlot();
+            int htrTopBottom = digi->elecId().htrTopBottom();
+            int readoutVMECrateId = digi->elecId().readoutVMECrateId();
+            int linearIndex = digi->elecId().linearIndex();
+
             cout << "### Digi->elecId:" << endl;
             cout << fiberChanId << "  " << fiberIndex << "  "
                 << slbChannelIndex << "  " << slbSiteNumber << "  "
@@ -699,22 +657,24 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
         _hfInfo.ieta[numChs] = ieta;
         _hfInfo.depth[numChs] = depth;
         _hfInfo.numTS = nTS;
-	float ped_fc = 0;
-	float ped_adc = 0;
+        
+        float ped_fc = 0;
+        float ped_adc = 0;
 
         for (int iTS=0; iTS<nTS; iTS++)
-	{
-	    _hfInfo.pulse[numChs][iTS] = adc2fC[digi->sample(iTS).adc()&0xff];
-	    _hfInfo.pulse_adc[numChs][iTS] = digi->sample(iTS).adc()&0xff;
+        {
+            const unsigned char adc = digi->sample(iTS).adc() & 0xff;
+            _hfInfo.pulse[numChs][iTS] = adc2fC[adc];
+            _hfInfo.pulse_adc[numChs][iTS] = adc;
             if (iTS < 3)
             {
-                ped_fc += adc2fC[digi->sample(iTS).adc()&0xff];
-                ped_adc += digi->sample(iTS).adc()&0xff;
-	    }
-	}
-
-	_hfInfo.ped[numChs] = ped_fc/3.;
-	_hfInfo.ped_adc[numChs] = ped_adc/3.;
+                ped_fc += adc2fC[adc];
+                ped_adc += adc;
+            }
+        }
+        
+        _hfInfo.ped[numChs] = ped_fc/3.;
+        _hfInfo.ped_adc[numChs] = ped_adc/3.;
 
         if (_verbosity>1)
         {
@@ -838,68 +798,30 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
 //
 
 // ------------ method called for each event  ------------
-void
-H2TestBeamAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+void H2TestBeamAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    using namespace edm;
-
-    getData(iEvent, iSetup);
-
-#ifdef THIS_IS_AN_EVENT_EXAMPLE
-   Handle<ExampleData> pIn;
-   iEvent.getByLabel("example",pIn);
-#endif
-
-#ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
-   ESHandle<SetupData> pSetup;
-   iSetup.get<SetupRecord>().get(pSetup);
-#endif
+   getData(iEvent, iSetup);
 }
 
 
 // ------------ method called once each job just before starting event loop  ------------
-void 
-H2TestBeamAnalyzer::beginJob()
-{
-}
-
 // ------------ method called once each job just after ending the event loop  ------------
-void 
-H2TestBeamAnalyzer::endJob() 
-{
-//      _file->Write();
-//      _file->Close();
-}
-
 // ------------ method called when starting to processes a run  ------------
-void 
-H2TestBeamAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&)
-{
-}
-
 // ------------ method called when ending the processing of a run  ------------
-void 
-H2TestBeamAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
-{
-//      _file->Write();
-//      _file->Close();
-}
-
 // ------------ method called when starting to processes a luminosity block  ------------
-void 
-H2TestBeamAnalyzer::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
-{
-}
-
 // ------------ method called when ending the processing of a luminosity block  ------------
-void 
-H2TestBeamAnalyzer::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
-{
-}
+void H2TestBeamAnalyzer::beginJob() {}
+void H2TestBeamAnalyzer::endJob() {}
+void H2TestBeamAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&) {}
+void H2TestBeamAnalyzer::endRun(edm::Run const&, edm::EventSetup const&) {}
+void H2TestBeamAnalyzer::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) {}
+void H2TestBeamAnalyzer::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) {}
+
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
-void
-H2TestBeamAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+void H2TestBeamAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descriptions)
+{
   //The following says we do not know what parameters are allowed so do no validation
   // Please change this to state exactly what you do use, even if it is no parameters
   edm::ParameterSetDescription desc;
