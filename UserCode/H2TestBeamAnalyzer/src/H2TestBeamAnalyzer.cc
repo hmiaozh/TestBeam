@@ -614,7 +614,7 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     _hbheInfo.numChs = numChs;
 
 
-    
+    numChs = 0;
     for (HFDigiCollection::const_iterator digi=hfDigiCollection->begin();
                         digi!=hfDigiCollection->end(); ++digi)
     {
