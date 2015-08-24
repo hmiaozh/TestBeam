@@ -409,7 +409,7 @@ for etaphi in etaphipairs.keys():
         leg.Draw()
         
     for end in [".pdf", ".gif"]:
-        canv.SaveAs(outdir+cname+"--ieta"+str(ieta)+"_iphi"+str(iphi)+end)
+        canv.SaveAs(outdir+cname+"--ieta"+str(ieta).zfill(2)+"_iphi"+str(iphi).zfill(2)+end)
 
 
 ##################################
@@ -461,7 +461,7 @@ for ichan in chanlist:
     leg.Draw()
         
     for end in [".pdf", ".gif"]:
-        canv.SaveAs(outdir+cname+"--ieta"+str(ieta)+"_iphi"+str(iphi)+"_depth"+str(depth)+end)
+        canv.SaveAs(outdir+cname+"--ieta"+str(ieta).zfill(2)+"_iphi"+str(iphi).zfill(2)+"_depth"+str(depth)+end)
 
 ROOT.gStyle.SetOptStat(0)
 
@@ -486,7 +486,7 @@ for ichan in chanlist:
     ieta = chanmap[ichan][0]
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
-    label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
+    label = "ieta" + str(ieta).zfill(2) + "_iphi" + str(iphi).zfill(2) + "_depth" + str(depth)
     cname = "e_energy_wcC--"+label
     canv = ROOT.TCanvas(cname, cname, 400, 424)
     pad = canv.GetPad(0)
@@ -528,7 +528,7 @@ for ichan in chanlist:
     ieta = chanmap[ichan][0]
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
-    label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
+    label = "ieta" + str(ieta).zfill(2) + "_iphi" + str(iphi).zfill(2) + "_depth" + str(depth)
     cname = "e_energy_wcC_noTScut--"+label
     canv = ROOT.TCanvas(cname, cname, 400, 424)
     pad = canv.GetPad(0)
@@ -568,7 +568,7 @@ for ichan in chanlist:
     ieta = chanmap[ichan][0]
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
-    label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
+    label = "ieta" + str(ieta).zfill(2) + "_iphi" + str(iphi).zfill(2) + "_depth" + str(depth)
     cname = "e_energy_wcC_efficiency--"+label
     canv = ROOT.TCanvas(cname, cname, 400, 424)
     pad = canv.GetPad(0)
@@ -596,7 +596,7 @@ for ichan in chanlist:
     ieta = chanmap[ichan][0]
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
-    label = "ieta" + str(ieta) + "_iphi" + str(iphi) + "_depth" + str(depth)
+    label = "ieta" + str(ieta).zfill(2) + "_iphi" + str(iphi).zfill(2) + "_depth" + str(depth)
     for ixy in ["x", "y"]:
         cname = "e_energy_wcC_"+ixy+"--"+label
         canv = ROOT.TCanvas(cname, cname, 400, 424)
@@ -627,7 +627,7 @@ for ichan in chanlist:
 
 setHist(hist["e_4TS_PS", refChan], "Energy in 4TS (LinADC)", "Events", (0.,300.), (0.5, 3.e4), 1.3, pstyle[22, "col"])
 for ichan in chanlist:
-    cname = "energy_4TS--chan"+str(ichan)
+    cname = "energy_4TS--chan"+str(ichan).zfill(3)
     canv = ROOT.TCanvas(cname, cname, 400, 424)
     pad = canv.GetPad(0)
     pad.SetLogy()
@@ -681,5 +681,5 @@ for ichan in chanlist:
         leg.Draw()
         
         for end in [".pdf", ".gif"]:
-            canv.SaveAs(outdir+cname+"--ieta"+str(ieta)+"_iphi"+str(iphi)+"_depth"+str(depth)+end)
+            canv.SaveAs(outdir+cname+"--ieta"+str(ieta).zfill(2)+"_iphi"+str(iphi).zfill(2)+"_depth"+str(depth)+end)
 
