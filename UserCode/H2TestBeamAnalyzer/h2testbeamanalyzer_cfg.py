@@ -64,7 +64,8 @@ process.hcalDigis.FEDs = cms.untracked.vint32(700,928)
 
 process.hcalAnalyzer = cms.EDAnalyzer('H2TestBeamAnalyzer',
         OutFileName = cms.untracked.string('ana_h2_tb_run'+runNumber+'.root'),
-        Verbosity = cms.untracked.int32(0)
+        Verbosity = cms.untracked.int32(0),
+        Gain = cms.untracked.double(1)
 )
 
 process.hcalADCHists = cms.EDAnalyzer('adcHists')
