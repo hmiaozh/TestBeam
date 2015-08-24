@@ -77,7 +77,9 @@ process.hcalAnalyzer = cms.EDAnalyzer('H2TestBeamAnalyzer',
         Gain = cms.untracked.double(shuntSetting)
 )
 
-process.hcalADCHists = cms.EDAnalyzer('adcHists')
+process.hcalADCHists = cms.EDAnalyzer('adcHists'
+                                      gain = cms.untracked.double(shuntSetting)
+)
 
 #
 #   For Debugging: Create a Pool Output Module
@@ -88,7 +90,7 @@ process.output = cms.OutputModule(
 )
 
 process.TFileService = cms.Service("TFileService",
-       fileName = cms.string("analysis.root"),
+       fileName = cms.string("analysis_run"+runNumber+emapFileShort+".root"),
 )
 
 process.load('Configuration.Geometry.GeometryIdeal_cff')
