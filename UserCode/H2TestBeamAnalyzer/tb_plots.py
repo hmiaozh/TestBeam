@@ -294,9 +294,14 @@ pad = canv.GetPad(0)
 setPadPasMargin(pad,0.13)
 #pad.SetTopMargin(0.2)
 
+maxz = 10.
+for depth in valid_depth:
+    maxz = max(maxz,hist["e_4TS_etaphi",depth].GetMaximum())
+
 for depth in valid_depth:
     setHist2D(hist["e_4TS_etaphi",depth], "X", "Y", "", 0, 0, 0, 0.9, 0.9, 0.1)
     #hist["e_4TS_etaphi",depth].GetListOfFunctions().Add(palette,"br")
+    hist["e_4TS_etaphi",depth].SetMaximum(maxz)
     hist["e_4TS_etaphi",depth].GetXaxis().SetTitle("ieta")
     hist["e_4TS_etaphi",depth].GetXaxis().CenterTitle(True)
     hist["e_4TS_etaphi",depth].GetXaxis().SetNdivisions(16)
@@ -318,9 +323,14 @@ pad = canv.GetPad(0)
 setPadPasMargin(pad,0.13)
 #pad.SetTopMargin(0.2)
 
+maxz = 10.
+for iphi in valid_iphi:
+    maxz = max(maxz,hist["e_4TS_etadepth",iphi].GetMaximum())
+
 for iphi in valid_iphi:
     setHist2D(hist["e_4TS_etadepth",iphi], "X", "Y", "", 0, 0, 0, 0.9, 0.9, 0.1)
     #hist["e_4TS_etadepth",iphi].GetListOfFunctions().Add(palette,"br")
+    hist["e_4TS_etadepth",iphi].SetMaximum(maxz)
     hist["e_4TS_etadepth",iphi].GetXaxis().SetTitle("ieta")
     hist["e_4TS_etadepth",iphi].GetXaxis().CenterTitle(True)
     hist["e_4TS_etadepth",iphi].GetXaxis().SetNdivisions(16)
