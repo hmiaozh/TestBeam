@@ -305,7 +305,7 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeHBHE->Branch("pulse", _hbheInfo.pulse, "pulse[numChs][50]/D");
     _treeHBHE->Branch("ped", _hbheInfo.ped, "ped[numChs]/D");
     _treeHBHE->Branch("pulse_adc", _hbheInfo.pulse_adc, "pulse_adc[numChs][50]/D");
-    _treeHBHE->Branch("ped_adc", _hbheInfo.ped_adc, "ped_adc[numChs][50]/D");
+    _treeHBHE->Branch("ped_adc", _hbheInfo.ped_adc, "ped_adc[numChs]/D");
 
     _file->cd("HFData");
     _treeHF = new TTree("Events", "Events");
@@ -317,7 +317,7 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeHF->Branch("pulse", _hfInfo.pulse, "pulse[numChs][50]/D");
     _treeHF->Branch("pulse_adc", _hfInfo.pulse_adc, "pulse_adc[numChs][50]/D");
     _treeHF->Branch("ped", _hfInfo.ped, "ped[numChs]/D");
-    _treeHF->Branch("ped_adc", _hfInfo.ped_adc, "ped_adc[numChs][50]/D");
+    _treeHF->Branch("ped_adc", _hfInfo.ped_adc, "ped_adc[numChs]/D");
 
     _file->cd("QIE11Data");
     _treeQIE11 = new TTree("Events", "Events");
@@ -626,21 +626,24 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
         _hbheInfo.ieta[numChs] = ieta;
         _hbheInfo.depth[numChs] = depth;
         _hbheInfo.numTS = nTS;
-	_hbheInfo.ped[numChs] = 0;
-        _hbheInfo.ped_adc[numChs] = 0;
-
-        for (int iTS=0; iTS<nTS; iTS++)
-        {
-            _hbheInfo.pulse[numChs][iTS] = adc2fC[digi->sample(iTS).adc()&0xff];
-            _hbheInfo.pulse_adc[numChs][iTS] = digi->sample(iTS).adc()&0xff;
-            if (iTS < 3)
-            {
-                _hbheInfo.ped[numChs] += adc2fC[digi->sample(iTS).adc()&0xff];
-                _hbheInfo.ped_adc[numChs] += digi->sample(iTS).adc()&0xff;
+	float ped_fc = 0;
+	float ped_adc = 0;
+        
+	for (int iTS=0; iTS<nTS; iTS++)
+	{
+	    _hbheInfo.pulse[numChs][iTS] = adc2fC[digi->sample(iTS).adc()&0xff];
+	    _hbheInfo.pulse_adc[numChs][iTS] = digi->sample(iTS).adc()&0xff;
+	    if (iTS < 3)
+	    {
+	        ped_fc += adc2fC[digi->sample(iTS).adc()&0xff];
+		ped_adc += digi->sample(iTS).adc()&0xff;
 	    }
-        }
-
-        if (_verbosity>1)
+	}
+	
+        _hbheInfo.ped[numChs] = ped_fc/3.;
+        _hbheInfo.ped_adc[numChs] = ped_adc/3.;
+        
+	if (_verbosity>1)
         {
             cout << "### Digi->Data:" << endl;
             for (int iTS=0; iTS<nTS; iTS++)
@@ -696,8 +699,8 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
         _hfInfo.ieta[numChs] = ieta;
         _hfInfo.depth[numChs] = depth;
         _hfInfo.numTS = nTS;
-	_hfInfo.ped[numChs] = 0;
-        _hfInfo.ped_adc[numChs] = 0;
+	float ped_fc = 0;
+	float ped_adc = 0;
 
         for (int iTS=0; iTS<nTS; iTS++)
 	{
@@ -705,10 +708,13 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
 	    _hfInfo.pulse_adc[numChs][iTS] = digi->sample(iTS).adc()&0xff;
             if (iTS < 3)
             {
-                _hfInfo.ped[numChs] += adc2fC[digi->sample(iTS).adc()&0xff];
-                _hfInfo.ped_adc[numChs] += digi->sample(iTS).adc()&0xff;
+                ped_fc += adc2fC[digi->sample(iTS).adc()&0xff];
+                ped_adc += digi->sample(iTS).adc()&0xff;
 	    }
 	}
+
+	_hfInfo.ped[numChs] = ped_fc/3.;
+	_hfInfo.ped_adc[numChs] = ped_adc/3.;
 
         if (_verbosity>1)
         {

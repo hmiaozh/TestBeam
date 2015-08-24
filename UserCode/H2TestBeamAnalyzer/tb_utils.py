@@ -133,7 +133,7 @@ calib = {}
 for channum in chanlist:
     calib[channum] = 1.
 
-runList = xrange(8300,9000)
+runList = xrange(7779,9000)
 
 chanType = {}
 for channum in chanlist:

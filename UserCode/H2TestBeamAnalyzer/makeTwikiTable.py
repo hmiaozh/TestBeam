@@ -1,23 +1,23 @@
 from tablePos import *
 from runlists import *
 
-
 def makeTwikiFragment(runtable, snippetname):
     """ Create a long format table with all run information for the given runtable. """
 
     f = open(snippetname, 'w')
     
-    f.write("| Run number | Eta | Phi | # events | beam counters | beam type | \n")
+    f.write("| Run number | Eta | Phi | # events | beam counters | beam type | QIE shunt | Notes | \n")
 
     for k in sorted(runtable.keys()):
-        l = "| %(run)s | %(teta)s (%(ieta).2f) | %(tphi)s (%(iphi).2f) | %(nev)s | %(bc)s | %(bt)s | \n" % {"run" : k,
-                                                                                                            "teta" : runtable[k][0],
-                                                                                                            "tphi" : runtable[k][1],
-                                                                                                            "nev" : runtable[k][2],
-                                                                                                            "bc" : runtable[k][3],
-                                                                                                            "bt" : runtable[k][4],
-                                                                                                            "ieta": getieta(runtable[k][0]),
-                                                                                                            "iphi": getiphi(runtable[k][1])}
+        l = "| %(run)s | %(teta)s (%(ieta).1f) | %(tphi)s (%(iphi).1f) | %(nev)s | %(bc)s | %(bt)s | %(shunt)s | | \n" % {"run" : k,
+                                                                                                                          "teta" : runtable[k][0],
+                                                                                                                          "tphi" : runtable[k][1],
+                                                                                                                          "nev" : runtable[k][2],
+                                                                                                                          "bc" : runtable[k][3],
+                                                                                                                          "bt" : runtable[k][4],
+                                                                                                                          "ieta": getieta(runtable[k][0]),
+                                                                                                                          "iphi": getiphi(runtable[k][1]),
+                                                                                                                          "shunt": runtable[k][5]}
         f.write(l)
         
     f.close()
@@ -63,5 +63,5 @@ def makeEtaPhiTable(runtable, snippetname):
 if __name__ == '__main__':
 
     print "Make sure to uncomment what you want to turn into a twiki snippet"
-    #makeTwikiFragment(runTable_Aug14, "twiki3.txt")
-    #makeEtaPhiTable(runTable_Aug14, "twiki4.txt")
+    makeTwikiFragment(runTable_pions_ODU12, "twiki1.txt")
+    #makeEtaPhiTable(runTable_pions_ODU12, "twiki2.txt")

@@ -11,6 +11,10 @@
 EMAP_default = "EMAP-QIE11-L00-21AUG2015-04.txt"
 EMAP_specialODU = "EMAP-QIE11-SPECIAL-ODU-22AUG2015-02.txt"
 
+# runtable format:
+# runTable[runnumber] = [eta, phi, nev, beamcounters, beamtype, QIE shunt, emap]
+
+
 #######################
 # table for Aug 13
 # Phase 2 eta-phi scan
@@ -81,7 +85,6 @@ runTable_Ph2_Aug15[8581] = (8500, 40500, 1000000, "", "150m", "1", EMAP_default)
 
 runTable_Aug15 = {}
 
-#runTable_Aug15[runnumber] = [eta, phi, nev, beamcounters, beamtype]
 runTable_Aug15[8582] = (9884,40500,5000,"134","150m", "1", EMAP_default)
 runTable_Aug15[8583] = (9884,36800,5000,"134","150m", "1", EMAP_default)
 runTable_Aug15[8584] = (9884,33100,5000,"134","150m", "1", EMAP_default)
@@ -232,6 +235,74 @@ runTable_pions_ODU12[8818] = (10350, 23400, 100000, "14", "150p", "1/9", EMAP_de
 runTable_pions_ODU12[8817] = (10925, 23400, 100000, "14", "150p", "1/11.5", EMAP_default)
 
 
+######################################
+# Muon data - Round B
+###################################### 
+
+runTable_muons_specialODU = {}
+
+runTable_muons_specialODU[8849] = (10000, 3482, 5000, "134", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU[8850] = (10350, 3482, 5000, "134", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU[8851] = (10650, 3482, 5000, "134", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU[8852] = (10000, 23400, 5000, "134", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU[8853] = (10350, 23400, 5000, "134", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU[8854] = (10650, 23400, 5000, "134", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU[8855] = (10000, 40500, 5000, "134", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU[8856] = (10350, 40500, 5000, "134", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU[8857] = (10650, 40500, 5000, "134", "150m", "1", EMAP_specialODU)
+
+runTable_muons_specialODU[8858] = (10000, 3482, 10000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU[8859] = (10350, 3482, 10000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU[8860] = (10650, 3482, 10000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU[8861] = (10000, 23400, 10000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU[8862] = (10350, 23400, 10000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU[8863] = (10650, 23400, 10000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU[8864] = (10000, 40500, 10000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU[8865] = (10350, 40500, 10000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU[8866] = (10650, 40500, 10000, "14", "150m", "1", EMAP_specialODU)
+
+######################################
+# Pion data - Round C
+###################################### 
+
+runTable_pions_specialODU = {}
+
+runTable_pions_specialODU[8867] = (10350, 23400, 100000, "14", "30p", "1", EMAP_specialODU)
+runTable_pions_specialODU[8869] = (10350, 23400, 1000, "14", "30p", "1/5", EMAP_specialODU)
+runTable_pions_specialODU[8870] = (10350, 23400, 100000, "14", "30p", "1/5", EMAP_specialODU)
+
+runTable_pions_specialODU[8872] = (10350, 23400, 100000, "14", "50p", "1", EMAP_specialODU) # beam shape vertically centered during run
+runTable_pions_specialODU[8873] = (10350, 23400, 100000, "14", "50p", "1/5", EMAP_specialODU)
+
+runTable_pions_specialODU[8874] = (10350, 23400, 100000, "14", "100p", "1", EMAP_specialODU)
+runTable_pions_specialODU[8875] = (10350, 23400, 250000, "14", "100p", "1/5", EMAP_specialODU)
+runTable_pions_specialODU[8876] = (10350, 23400, 250000, "14", "100p", "1/5", EMAP_specialODU)
+runTable_pions_specialODU[8877] = (10350, 23400, 250000, "14", "100p", "1/5", EMAP_specialODU)
+runTable_pions_specialODU[8878] = (10350, 23400, 250000, "14", "100p", "1/5", EMAP_specialODU)
+runTable_pions_specialODU[8879] = (10350, 23400, 100000, "14", "100p", "1/11.5", EMAP_specialODU)
+
+runTable_pions_specialODU[8880] = (10350, 23400, 100000, "14", "150p", "1/5", EMAP_specialODU)
+runTable_pions_specialODU[8881] = (10350, 23400, 100000, "14", "150p", "1/11.5", EMAP_specialODU)
+runTable_pions_specialODU[8882] = (10350, 23400, 100000, "14", "200p", "1/5", EMAP_specialODU)
+runTable_pions_specialODU[8883] = (10350, 23400, 100000, "14", "200p", "1/11.5", EMAP_specialODU)
+runTable_pions_specialODU[8884] = (10350, 23400, 100000, "14", "300p", "1/5", EMAP_specialODU)
+runTable_pions_specialODU[8885] = (10350, 23400, 100000, "14", "300p", "1/11.5", EMAP_specialODU)
+
+######################################
+# Muon data - Phase 2 long runs
+###################################### 
+
+runTable_muons_specialODU_forPhase2 = {}
+
+runTable_muons_specialODU_forPhase2[8887] = (10460, 28900, 250000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8888] = (10460, 28900, 250000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8889] = (10460, 28900, 250000, "14", "150m", "1", EMAP_specialODU)
+
+runTable_muons_specialODU_forPhase2[8890] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8891] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8892] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8893] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8894] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU)
 
 
 ######################################
@@ -242,7 +313,9 @@ runTable_all = {}
 
 for dictionary in [runTable_pions_ODU12, runTable_pions_Aug15,
                    runTable_Aug15, runTable_Aug14, runTable_Aug13,
-                   runTable_Ph2_Aug14, runTable_Ph2_Aug15]:
+                   runTable_Ph2_Aug14, runTable_Ph2_Aug15,
+		   runTable_muons_specialODU, runTable_pions_specialODU,
+		   runTable_muons_specialODU_forPhase2]:
         runTable_all.update(dictionary)
 
 def getEmapFromRun(run):
@@ -254,4 +327,18 @@ def getEmapFromRun(run):
             else:
                emapFile = EMAP_specialODU
         return emapFile
+
+
+shunt_conversion = {"1" : 1.,
+		    "1/5" : 1./6, # This is NOT a typo :-)
+		    "1/11.5" : 1./11.5,
+		    "1/3": 1./3,
+		    "1/9": 1./9}
+
+def getShuntFromRun(run):
+	shunt = 1.
+        if run in runTable_all: 
+            shunt_string = runTable_all[run][5]
+	    shunt = shunt_conversion[shunt_string]
+        return shunt
 
