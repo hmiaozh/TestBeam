@@ -13,6 +13,7 @@ parser.add_option('-v', dest="verbosity", default="0", help="Verbosity level for
 parser.add_option('-n', dest="nevents", default="-1", help="Number of events to process.")
 parser.add_option('-m', '-e', dest="emap", default=None, help="EMAP file")
 parser.add_option('-s', dest="shunt", default="1.0", help="QIE 11 shunt setting (float, default = 1.0)")
+parser.add_option('-a', dest="adcHistOnly", action="store_true", default=False, help="Only run adcHists analyzer")
 
 options, args = parser.parse_args()
 
@@ -52,7 +53,7 @@ setVerbosity = 0
 if options.verbosity.isdigit(): setVerbosity = options.verbosity
 print "Using verbosity level",setVerbosity
  
-command = ["cmsRun","h2-tb-analyzer-run.py",inputFile,emapFile,runNumber,str(numEvents),str(setVerbosity),options.shunt]
+command = ["cmsRun","h2-tb-analyzer-run.py",inputFile,emapFile,runNumber,str(numEvents),str(setVerbosity),options.shunt,str(int(options.adcHistOnly))]
 print "Executing \"%s\"" % " ".join(command) 
 subprocess.call(command)
 
