@@ -437,7 +437,8 @@ for ievt in xrange(start, start + nevts_to_run):
     for iwc in ["AB","ABC"]:
         if has[iwc]: wc_counts[iwc] += 1.
 
-    clean = False
+    #clean = False  #This is commented to be able to run analysis over LED runs
+    clean = True
     if has["ABC"]: 
         xA = vec["xA"].at(0); yA = vec["yA"].at(0)
         xB = vec["xB"].at(0); yB = vec["yB"].at(0)
@@ -495,7 +496,7 @@ for ievt in xrange(start, start + nevts_to_run):
     # Fill histograms
     ########################
     for iwc in wcList:
-        if has[iwc]: 
+        if has[iwc] and vec["x"+iwc].size(): 
             x = adjust["x", iwc, runnum]*vec["x"+iwc].at(0)
             y = adjust["y", iwc, runnum]*vec["y"+iwc].at(0)
             hist["x"+iwc+"_v_y"+iwc].Fill(x, y)   # x vs y within WC
@@ -524,17 +525,18 @@ for ievt in xrange(start, start + nevts_to_run):
     # Check if beam is within edges of sample
     isIn = {}
     for ichan in chanlist:
-        xL = edges[ichan, runnum][0]
-        xH = edges[ichan, runnum][1]
-        yL = edges[ichan, runnum][2]
-        yH = edges[ichan, runnum][3]
-        ix = adjust["x", refchamb, runnum]*vec["x"+refchamb].at(0)
-        iy = adjust["y", refchamb, runnum]*vec["y"+refchamb].at(0)
-        if ix<xH and ix>xL and iy<yH and iy>yL: 
-            isIn[ichan] = True
-        else:
-            isIn[ichan] = False
-        if isIn[ichan]: wc_counts["nIn", ichan] += 1.
+	if vec["x"+iwc].size():	
+        	xL = edges[ichan, runnum][0]
+        	xH = edges[ichan, runnum][1]
+        	yL = edges[ichan, runnum][2]
+        	yH = edges[ichan, runnum][3]
+        	ix = adjust["x", refchamb, runnum]*vec["x"+refchamb].at(0)
+        	iy = adjust["y", refchamb, runnum]*vec["y"+refchamb].at(0)
+        	if ix<xH and ix>xL and iy<yH and iy>yL: 
+            		isIn[ichan] = True
+        	else:
+            		isIn[ichan] = False
+            	if isIn[ichan]: wc_counts["nIn", ichan] += 1.
  
                
     #######################
@@ -704,7 +706,7 @@ for ievt in xrange(start, start + nevts_to_run):
             x_25=0
             y_25=0
             # Fill plot of wire chamber position for events with sufficient energy
-            if esum[ichan, "4TS_PS"]>25.:
+            if esum[ichan, "4TS_PS"]>25. and vec["x"+iwc].size():
                 x = adjust["x", refchamb, runnum]*vec["x"+refchamb].at(0)
                 y = adjust["y", refchamb, runnum]*vec["y"+refchamb].at(0)
                 hist["e_wcC"  , ichan].Fill(x,y)
@@ -714,7 +716,7 @@ for ievt in xrange(start, start + nevts_to_run):
                 y_25 = adjust["y", refchamb, runnum]*vec["y"+refchamb].at(0)
             
             # Fill plot of wire chamber position for all events added by Abdollah
-            if esum[ichan, "4TS_PS"]>-100000:  # Fill all events
+            if esum[ichan, "4TS_PS"]>-100000 and vec["x"+iwc].size():  # Fill all events
                 x = adjust["x", refchamb, runnum]*vec["x"+refchamb].at(0)
                 y = adjust["y", refchamb, runnum]*vec["y"+refchamb].at(0)
                 hist["e_wcC_noTScut"  , ichan].Fill(x,y)
