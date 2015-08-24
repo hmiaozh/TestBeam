@@ -1,5 +1,0 @@
-# Conditions read from  CMS_CONDITIONS  via FrontierProd 
-HcalTBObjectUnpacker will unpack Trigger FED 1
-HcalTBObjectUnpacker will unpack SlowData FED 3
-HcalTBObjectUnpacker will unpack TDC FED 8
-HcalTBObjectUnpacker will unpack QADC FED 8
