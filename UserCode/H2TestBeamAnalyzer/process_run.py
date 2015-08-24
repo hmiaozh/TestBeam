@@ -298,7 +298,7 @@ for fileName in processFileList:
     else:
         m = emapPattern.search(fileName)
         if m:
-            emapFile = m.group(1)
+            emapFile = m.group(1) + ".txt"
         else:
             emapFile = getEmapFromRun(int(runNum))
 
