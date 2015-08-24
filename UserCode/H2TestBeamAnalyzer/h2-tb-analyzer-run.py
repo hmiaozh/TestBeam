@@ -1,18 +1,31 @@
 import FWCore.ParameterSet.Config as cms
 
+DEBUG_OPTIONS = False
+
 import sys
-if len(sys.argv) != 7:
+if len(sys.argv) != 8:
     print len(sys.argv)
-    print "### ERROR: No Run File has been provided"
-    print "### Usage: cmsRun h2-tb-analyzer-run.py <input file> <emap file> <verbose flag> <num events> <run number>"
+    print "### ERROR: Wrong number of arguments.  Please use h2-tb-analyzer.py."
+    print "### Usage: cmsRun h2-tb-analyzer-run.py <input file> <emap file> <verbosity> <num events> <run number> <shunt setting>"
     sys.exit(1)
 
 inputFile = sys.argv[2]
 emapFile = sys.argv[3]
-doVerbose = int(sys.argv[4])
+runNumber = sys.argv[4]
 numEvents = int(sys.argv[5])
+verbosityLevel = int(sys.argv[6])
+shuntSetting = float(sys.argv[7])
+
 if numEvents == 0: numEvents = -1
-runNumber = sys.argv[6]
+
+if DEBUG_OPTIONS:
+    print "inputFile =",inputFile
+    print "emapFile =",emapFile
+    print "runNumber =",runNumber
+    print "numEvents =",numEvents
+    print "verbosityLevel =",verbosityLevel
+    print "shuntSetting =",shuntSetting
+    sys.exit(1)
 
 process = cms.Process("H2TestBeam")
 
@@ -60,7 +73,8 @@ emapFileShort = emapFile.rsplit('.',1)[0].rsplit('/')[-1]
 
 process.hcalAnalyzer = cms.EDAnalyzer('H2TestBeamAnalyzer',
         OutFileName = cms.untracked.string('ana_h2_tb_run'+runNumber+'_'+emapFileShort+'.root'),
-        Verbosity = cms.untracked.int32(doVerbose)
+        Verbosity = cms.untracked.int32(verbosityLevel),
+        Gain = cms.untracked.double(shuntSetting)
 )
 
 process.hcalADCHists = cms.EDAnalyzer('adcHists')
@@ -102,7 +116,7 @@ process.es_prefer = cms.ESPrefer('HcalTextCalibrations', 'es_ascii')
 
 process.dump = cms.EDAnalyzer("HcalDigiDump")
 
-if doVerbose:
+if verbosityLevel > 0:
     process.p = cms.Path(process.tbunpack*process.hcalDigis*process.dump*process.hcalAnalyzer*process.hcalADCHists)
 else:
     process.p = cms.Path(process.tbunpack*process.hcalDigis*process.hcalAnalyzer*process.hcalADCHists)
