@@ -3,8 +3,6 @@
 print "Importing modules"
 import sys
 import optparse
-from tb_chanmap import *
-from tb_utils import *
 import os
 import ROOT
 import array
@@ -81,6 +79,10 @@ parser.add_option ('--adc', dest='adc',
 parser.add_option ('--verbose', dest='verbose', 
                    action='store_true', default=False,
                    help="Turn on verbose mode")
+parser.add_option ('-e', dest='emap',
+                   default=None,
+                   help="EMAP filename in order to read specific tb_chanmap")
+
 
 options, args = parser.parse_args()
 
@@ -93,6 +95,7 @@ nevents = options.nevents
 sigTS = options.sigTS
 start = options.start
 adc = options.adc
+emapFile = options.emap
 
 # Do some sanity checks
 if infile is None: 
@@ -104,6 +107,14 @@ if outfile is None:
 if runnum is None:
     print "You did not provide a run number! Exiting."
     sys.exit()
+
+# Import appropriate channel mapping
+chanmapFile = "tb_chanmap"
+if emapFile:
+    emapFileShort = emapFile.rsplit('.',1)[0].rsplit('/')[-1]
+    chanmapFile = "tb_chanmap_"+emapFileShort
+__import__(chanmapFile)
+from tb_utils import *
 
 
 #######################
@@ -198,16 +209,14 @@ ntp["hf"] = file.Get("HFData/Events")
 ntp["qie11"] = file.Get("QIE11Data/Events")
 ntp["wc"] = file.Get("WCData/Events")
 
-
 ############################
 # Prepare for tree reading
 ############################           
 
 vname = {}
-vname["hbhe"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse"]
-vname["hf"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse"]
+vname["hbhe"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse", "pulse_adc", "ped", "ped_adc"]
+vname["hf"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse", "pulse_adc", "ped", "ped_adc"]
 vname["qie11"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse", "ped", "pulse_adc", "ped_adc", "capid_error", "link_error", "soi"]
-#vname["hf"] = ["numChs", "numTS", "iphi", "ieta", "depth"]
 #vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC", "xD", "yD", "xE", "yE"]
 vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC"]
 
@@ -332,7 +341,6 @@ for ichan in chanlist:
     #print "Nbins: %i, lowedge: "%(hist["e_4TS_noPS", ichan].GetNbinsX())
     #print [hist["e_4TS_noPS", ichan].GetXaxis().GetBinLowEdge(i) for i in xrange(1,247)]
     hist["e_4TS_PS",   ichan] = ROOT.TH1F("Energy_"     +label, "Energy_"         +label, 247, edges10)
-    hist["link_error", ichan] = ROOT.TH1F("Link_Error_" +label, "Link Errors for "+label,   2, 0, 2)
 
 for depth in valid_depth:
     hist["e_4TS_etaphi",depth] = ROOT.TProfile2D("Energy_Avg_depth"+str(depth),"Average Energy per event in each ieta,iphi for depth "+str(depth), 
@@ -346,7 +354,7 @@ for depth in valid_depth:
 for iphi in valid_iphi:
     hist["e_4TS_etadepth",iphi] = ROOT.TProfile2D("Energy_Avg_phi"+str(iphi),"Average Energy per event in each ieta,depth for iphi "+str(iphi), 
                                                   (valid_ieta[-1] - valid_ieta[0])+3, valid_ieta[0]-1.5, valid_ieta[-1]+1.5, 
-                                                  (valid_iphi[-1] - valid_iphi[0])+3, valid_iphi[0]-1.5, valid_iphi[-1]+1.5, 
+                                                  (valid_depth[-1] - valid_depth[0])+3, valid_depth[0]-1.5, valid_depth[-1]+1.5, 
                                                   0., 10000.)
     
     
@@ -549,7 +557,6 @@ for ievt in xrange(start, start + nevts_to_run):
     fchan = {}
     fread = {}
     for rchan in xrange(shbhe.numChs):
-        print rchan
         test_chan = (shbhe.ieta[rchan], shbhe.iphi[rchan], shbhe.depth[rchan])
         if test_chan in chansToFind:
             chansToFind.remove(test_chan)
@@ -650,7 +657,12 @@ for ievt in xrange(start, start + nevts_to_run):
 
         # Fill LinkError plot
         if fillEplots:
+            # Only make link error plot if we have the information
             if hasattr(fread[(ieta,iphi,depth)], 'link_error'):
+                if ("link_error", ichan) not in hist:
+                    label = "ieta%s_iphi%s_depth%s" % (ieta, iphi, depth)
+                    hist["link_error", ichan] = ROOT.TH1F("Link_Error_" +label, "Link Errors for "+label,   2, 0, 2)
+
                 hist["link_error", ichan].Fill(fread[(ieta,iphi,depth)].link_error[rchan])
 
 

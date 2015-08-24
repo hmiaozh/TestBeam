@@ -48,7 +48,7 @@ echo "Generating html menu..."
 # plots file name format is plot_name--index.pdf
 
 # extract list of plots:
-plotsList=$(find -type f -name "*.pdf" | cut -d "/" -f 2 | sed 's,--.*,,' | sort -u)
+plotsList=$(find . -type f -name "*.pdf" | cut -d "/" -f 2 | sed 's,--.*,,' | sort -u)
 
 # generate index
 echo "$plotsList" | make_index > index.html
@@ -56,6 +56,6 @@ echo "$plotsList" | make_index > index.html
 # generate subpages
 for i in $plotsList ; do
   #echo "==> $i"
-  find -type f -name "$i--*.pdf" | cut -d "/" -f 2 | sort | make_subpage $i > $i.html
+  find . -type f -name "$i--*.pdf" | cut -d "/" -f 2 | sort | make_subpage $i > $i.html
 done
 
