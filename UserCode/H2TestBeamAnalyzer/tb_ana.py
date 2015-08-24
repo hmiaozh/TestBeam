@@ -7,10 +7,10 @@ import os
 import ROOT
 import array
 import time
+import numpy
 from math import exp, sqrt
 
-edges10 = array.array('d', 
- [1.58,   4.73,   7.88,   11.0,   14.2,   17.3,   20.5,   23.6,
+edges10_list = [1.58,   4.73,   7.88,   11.0,   14.2,   17.3,   20.5,   23.6,
   26.8,   29.9,   33.1,   36.2,   39.4,   42.5,   45.7,   48.8,
   53.6,   60.1,   66.6,   73.0,   79.5,   86.0,   92.5,   98.9,
   105,    112,    118,    125,    131,    138,    144,    151,
@@ -41,7 +41,7 @@ edges10 = array.array('d',
   121000, 125000, 128000, 131000, 137000, 145000, 152000, 160000,
   168000, 176000, 183000, 191000, 199000, 206000, 214000, 222000,
   230000, 237000, 245000, 253000, 261000, 268000, 276000, 284000,
-  291000, 302000, 316000, 329000, 343000, 356000, 370000, 384000, 398000])
+  291000, 302000, 316000, 329000, 343000, 356000, 370000, 384000, 398000]
 
 #######################
 # Get options
@@ -82,6 +82,9 @@ parser.add_option ('--verbose', dest='verbose',
 parser.add_option ('-e', dest='emap',
                    default=None,
                    help="EMAP filename in order to read specific tb_chanmap")
+parser.add_option ('--shunt', dest='shunt', type='float',
+                   default=1.,
+                   help="QIE shunt setting (default: %default)")
 
 
 options, args = parser.parse_args()
@@ -96,6 +99,7 @@ sigTS = options.sigTS
 start = options.start
 adc = options.adc
 emapFile = options.emap
+shunt = options.shunt
 
 # Do some sanity checks
 if infile is None: 
@@ -114,6 +118,13 @@ if emapFile:
     emapFileShort = emapFile.rsplit('.',1)[0].rsplit('/')[-1]
     chanmapFile = "tb_chanmap_"+emapFileShort
 __import__(chanmapFile)
+
+# Scale bin edges according to shunt value
+edges10_np = numpy.array(edges10_list)
+edges10_np = edges10_np/shunt
+
+edges10 = array.array('d', edges10_np)
+
 from tb_utils import *
 
 
@@ -557,6 +568,7 @@ for ievt in xrange(start, start + nevts_to_run):
     fchan = {}
     fread = {}
     for rchan in xrange(shbhe.numChs):
+        print rchan
         test_chan = (shbhe.ieta[rchan], shbhe.iphi[rchan], shbhe.depth[rchan])
         if test_chan in chansToFind:
             chansToFind.remove(test_chan)

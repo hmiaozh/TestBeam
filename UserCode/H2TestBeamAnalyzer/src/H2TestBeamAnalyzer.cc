@@ -185,63 +185,63 @@ struct H2Timing
 // class declaration
 //
 
-class H2TestBeamAnalyzer : public edm::EDAnalyzer {
-   public:
-      explicit H2TestBeamAnalyzer(const edm::ParameterSet&);
-      ~H2TestBeamAnalyzer();
+class H2TestBeamAnalyzer : public edm::EDAnalyzer 
+{
+public:
+    explicit H2TestBeamAnalyzer(const edm::ParameterSet&);
+    ~H2TestBeamAnalyzer();
 
-      static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+    static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
-   private:
-      virtual void beginJob() ;
-      virtual void analyze(const edm::Event&, const edm::EventSetup&);
-      void getData(const edm::Event&, const edm::EventSetup&);
-      virtual void endJob() ;
+private:
+    virtual void beginJob() ;
+    virtual void analyze(const edm::Event&, const edm::EventSetup&);
+    void getData(const edm::Event&, const edm::EventSetup&);
+    virtual void endJob() ;
 
-        TFile *_file;
-        TTree *_treeHBHE;
-        TTree *_treeHF;
-        TTree *_treeQIE11;
-        TTree *_treeTriggers;
-        TTree *_treeWC;
-        TTree *_treeBC;
-        TTree *_treeTiming;
+    TFile *_file;
+    TTree *_treeHBHE;
+    TTree *_treeHF;
+    TTree *_treeQIE11;
+    TTree *_treeTriggers;
+    TTree *_treeWC;
+    TTree *_treeBC;
+    TTree *_treeTiming;
 
 
-        string _outFileName;
-        int _verbosity;
-        TCalibLedInfo _calibInfo;
-        TQIE8Info _hbheInfo;
-        TQIE8Info _hfInfo;
-        TQIE11Info _qie11Info;
+    string _outFileName;
+    int _verbosity;
+    double gain_;
+    TCalibLedInfo _calibInfo;
+    TQIE8Info _hbheInfo;
+    TQIE8Info _hfInfo;
+    TQIE11Info _qie11Info;
 
-        H2Triggers _triggers;
-        H2BeamCounters _BCData;
-        H2Timing _timing;
+    H2Triggers _triggers;
+    H2BeamCounters _BCData;
+    H2Timing _timing;
 
-        vector<double> wcX[5];
-        vector<double> wcY[5];
+    vector<double> wcX[5];
+    vector<double> wcY[5];
 
-        TH1D *x[5];
-        TH1D *y[5];
-        TH1D *s1, *s2, *s3, *s4;
+    TH1D *x[5];
+    TH1D *y[5];
+    TH1D *s1, *s2, *s3, *s4;
 
-      virtual void beginRun(edm::Run const&, edm::EventSetup const&);
-      virtual void endRun(edm::Run const&, edm::EventSetup const&);
-      virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-      virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
+    virtual void beginRun(edm::Run const&, edm::EventSetup const&);
+    virtual void endRun(edm::Run const&, edm::EventSetup const&);
+    virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
+    virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
 
-      edm::EDGetTokenT<HBHEDigiCollection> tok_HBHEDigiCollection_;
-      edm::EDGetTokenT<HFDigiCollection> tok_HFDigiCollection_;
-      edm::EDGetTokenT<HODigiCollection> tok_HODigiCollection_;
-      edm::EDGetTokenT<HcalDataFrameContainer<QIE11DataFrame> > tok_QIE11DigiCollection_;
-      edm::EDGetTokenT<HcalTBTriggerData> tok_HcalTBTriggerData_;
-      edm::EDGetTokenT<HcalTBEventPosition> tok_HcalTBEventPosition_;
-      edm::EDGetTokenT<HcalTBBeamCounters> tok_HcalTBBeamCounters_;
-      edm::EDGetTokenT<HcalTBParticleId> tok_HcalTBParticleId_;
-      edm::EDGetTokenT<HcalTBTiming> tok_HcalTBTiming_;
-
-      // ----------member data ---------------------------
+    edm::EDGetTokenT<HBHEDigiCollection> tok_HBHEDigiCollection_;
+    edm::EDGetTokenT<HFDigiCollection> tok_HFDigiCollection_;
+    edm::EDGetTokenT<HODigiCollection> tok_HODigiCollection_;
+    edm::EDGetTokenT<HcalDataFrameContainer<QIE11DataFrame> > tok_QIE11DigiCollection_;
+    edm::EDGetTokenT<HcalTBTriggerData> tok_HcalTBTriggerData_;
+    edm::EDGetTokenT<HcalTBEventPosition> tok_HcalTBEventPosition_;
+    edm::EDGetTokenT<HcalTBBeamCounters> tok_HcalTBBeamCounters_;
+    edm::EDGetTokenT<HcalTBParticleId> tok_HcalTBParticleId_;
+    edm::EDGetTokenT<HcalTBTiming> tok_HcalTBTiming_;    
 };
 
 //
@@ -257,7 +257,8 @@ class H2TestBeamAnalyzer : public edm::EDAnalyzer {
 //
 H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _outFileName(iConfig.getUntrackedParameter<string>("OutFileName")),
-    _verbosity(iConfig.getUntrackedParameter<int>("Verbosity"))
+    _verbosity(iConfig.getUntrackedParameter<int>("Verbosity")),
+    gain_(iConfig.getUntrackedParameter<double>("Gain"))
 {
 
     tok_HBHEDigiCollection_ = consumes<HBHEDigiCollection>(edm::InputTag("hcalDigis"));
@@ -625,25 +626,24 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
         _hbheInfo.ieta[numChs] = ieta;
         _hbheInfo.depth[numChs] = depth;
         _hbheInfo.numTS = nTS;
-        float ped_fc = 0;
-        float ped_adc = 0;
+	float ped_fc = 0;
+	float ped_adc = 0;
         
-        for (int iTS=0; iTS<nTS; iTS++)
-        {
-            _hbheInfo.pulse[numChs][iTS] = adc2fC[digi->sample(iTS).adc()&0xff];
-            _hbheInfo.pulse_adc[numChs][iTS] = digi->sample(iTS).adc()&0xff;
-            if (iTS < 3)
-            {
-                ped_fc += adc2fC[digi->sample(iTS).adc()&0xff];
-                ped_adc += digi->sample(iTS).adc()&0xff;
-            }
-        }
-
+	for (int iTS=0; iTS<nTS; iTS++)
+	{
+	    _hbheInfo.pulse[numChs][iTS] = adc2fC[digi->sample(iTS).adc()&0xff];
+	    _hbheInfo.pulse_adc[numChs][iTS] = digi->sample(iTS).adc()&0xff;
+	    if (iTS < 3)
+	    {
+	        ped_fc += adc2fC[digi->sample(iTS).adc()&0xff];
+		ped_adc += digi->sample(iTS).adc()&0xff;
+	    }
+	}
+	
         _hbheInfo.ped[numChs] = ped_fc/3.;
         _hbheInfo.ped_adc[numChs] = ped_adc/3.;
         
-
-        if (_verbosity>1)
+	if (_verbosity>1)
         {
             cout << "### Digi->Data:" << endl;
             for (int iTS=0; iTS<nTS; iTS++)
@@ -699,24 +699,23 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
         _hfInfo.ieta[numChs] = ieta;
         _hfInfo.depth[numChs] = depth;
         _hfInfo.numTS = nTS;
-        float ped_fc = 0;
-        float ped_adc = 0;
+	float ped_fc = 0;
+	float ped_adc = 0;
 
         for (int iTS=0; iTS<nTS; iTS++)
-        {
-            _hfInfo.pulse[numChs][iTS] = adc2fC[digi->sample(iTS).adc()&0xff];
-            _hfInfo.pulse_adc[numChs][iTS] = digi->sample(iTS).adc()&0xff;
+	{
+	    _hfInfo.pulse[numChs][iTS] = adc2fC[digi->sample(iTS).adc()&0xff];
+	    _hfInfo.pulse_adc[numChs][iTS] = digi->sample(iTS).adc()&0xff;
             if (iTS < 3)
             {
                 ped_fc += adc2fC[digi->sample(iTS).adc()&0xff];
                 ped_adc += digi->sample(iTS).adc()&0xff;
-            }
-        }
-        
-        _hfInfo.ped[numChs] = ped_fc/3.;
-        _hfInfo.ped_adc[numChs] = ped_adc/3.;
-        
-        
+	    }
+	}
+
+	_hfInfo.ped[numChs] = ped_fc/3.;
+	_hfInfo.ped_adc[numChs] = ped_adc/3.;
+
         if (_verbosity>1)
         {
             cout << "### Digi->Data:" << endl;
@@ -743,6 +742,8 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     
     if (_verbosity>0) std::cout << "Trying to access the qie collection" << std::endl;
     
+    Converter Convertadc2fC(gain_);
+
     const QIE11DigiCollection& qie11dc=*(qie11DigiCollection);
 
     for (int j=0; j < qie11dc.size(); j++){
@@ -783,7 +784,6 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
             int soi = qie11dc[j][i].soi();
             
             // store pulse information
-            Converter Convertadc2fC;
             float charge = Convertadc2fC.linearize(adc);
             _qie11Info.pulse[j][i] = charge;
             _qie11Info.pulse_adc[j][i] = adc;

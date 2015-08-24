@@ -9,6 +9,7 @@ import os
 import re
 
 from runlists import getEmapFromRun 
+from runlists import getShuntFromRun
 
 #Options
 
@@ -306,6 +307,9 @@ for fileName in processFileList:
     
     # Generate the chanmap file
     subprocess.call(["./emap_to_tb_chanmap.py",emapFile])
+
+    # We need to get the QIE11 shunt setting for various steps in the analysis process
+    shuntSetting = str(getShuntFromRun(int(runNum)))
     
     raw = fileName
     
@@ -317,8 +321,8 @@ for fileName in processFileList:
         raw = fileName.rsplit('/',1)[-1]
             
     if do_cmsRun:
-        writeout(LEV4,">> Stage 1: Executing cmsRun for Run %s" % runNum)
-        command = ["./h2-tb-analyzer.py", "-e", emapFile, "-n", op_nevents, raw]
+        writeout(LEV4,">> Stage 1: Executing C++ Analyzers for Run %s" % runNum)
+        command = ["./h2-tb-analyzer.py", "-e", emapFile, "-n", op_nevents, "-s", shuntSetting, raw]
         writeout(LEV4,">> Executing \"%s\"" % " ".join(command))
         subprocess.call(command)
         
@@ -328,7 +332,7 @@ for fileName in processFileList:
 
     if do_tb_ana:
         writeout(LEV4,">> Stage 2: Running Analyzer (tb_ana) for Run %s" % runNum)
-        command = ["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum)),"-e",emapFileShort]
+        command = ["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum)),"-e",emapFileShort,"--shunt",shuntSetting]
         writeout(LEV4,">> Executing \"%s\"" % " ".join(command))
         subprocess.call(command)
         #subprocess.call(["rm", "-rf", plotsDir])

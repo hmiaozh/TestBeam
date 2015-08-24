@@ -23,6 +23,7 @@
 #include <map>
 #include <string>
 #include <sstream>
+#include <vector>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -34,7 +35,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "DataFormats/HcalDigi/interface/HcalDigiCollections.h"
-#include "UserCode/adcHists/include/ADC_Conversion.h"
+#include "UserCode/H2TestBeamAnalyzer/src/ADC_Conversion.h"
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
@@ -80,6 +81,31 @@ double edges10[248] = {
   291000, 302000, 316000, 329000, 343000, 356000, 370000, 384000, 398000
 };
 
+double qie8adc2fC[]={
+    -0.5,0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5,9.5, 10.5,11.5,12.5,
+    13.5,15.,17.,19.,21.,23.,25.,27.,29.5,32.5,35.5,38.5,42.,46.,50.,54.5,59.5,
+    64.5,59.5,64.5,69.5,74.5,79.5,84.5,89.5,94.5,99.5,104.5,109.5,114.5,119.5,
+    124.5,129.5,137.,147.,157.,167.,177.,187.,197.,209.5,224.5,239.5,254.5,272.,
+    292.,312.,334.5,359.5,384.5,359.5,384.5,409.5,434.5,459.5,484.5,509.5,534.5,
+    559.5,584.5,609.5,634.5,659.5,684.5,709.5,747.,797.,847.,897.,947.,997.,
+    1047.,1109.5,1184.5,1259.5,1334.5,1422.,1522.,1622.,1734.5,1859.5,1984.5,
+    1859.5,1984.5,2109.5,2234.5,2359.5,2484.5,2609.5,2734.5,2859.5,2984.5,
+    3109.5,3234.5,3359.5,3484.5,3609.5,3797.,4047.,4297.,4547.,4797.,5047.,
+    5297.,5609.5,5984.5,6359.5,6734.5,7172.,7672.,8172.,8734.5,9359.5,9984.5};
+
+double edges8[]={
+    -0.5,0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5,9.5, 10.5,11.5,12.5,
+    13.5,15.,17.,19.,21.,23.,25.,27.,29.5,32.5,35.5,38.5,42.,46.,50.,54.5,59.5,
+    64.5,69.5,74.5,79.5,84.5,89.5,94.5,99.5,104.5,109.5,114.5,119.5,
+    124.5,129.5,137.,147.,157.,167.,177.,187.,197.,209.5,224.5,239.5,254.5,272.,
+    292.,312.,334.5,359.5,384.5,409.5,434.5,459.5,484.5,509.5,534.5,
+    559.5,584.5,609.5,634.5,659.5,684.5,709.5,747.,797.,847.,897.,947.,997.,
+    1047.,1109.5,1184.5,1259.5,1334.5,1422.,1522.,1622.,1734.5,1859.5,1984.5,
+    2109.5,2234.5,2359.5,2484.5,2609.5,2734.5,2859.5,2984.5,
+    3109.5,3234.5,3359.5,3484.5,3609.5,3797.,4047.,4297.,4547.,4797.,5047.,
+    5297.,5609.5,5984.5,6359.5,6734.5,7172.,7672.,8172.,8734.5,9359.5,9984.5};
+
+
 class adcHists : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
 public:
     explicit adcHists(const edm::ParameterSet&);
@@ -93,14 +119,23 @@ private:
     virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
     virtual void endJob() override;
 
+    edm::EDGetTokenT<HBHEDigiCollection> tok_HBHEDigiCollection_;
     edm::EDGetTokenT<QIE11DigiCollection> tok_QIE11DigiCollection_;
     edm::EDGetTokenT<HcalTBTriggerData> tok_HcalTBTriggerData_;
+    edm::EDGetTokenT<HcalTBTiming> tok_HcalTBTiming_;
+
+    double gain_;
+    
+    void fillHist(std::map<std::string, TH1*>& hists, std::string name, float value, int nbins, double bins[]);
+    void fillHist(std::map<std::string, TH1*>& hists, std::string name, float value, int nbins, float ll, float ul);
 
     TH1* hq;
 
-    std::map<std::string, TH1*> spectra;
+    std::map<std::string, TH1*> hists;
     
     edm::Service<TFileService> fs;
+
+    std::vector<double> binsQIE8, binsQIE11;
 };
 
 adcHists::adcHists(const edm::ParameterSet& iConfig)
@@ -109,8 +144,12 @@ adcHists::adcHists(const edm::ParameterSet& iConfig)
 
     hq = fs->make<TH1D>("allMu", "allMu", 247, edges10);
 
+    tok_HBHEDigiCollection_ = consumes<HBHEDigiCollection>(edm::InputTag("hcalDigis"));
     tok_QIE11DigiCollection_ = consumes<QIE11DigiCollection>(edm::InputTag("hcalDigis"));
     tok_HcalTBTriggerData_ = consumes<HcalTBTriggerData>(edm::InputTag("tbunpack"));
+    tok_HcalTBTiming_ = consumes<HcalTBTiming>(edm::InputTag("tbunpack"));
+
+    gain_ = iConfig.getUntrackedParameter<double>("gain");
 }
 
 
@@ -119,9 +158,40 @@ adcHists::~adcHists()
     
 }
 
+void adcHists::fillHist(std::map<std::string, TH1*>& hists, std::string name, float value, int nbins, double bins[])
+{
+    auto hist = hists.find(name);
+    if(hist == hists.end())
+    {
+	hists[name] = fs->make<TH1D>(name.c_str(), name.c_str(), nbins, bins);
+	hists[name]->Fill(value);
+    }
+    else
+    {
+	hist->second->Fill(value);
+    }
+}
+
+void adcHists::fillHist(std::map<std::string, TH1*>& hists, std::string name, float value, int nbins, float ll, float ul)
+{
+    auto hist = hists.find(name);
+    if(hist == hists.end())
+    {
+	hists[name] = fs->make<TH1D>(name.c_str(), name.c_str(), nbins, ll, ul);
+	hists[name]->Fill(value);
+    }
+    else
+    {
+	hist->second->Fill(value);
+    }
+}
+
 void adcHists::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
     using namespace edm;
+
+    edm::Handle<HBHEDigiCollection> hbheDigiCollection;
+    iEvent.getByToken(tok_HBHEDigiCollection_,hbheDigiCollection);
 
     edm::Handle<QIE11DigiCollection> hqie11dc;
     iEvent.getByToken(tok_QIE11DigiCollection_, hqie11dc);
@@ -129,19 +199,67 @@ void adcHists::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     edm::Handle<HcalTBTriggerData> trigData;
     iEvent.getByToken(tok_HcalTBTriggerData_, trigData);
 
+    edm::Handle<HcalTBTiming> timing;
+    iEvent.getByToken(tok_HcalTBTiming_,timing);
+
     //Reject any event which was not a beam trigger and only a beam trigger inside the spill window
     //if(trigData->wasInSpillPedestalTrigger() || trigData->wasOutSpillPedestalTrigger() || trigData->wasSpillIgnorantPedestalTrigger()) return;
     //if(trigData->wasLEDTrigger())   return;
     //if(trigData->wasLaserTrigger()) return;
-    if(!trigData->wasBeamTrigger()) return;
     //if(trigData->wasFakeTrigger())  return;
     //if(!trigData->wasInSpill())     return;
 
+    double s1Count = timing->S1Count();
+    double s2Count = timing->S2Count();
+    double s3Count = timing->S3Count();
+    double s4Count = timing->S4Count();
+    double triggerTime = timing->triggerTime();
+    double ttcL1Atime = timing->ttcL1Atime();
+
+    fillHist(hists, "s1Count", s1Count, 100, 0, 100);
+    fillHist(hists, "s2Count", s2Count, 100, 0, 100);
+    fillHist(hists, "s3Count", s3Count, 100, 0, 100);
+    fillHist(hists, "s4Count", s4Count, 100, 0, 100);
+    fillHist(hists, "triggerTime", triggerTime, 1000, 0, 20000);
+    fillHist(hists, "ttcL1Atime", ttcL1Atime, 1000, 0, 20000);
+
     //ADC to nominal charge converter 
-    Converter converter;
+    Converter converter(gain_);
+
+    std::map<std::string, float> towerSum;
+
+    for(auto& digi : *hbheDigiCollection)
+    {
+	int iphi = digi.id().iphi();
+        int ieta = digi.id().ieta();
+        int depth = digi.id().depth();
+	
+    	//float ped = (qie8adc2fC[digi.sample(0).adc()&0xff] + qie8adc2fC[digi.sample(1).adc()&0xff] + qie8adc2fC[digi.sample(2).adc()&0xff])/3.0;
+    	//float q = qie8adc2fC[digi.sample(4).adc()&0xff] + qie8adc2fC[digi.sample(5).adc()&0xff] + qie8adc2fC[digi.sample(6).adc()&0xff] - 3*ped;
+
+	float q = digi.sample(5).adc()&0xff;
+
+	std::stringstream hnum;
+	hnum << ieta << "_" << iphi << "_" << depth;
+
+	std::stringstream tnum;
+	tnum << ieta << "_" << iphi;
+	
+	if(trigData->wasBeamTrigger())
+	{    
+	    fillHist(hists, "beam_adc_" + hnum.str(), q, 128, 0, 128); //binsQIE8.size() - 1, binsQIE8.data());
+
+	    towerSum[tnum.str()] += q;
+	    fillHist(hists, "tower_adc_" + tnum.str(), q, binsQIE8.size() - 1, binsQIE8.data());
+	}
+	else
+	{
+	    fillHist(hists, "ped_adc_" + hnum.str(), q, binsQIE8.size() - 1, binsQIE8.data());
+	}
+    }
 
     const QIE11DigiCollection& qie11dc = *hqie11dc;
-    for (int j=0; j < qie11dc.size(); j++)
+    for (int j=0; j < qie11dc.size(); ++j)
     {
         // Extract info on detector location
         DetId detid = qie11dc[j].detid();
@@ -149,33 +267,73 @@ void adcHists::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
         int ieta = hcaldetid.ieta();
         int iphi = hcaldetid.iphi();
         int depth = hcaldetid.depth();
-        
-        float adc[10];
-        for(int i = 0; i < 10; i++)
+
+        float adc[10];//, tdc[10];
+        for(int i = 0; i < 10; ++i)
         {
             adc[i] = converter.linearize(qie11dc[j][i].adc());
+	    //tdc[i] = float(qie11dc[j][i].tdc())/2.0;	
         }
+
+	float tdc = -999.0;
+
+	for(int i = 4; i <= 8; ++i)
+	{
+	    if(qie11dc[j][i].tdc() != 62 && qie11dc[j][i].tdc() != 63)
+	    {
+		tdc = (i - 4)*25.0 + float(qie11dc[j][i].tdc())/2.0;
+		break;
+	    }
+	}
 
 	float ped = (adc[0] + adc[1] + adc[2])/3.0;
 	float q = adc[4] + adc[5] + adc[6] - 3*ped;
+	float qNosub = adc[4] + adc[5] + adc[6];
 
-	std::stringstream hname;
-	hname << ieta << "_" << iphi << "_" << depth;
+	std::stringstream hnum;
+	hnum << ieta << "_" << iphi << "_" << depth;
 	
-	auto hist = spectra.find(hname.str());
-	if(hist == spectra.end())
-	{
-	    spectra[hname.str()] = fs->make<TH1D>(hname.str().c_str(), hname.str().c_str(), 247, edges10);
-	    spectra[hname.str()]->Fill(q);
+	std::stringstream tnum;
+	tnum << ieta << "_" << iphi;
+
+	if(trigData->wasBeamTrigger())
+	{    
+	    fillHist(hists, "beam_adc_" + hnum.str(), q, 247, binsQIE11.data());
+
+	    towerSum[tnum.str()] += q;
+	    fillHist(hists, "tower_adc_" + tnum.str(), q, 247, binsQIE11.data());
+	    
+	    fillHist(hists, "beam_tdc_" + hnum.str(), tdc, 250, 0, 125);
+	    
+	    hq->Fill(q);
 	}
 	else
 	{
-	    hist->second->Fill(q);
+	    fillHist(hists, "ped_adc_" + hnum.str(), q, 247, binsQIE11.data());
+	    
+	    fillHist(hists, "ped_tdc_" + hnum.str(), tdc, 250, 0, 125);
 	}
 
-	hq->Fill(q);
+	fillHist(hists, "adc_nosub_" + hnum.str(), qNosub, 247, binsQIE11.data());
+    }
 
-	//std::cout << ped << q;
+    double qCluster_all = 0.0;
+
+    for(auto& tower : towerSum)
+    {
+	fillHist(hists, "towerSum_adc_" + tower.first, tower.second, 247, binsQIE11.data());
+	qCluster_all += tower.second;
+    }
+
+    if(towerSum.size())
+    {
+	double qCluster_17_5 = towerSum["16_5"] + towerSum["17_5"] + towerSum["18_5"] + towerSum["16_6"] + towerSum["17_6"] + towerSum["18_6"];
+	double qCluster_18_5 = towerSum["17_5"] + towerSum["18_5"] + towerSum["19_5"] + towerSum["17_6"] + towerSum["18_6"] + towerSum["19_6"];
+	double qCluster_19_5 = towerSum["18_5"] + towerSum["19_5"] + towerSum["20_5"] + towerSum["18_6"] + towerSum["19_6"] + towerSum["20_6"];
+	fillHist(hists, "cluster_adc_17_5", qCluster_17_5, 247, binsQIE11.data());
+	fillHist(hists, "cluster_adc_18_5", qCluster_18_5, 247, binsQIE11.data());
+	fillHist(hists, "cluster_adc_19_5", qCluster_19_5, 247, binsQIE11.data());
+	fillHist(hists, "cluster_adc_all",  qCluster_all,  247, binsQIE11.data());
     }
 }
 
@@ -183,17 +341,19 @@ void adcHists::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 // ------------ method called once each job just before starting event loop  ------------
 void adcHists::beginJob()
 {
+    for(double& binEdge : edges10) binsQIE11.push_back(binEdge*gain_);
+    for(double& binEdge : edges8)  binsQIE8.push_back(binEdge);
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
-void adcHists::endJob() 
+void adcHists::endJob()
 {
     for(int i = 1; i <= hq->GetNbinsX(); i++)
     {
 	hq->SetBinContent(i, hq->GetBinContent(i)/hq->GetBinWidth(i));
     }
 
-    for(auto& hist : spectra)
+    for(auto& hist : hists)
     {
 	for(int i = 1; i <= hist.second->GetNbinsX(); i++)
 	{
