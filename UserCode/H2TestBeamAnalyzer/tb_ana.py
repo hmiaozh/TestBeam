@@ -214,10 +214,9 @@ ntp["wc"] = file.Get("WCData/Events")
 ############################           
 
 vname = {}
-vname["hbhe"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse"]
-vname["hf"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse"]
+vname["hbhe"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse", "pulse_adc", "ped", "ped_adc"]
+vname["hf"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse", "pulse_adc", "ped", "ped_adc"]
 vname["qie11"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse", "ped", "pulse_adc", "ped_adc", "capid_error", "link_error", "soi"]
-#vname["hf"] = ["numChs", "numTS", "iphi", "ieta", "depth"]
 #vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC", "xD", "yD", "xE", "yE"]
 vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC"]
 
