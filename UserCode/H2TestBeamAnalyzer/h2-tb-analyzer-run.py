@@ -15,7 +15,7 @@ runNumber = sys.argv[4]
 numEvents = int(sys.argv[5])
 verbosityLevel = int(sys.argv[6])
 shuntSetting = float(sys.argv[7])
-runadcHistsOnly = bool(sys.argv[8])
+runadcHistsOnly = int(sys.argv[8])
 
 if numEvents == 0: numEvents = -1
 
