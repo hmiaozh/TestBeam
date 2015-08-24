@@ -35,15 +35,6 @@ static float inputCharge[] =
     38900, 64300, 128000, 261000, 350000
 };
 
-// Base charges for pedestal subtraction at 0 fC = ~4.5 ADC
-/*static int inputCharge[] =
-{
-    -16, 34, 158, 419, 592,
-    517, 915, 1910, 3990, 5380,
-    4780, 7960, 15900, 32600, 43700,
-    38900, 64300, 128000, 261000, 350000
-};*/
-
 // Defines the size of the ADC mantissa subranges
 static int adcBase[] =
 {
@@ -59,7 +50,7 @@ private:
 public:
     // Constructor
     // Populates the fc array
-    Converter()
+    Converter(double gain = 1.0)
     {
         // Loop over exponents, 0 - 3
         for(int exp = 0; exp < 4; exp++)
@@ -88,71 +79,17 @@ public:
                 sensitivity = baseSensitivity * pow(8.0, double(exp)) * pow(2.0, subrange);
 
                 // Add sensitivity * (location in subrange) to base charge
-                fc[exp * 64 + man] = inputCharge[exp * 5 + subrange] + ((man - adcBase[subrange])) * sensitivity;
+                fc[exp * 64 + man] = (inputCharge[exp * 5 + subrange] + ((man - adcBase[subrange])) * sensitivity) / gain;
                 //fc[exp * 64 + man] = inputCharge[exp * 5 + subrange] + ((man - adcBase[subrange]) + .5) * sensitivity;
             }
         }
     }
 
-/*    Converter & Converter(const Converter& c)
-    {
-        for(int i = 0; i < 256; i++)
-        {
-            fc[i] = c.fc[i];
-        }
-    }
-
-    Converter & operator=(const Converter& c)
-    {
-        for(int i = 0; i < 256; i++)
-        {
-            fc[i] = c.fc[i];
-        }
-    }
-
-    ~Converter()
-    {
-        for(int i = 0; i < 256; i++)
-        {
-            fc[i] = 0;
-        }
-    }
-*/
-    // adc2fc by mantissa and exponent
-    //float linearize(int man, int exp)
-    //{
-    //    return fc[exp * 64 + man];
-    // }
-
-    // adc2fc by 8-bit input
-    // 2 MSB are exponent, 6 LSB are mantissa
     float linearize(char adc)
     {
         return fc[adc&0xFF];
     }
 
-    // adc2fc by location in array
-    // 0 - 63:    exponent = 0
-    // 64 - 127:  exponent = 1
-    // 128 - 191: exponent = 2
-    // 192 - 255: exponent = 3
-    //float operator[](int n)
-    //{
-    //    return fc[n];
-    //}
-/*
-    // Get array populated with the contents of fc[]
-    float * getArray()
-    {
-        float * p = new float[256];
-
-        for(int i = 0; i < 256; i++)
-        {
-            p[i] = fc[i];
-        }
-
-        return p;
-    }  */
 };
 
 #endif // ADC_CONVERSION_H_INCLUDED
