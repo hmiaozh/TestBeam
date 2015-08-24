@@ -328,3 +328,17 @@ def getEmapFromRun(run):
                emapFile = EMAP_specialODU
         return emapFile
 
+
+shunt_conversion = {"1" : 1.,
+		    "1/5" : 1./6, # This is NOT a typo :-)
+		    "1/11.5" : 1./11.5,
+		    "1/3": 1./3,
+		    "1/9": 1./9}
+
+def getShuntFromRun(run):
+	shunt = 1.
+        if run in runTable_all: 
+            shunt_string = runTable_all[run][5]
+	    shunt = shunt_conversion[shunt_string]
+        return shunt
+
