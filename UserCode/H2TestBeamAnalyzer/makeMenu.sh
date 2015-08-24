@@ -39,7 +39,7 @@ function make_subpage () {
   echo "<hr>"
   
   while read f ; do
-    echo "<a href=\"$f\"><img src=\"${f%.*}_small.gif\"></a>"
+    echo "<a href=\"$f\"><img src=\"${f%.*}.gif\"></a>"
   done
 }
 

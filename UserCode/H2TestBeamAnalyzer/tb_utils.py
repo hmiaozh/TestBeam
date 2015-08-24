@@ -12,7 +12,6 @@ def setPadPasMargin(pad, rightMargin=0.05):
     pad.SetRightMargin(rightMargin)
     pad.SetTopMargin(topMargin)
     pad.SetBottomMargin(bottomMargin)
-    
 
 def setHistBasic(hist):
     hist.GetYaxis().SetLabelSize(0.045)

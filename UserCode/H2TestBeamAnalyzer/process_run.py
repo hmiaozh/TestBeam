@@ -332,7 +332,7 @@ for fileName in processFileList:
 
     if do_tb_ana:
         writeout(LEV4,">> Stage 2: Running Analyzer (tb_ana) for Run %s" % runNum)
-        command = ["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum)),"-e",emapFileShort]
+        command = ["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum)),"-e",emapFileShort,"--shunt",shuntSetting]
         writeout(LEV4,">> Executing \"%s\"" % " ".join(command))
         subprocess.call(command)
         #subprocess.call(["rm", "-rf", plotsDir])
