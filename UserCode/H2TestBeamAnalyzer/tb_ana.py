@@ -556,7 +556,7 @@ for ievt in xrange(start, start + nevts_to_run):
             
     fchan = {}
     fread = {}
-    for rchan in xrange(shbhe.numChs - 1):
+    for rchan in xrange(shbhe.numChs):
         print rchan
         test_chan = (shbhe.ieta[rchan], shbhe.iphi[rchan], shbhe.depth[rchan])
         if test_chan in chansToFind:
