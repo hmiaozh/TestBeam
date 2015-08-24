@@ -3,10 +3,10 @@ import FWCore.ParameterSet.Config as cms
 DEBUG_OPTIONS = False
 
 import sys
-if len(sys.argv) != 9:
+if len(sys.argv) != 8:
     print len(sys.argv)
     print "### ERROR: Wrong number of arguments.  Please use h2-tb-analyzer.py."
-    print "### Usage: cmsRun h2-tb-analyzer-run.py <input file> <emap file> <verbosity> <num events> <run number> <shunt setting> <run adcHists only>"
+    print "### Usage: cmsRun h2-tb-analyzer-run.py <input file> <emap file> <verbosity> <num events> <run number> <shunt setting>"
     sys.exit(1)
 
 inputFile = sys.argv[2]
@@ -15,7 +15,6 @@ runNumber = sys.argv[4]
 numEvents = int(sys.argv[5])
 verbosityLevel = int(sys.argv[6])
 shuntSetting = float(sys.argv[7])
-runadcHistsOnly = bool(sys.argv[8])
 
 if numEvents == 0: numEvents = -1
 
@@ -78,7 +77,7 @@ process.hcalAnalyzer = cms.EDAnalyzer('H2TestBeamAnalyzer',
         Gain = cms.untracked.double(shuntSetting)
 )
 
-process.hcalADCHists = cms.EDAnalyzer('adcHists',
+process.hcalADCHists = cms.EDAnalyzer('adcHists'
                                       gain = cms.untracked.double(shuntSetting)
 )
 
@@ -91,7 +90,7 @@ process.output = cms.OutputModule(
 )
 
 process.TFileService = cms.Service("TFileService",
-       fileName = cms.string("analysis_run"+runNumber+"_"+emapFileShort+".root"),
+       fileName = cms.string("analysis_run"+runNumber+emapFileShort+".root"),
 )
 
 process.load('Configuration.Geometry.GeometryIdeal_cff')
@@ -119,12 +118,9 @@ process.es_prefer = cms.ESPrefer('HcalTextCalibrations', 'es_ascii')
 
 process.dump = cms.EDAnalyzer("HcalDigiDump")
 
-if runadcHistsOnly:
-    process.p = cms.Path(process.tbunpack*process.hcalDigis*process.hcalADCHists)
+if verbosityLevel > 0:
+    process.p = cms.Path(process.tbunpack*process.hcalDigis*process.dump*process.hcalAnalyzer*process.hcalADCHists)
 else:
-    if verbosityLevel > 0:
-        process.p = cms.Path(process.tbunpack*process.hcalDigis*process.dump*process.hcalAnalyzer*process.hcalADCHists)
-    else:
-        process.p = cms.Path(process.tbunpack*process.hcalDigis*process.hcalAnalyzer*process.hcalADCHists)
+    process.p = cms.Path(process.tbunpack*process.hcalDigis*process.hcalAnalyzer*process.hcalADCHists)
 
 # process.outpath = cms.EndPath(process.output)
