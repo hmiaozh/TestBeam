@@ -29,7 +29,7 @@ const double baseSensitivity = 3.1;
 // Base charges for each subrange
 static float inputCharge[] =
 {
-    -1.6, 48.4, 172.4, 433.4, 606.4,
+    -16, 34, 158, 419, 592,
     517, 915, 1910, 3990, 5380,
     4780, 7960, 15900, 32600, 43700,
     38900, 64300, 128000, 261000, 350000
