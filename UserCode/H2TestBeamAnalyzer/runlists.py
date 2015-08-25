@@ -288,21 +288,77 @@ runTable_pions_specialODU[8883] = (10350, 23400, 100000, "14", "200p", "1/11.5",
 runTable_pions_specialODU[8884] = (10350, 23400, 100000, "14", "300p", "1/5", EMAP_specialODU)
 runTable_pions_specialODU[8885] = (10350, 23400, 100000, "14", "300p", "1/11.5", EMAP_specialODU)
 
+runTable_pions_specialODU[8913] = (10350, 23400, 100000, "14", "150p", "1", EMAP_specialODU)
+runTable_pions_specialODU[8914] = (10350, 23400, 100000, "14", "150p", "1/3", EMAP_specialODU)
+runTable_pions_specialODU[8915] = (10350, 23400, 100000, "14", "150p", "1/9", EMAP_specialODU)
+runTable_pions_specialODU[8932] = (10350, 23400, 50000, "14", "300p", "1", EMAP_specialODU)
+runTable_pions_specialODU[8931] = (10350, 23400, 50000, "14", "300p", "1/3", EMAP_specialODU)
+runTable_pions_specialODU[8930] = (10350, 23400, 50000, "14", "300p", "1/9", EMAP_specialODU)
+runTable_pions_specialODU[8936] = (10350, 23400, 50000, "14", "200p", "1", EMAP_specialODU)
+runTable_pions_specialODU[8935] = (10350, 23400, 50000, "14", "200p", "1/3", EMAP_specialODU)
+runTable_pions_specialODU[8934] = (10350, 23400, 50000, "14", "200p", "1/9", EMAP_specialODU)
+
+runTable_pions_specialODU[8938] = (10450, 30300, 100000, "14", "150p", "1", EMAP_specialODU) # Was supposed to be muons
+runTable_pions_specialODU[8939] = (10450, 30300, 100000, "14", "150p", "1", EMAP_specialODU) # Was supposed to be muons
+runTable_pions_specialODU[8940] = (10450, 30300, 51525, "14", "150p", "1", EMAP_specialODU) # Was supposed to be muons
+runTable_pions_specialODU[8943] = (10450, 30300, 100000, "14", "150p", "1", EMAP_specialODU) # Was supposed to be muons, temp RM1 SiPMs at 12-13C
+
 ######################################
 # Muon data - Phase 2 long runs
 ###################################### 
 
 runTable_muons_specialODU_forPhase2 = {}
 
-runTable_muons_specialODU_forPhase2[8887] = (10460, 28900, 250000, "14", "150m", "1", EMAP_specialODU)
-runTable_muons_specialODU_forPhase2[8888] = (10460, 28900, 250000, "14", "150m", "1", EMAP_specialODU)
-runTable_muons_specialODU_forPhase2[8889] = (10460, 28900, 250000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8887] = (10460, 28900, 250000, "14", "150m", "1", EMAP_specialODU) # most likely link issue
+runTable_muons_specialODU_forPhase2[8888] = (10460, 28900, 250000, "14", "150m", "1", EMAP_specialODU) # most likely link issue
+runTable_muons_specialODU_forPhase2[8889] = (10460, 28900, 250000, "14", "150m", "1", EMAP_specialODU) # link stability issue
 
 runTable_muons_specialODU_forPhase2[8890] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU)
 runTable_muons_specialODU_forPhase2[8891] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU)
 runTable_muons_specialODU_forPhase2[8892] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU)
 runTable_muons_specialODU_forPhase2[8893] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU)
-runTable_muons_specialODU_forPhase2[8894] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8894] = (10450, 30300, 138225, "14", "150m", "1", EMAP_specialODU)
+
+runTable_muons_specialODU_forPhase2[8895] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8896] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8900] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8901] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8903] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8904] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU)
+
+runTable_muons_specialODU_forPhase2[8905] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU) # links reinitialized by shifters, unclear whether there was real problem
+runTable_muons_specialODU_forPhase2[8906] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU) # links reinitialized by shifters, unclear whether there was real problem
+runTable_muons_specialODU_forPhase2[8907] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8908] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8909] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU) # links reinitialized by shifters, unclear whether there was real problem
+runTable_muons_specialODU_forPhase2[8910] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8911] = (10450, 30300, 250000, "14", "150m", "1", EMAP_specialODU)
+
+runTable_muons_specialODU_forPhase2[8950] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8951] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8952] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8953] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8954] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8955] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8957] = (10450, 30800, 58025, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8959] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8960] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8961] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU)
+runTable_muons_specialODU_forPhase2[8963] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU)
+
+runTable_muons_specialODU_forPhase2[8964] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # temp 25C and increasing
+runTable_muons_specialODU_forPhase2[8965] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # temp 32C and increasing
+runTable_muons_specialODU_forPhase2[8967] = (10450, 30800, 10000, "14", "150m", "1", EMAP_specialODU) # temp 39C, no HPD, no CM
+runTable_muons_specialODU_forPhase2[8968] = (10450, 30800, 10000, "14", "150m", "1", EMAP_specialODU) # temp 40C, no HPD, no CM
+runTable_muons_specialODU_forPhase2[8969] = (10450, 30800, 50000, "14", "150m", "1", EMAP_specialODU) # temp 41-42C, no HPD, no CM
+runTable_muons_specialODU_forPhase2[8970] = (10450, 30800, 50000, "14", "150m", "1", EMAP_specialODU) # temp 40-41C, no HPD, no CM
+runTable_muons_specialODU_forPhase2[8972] = (10450, 30800, 50000, "14", "150m", "1", EMAP_specialODU) # temp 36C, no HPD, no CM
+runTable_muons_specialODU_forPhase2[8973] = (10450, 30800, 50000, "14", "150m", "1", EMAP_specialODU) # temp 35C, no HPD, no CM
+runTable_muons_specialODU_forPhase2[8975] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # temp 34C, no HPD, no CM
+runTable_muons_specialODU_forPhase2[8976] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # temp 34C, no HPD, no CM
+
+runTable_muons_specialODU_forPhase2[8981] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[8982] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
 
 
 ######################################
