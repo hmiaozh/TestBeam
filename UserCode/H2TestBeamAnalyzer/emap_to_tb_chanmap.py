@@ -8,7 +8,7 @@ if len(sys.argv) != 2:
 else:
     filename = sys.argv[1]
     emapFileShort = filename.rsplit('.',1)[0].rsplit('/')[-1]
-    f = open('tb_chanmap.py', 'w')
+    f = open('tb_chanmap-temp.py', 'w')
     with open(filename, 'r') as inFile:
         lines = inFile.readlines()
         i = 0
@@ -33,4 +33,6 @@ else:
         f.write("\n")
         f.write("chanlist = range(1,%i)\n" % (i+1))
         f.close()
-	subprocess.call(["cp","tb_chanmap.py","tb_chanmap_"+emapFileShort+".py"]) 
+        subprocess.call(["cp","tb_chanmap-temp.py","tb_chanmap.py"])
+	subprocess.call(["cp","tb_chanmap-temp.py","tb_chanmap_"+emapFileShort+".py"])
+        subprocess.call(["rm","-f","tb_chanmap-temp.py"])

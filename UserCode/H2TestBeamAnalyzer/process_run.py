@@ -16,21 +16,21 @@ from runlists import getShuntFromRun
 parser = optparse.OptionParser("usage: %prog [options]")
 
 parser.add_option ('-r','--r', type='string', dest="runs",
-                   help="Pick a specific run number or range of numbers with Unix globbing - may need to use single quotes or -f before running. NOTE - MUST USE 6 DIGIT RUN NUMBER, add leading zeros as needed.")
-parser.add_option ('-o','--dest', type='string', dest="outputLoc", help="Destination directory for run results/html. Remote locations ok")
+                   help="Pick a specific run number or range of numbers separated by a hyphen.  Unix globbing is also supported.")
+parser.add_option ('-o', type='string', dest="outputLoc", help="Destination directory for final HTML plots folder. Remote locations ok")
 parser.add_option ('--runDest', type='string', dest="runDest", help="Where the run files HTB*.root are to be stored during processing.")
-parser.add_option ('-i', type='string',dest="inputLoc",help="Where to find the HTB*.root files.  This can be a network location.")
+parser.add_option ('-i', type='string',dest="inputLoc",help="Where to find the input HTB*.root files.  This can be a network location.")
 parser.add_option ('-v', dest="verbose", action="store_true",
                    default=False, help="Runs the analysis in verbose mode. Not recommended on large runs or batches of runs, as verbose output can be quite massive.")
-parser.add_option ('--all', dest="all", action="store_true", default=False, help="Use --all to run on all files in spool")
-parser.add_option ('-f','--clobber', dest="clobber", action="store_true", default=False, help="Ignore warnings about run(s) already being staged and proceed with processing run(s)")
-parser.add_option ('-c', dest="cmsRun", action="store_true", default=False, help="Run only cmsRun h2testbeamanalyzer_cfg.py and other selected options, default is all on")
-parser.add_option ('-a', dest="tb_ana", action="store_true", default=False, help="Run only tb_ana.py and other selected options, default is all on")
-parser.add_option ('-p', dest="tb_plots", action="store_true", default=False, help="Run only tb_plots.py and other selected options, default is all on")
-parser.add_option ('-m', dest="makeHtml", action="store_true", default=False, help="Run only makeHtml.py and other selected options, default is all on")
-parser.add_option ('-s', dest="sync", action="store_true", default=False, help="Only sync and use and other selected options, default is all on")
-parser.add_option ('-n', dest="nevents", default="-1", help="Number of events to process in cmsRun")
-parser.add_option ('-e', dest="emap", default=None, help="Specific EMAP to be used for raw data processing")
+parser.add_option ('--all', dest="all", action="store_true", default=False, help="Use --all to run on all files in input directory.")
+parser.add_option ('-f','--clobber', dest="clobber", action="store_true", default=False, help="Ignore warnings about run(s) already being staged and proceed with processing run(s).")
+parser.add_option ('-c', dest="cmsRun", action="store_true", default=False, help="Run only cmsRun h2testbeamanalyzer_cfg.py and other selected options, default is all on.")
+parser.add_option ('-a', dest="tb_ana", action="store_true", default=False, help="Run only tb_ana.py and other selected options, default is all on.")
+parser.add_option ('-p', dest="tb_plots", action="store_true", default=False, help="Run only tb_plots.py and other selected options, default is all on.")
+parser.add_option ('-m', dest="makeHtml", action="store_true", default=False, help="Run only makeHtml.py and other selected options, default is all on.")
+parser.add_option ('-s', dest="sync", action="store_true", default=False, help="Only sync and use and other selected options, default is all on.")
+parser.add_option ('-n', dest="nevents", default="-1", help="Number of events to process in cmsRun stage.")
+parser.add_option ('-e', dest="emap", default=None, help="Specific EMAP to be used for raw data processing.")
 
 #parser.add_option ('-d',
 #                   dest="delete", action="store_true",
@@ -75,39 +75,6 @@ if len(sys.argv) == 1:
     parser.print_help()
     sys.exit(1)
 
-# Determine the set of runs to be processed.
-# The input argument is used with ls to determine matching run numbers
-# If the input argument contains a hyphen, take it to be a range of runs.
-# In this case, set the wildcard to '*' and set runList
-
-runs = op_runs
-if all:
-    runs = '*'
-if not runs:
-    writeout(FATAL,"No runs specified. Use -r or --all")
-    sys.exit(1)
-
-runList = []
-if '-' in runs:
-    lo = runs.split('-')[0]
-    hi = runs.split('-')[1]
-    if lo.isdigit() and hi.isdigit():
-        loRun = int(lo)
-        hiRun = int(hi)
-        runList = range(loRun,hiRun+1) 
-        runs = '*'
-
-writeout(DIAG,"runs = %s and runList = %s" % (runs,runList))
-
-#envTest = subprocess.Popen(['$CMSSW_BASE'], stdout=subprocess.PIPE)
-#envTest.wait()
-#out = envTest.communicate()
-#print out[0]
-#if out[0] != "/":
-#    print out[0]
-#    print "CMS environment not set up."
-#    sys.exit(1)
-
 # Run all the steps unless one or more steps is specified
 
 do_cmsRun = op_cmsRun
@@ -137,11 +104,39 @@ if do_tb_plots: lastStep = 2
 if do_makeHtml: lastStep = 3
 if do_sync: lastStep = 4
 
+if firstStep == 0 and not os.environ.get('CMSSW_BASE'):
+    writeout(FATAL,"Please run cmsenv to setup the environment for cmsRun.")
+    sys.exit(1)
+
 filePrefixList = ["HTB_","ana_h2_tb_run","ana_tb_out_run","tb_plots_run","tb_plots_run","tb_plots_run"]
 fileSuffixList = [".root",".root",".root","","",""]
 
 inputFileFormat = [filePrefixList[firstStep],fileSuffixList[firstStep]]
 outputFileFormat = [filePrefixList[lastStep+1],fileSuffixList[lastStep+1]]
+
+# Determine the set of runs to be processed.
+# The input argument is used with ls to determine matching run numbers
+# If the input argument contains a hyphen, take it to be a range of runs.
+# In this case, set the wildcard to '*' and set runList
+
+runs = op_runs
+if all:
+    runs = '*'
+if not runs:
+    writeout(FATAL,"No runs specified. Use -r or --all")
+    sys.exit(1)
+
+runList = []
+if '-' in runs:
+    lo = runs.split('-')[0]
+    hi = runs.split('-')[1]
+    if lo.isdigit() and hi.isdigit():
+        loRun = int(lo)
+        hiRun = int(hi)
+        runList = range(loRun,hiRun+1)
+        runs = '*'
+
+writeout(DIAG,"runs = %s and runList = %s" % (runs,runList))
 
 inputLoc = op_inputLoc
 if not inputLoc:
@@ -169,9 +164,10 @@ if ':' in inputLoc:
     inputLoc = inputLoc.split(':')[1]
 
 run_glob = runs
-if '*' not in runs: run_glob = '*' + runs  #'*' helps with leading zeroes
-if firstStep == 1: run_glob = run_glob + '_*'
+if runs[0] != '*': run_glob = '*' + runs  #'*' helps with leading zeroes
+if firstStep >= 1: run_glob = run_glob + '_*'
 inputFileSpec = inputLoc.rstrip('/') + '/' + inputFileFormat[0] + run_glob + inputFileFormat[1]
+
 unix_file_list = "ls "
 if firstStep >= 3: unix_file_list = "ls -d " 
 inputCommand = unix_file_list + inputFileSpec
@@ -332,12 +328,14 @@ for fileName in processFileList:
 
     if do_tb_ana:
         writeout(LEV4,">> Stage 2: Running Analyzer (tb_ana) for Run %s" % runNum)
+        subprocess.call(["rm", "-f", ana2])
         command = ["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum)),"-e",emapFileShort,"--shunt",shuntSetting]
         writeout(LEV4,">> Executing \"%s\"" % " ".join(command))
         subprocess.call(command)
         #subprocess.call(["rm", "-rf", plotsDir])
     if do_tb_plots:
         writeout(LEV4,">> Stage 3: Generating Plots Directory %s" % plotsDir)
+        subprocess.call(["rm","-rf",plotsDir])
         command = ["./tb_plots.py", "--i", ana2, "--o", plotsDir, "--r", str(int(runNum)),"-e",emapFileShort]
         writeout(LEV4,">> Executing \"%s\"" % " ".join(command)) 
         subprocess.call(command)
@@ -352,13 +350,12 @@ for fileName in processFileList:
     if do_sync:
         writeout(LEV4,">> Stage 5: Copying Plots Directory %s to %s" % (plotsDir, outputDirectory))
         if outputIsRemote:
-            command = ["rsync", "-a", plotsDir, outputLoginInfo + ':' + outputDirectory]
-            writeout(LEV4,">> Executing \"%s\"" % " ".join(command))            
-            subprocess.call(command)
+            outputDestination = outputLoginInfo + ':' + outputDirectory
         else:
-            command = ["cp", "-r", plotsDir, outputDirectory]
-            writeout(LEV4,">> Executing \"%s\"" % " ".join(command))            
-            subprocess.call(command)
+            outputDestination = outputDirectory
+        command = ["rsync", "-a", "--delete", plotsDir, outputDestination]
+        writeout(LEV4,">> Executing \"%s\"" % " ".join(command))            
+        subprocess.call(command)
 
 # quit()
 
