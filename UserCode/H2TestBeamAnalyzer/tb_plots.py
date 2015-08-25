@@ -179,6 +179,7 @@ for ichan in chanlist:
     hlink = tfile.Get("Link_Error_"+label)
     if hlink:
         hist["linkerror", ichan] = hlink
+    hist["e_4TS_noPS", ichan] = tfile.Get("Energy_noPS_"+label)	
     hist["e_4TS_PS", ichan] = tfile.Get("Energy_"+label) 
     hist["e_wcC"   , ichan] = tfile.Get("h_e_wcC_"+label)
     hist["e_wcC_x" , ichan] = tfile.Get("h_e_wcC_x_"+label)
@@ -410,6 +411,60 @@ for etaphi in etaphipairs.keys():
         
     for end in [".pdf", ".gif"]:
         canv.SaveAs(outdir+cname+"--iphi"+str(iphi).zfill(2)+"_ieta"+str(ieta).zfill(2)+end)
+
+##################################
+# Plot Energy Spectra with no Pedestal Subtraction
+##################################
+cname = "d_energy_noPS"
+ROOT.gStyle.SetOptStat(1110)
+canv = ROOT.TCanvas(cname, cname, 400, 424)
+pad = canv.GetPad(0)
+setPadPasMargin(pad)
+pad.SetLogy()
+pad.SetLogx(True)
+
+for ichan in chanlist:
+    ieta = chanmap[ichan][0]
+    iphi = chanmap[ichan][1]
+    depth = chanmap[ichan][2]
+
+    setHist(hist["e_4TS_noPS", ichan], "Energy No Ped Subtract (uncalibrated) ", "# Events / fC", 0, 0, 1.3, pstyle[22, "col"])
+    #hist["energy", ichan].GetXaxis().SetNdivisions(10,1)
+    #max_x_bin = hist["e_4TS_noPS", ichan].FindLastBinAbove(0)
+    #use_max = 1000
+    #if max_x_bin < 500: use_max = 500
+    #if max_x_bin < 100: use_max = 100
+    #if use_max == 1000: hist["e_4TS_noPS", ichan].Rebin(10)
+    #if use_max == 500: hist["e_4TS_noPS", ichan].Rebin(5)
+    
+    #hist["e_4TS_noPS", ichan].GetXaxis().SetRangeUser(1,use_max)
+    hist["e_4TS_noPS", ichan].SetStats(True)
+    hist["e_4TS_noPS", ichan].Scale(1,"width")
+    hist["e_4TS_noPS", ichan].Draw()
+    pad.Update()
+    hist["e_4TS_noPS", ichan].FindObject("stats").SetX1NDC(0.7)
+    hist["e_4TS_noPS", ichan].FindObject("stats").SetX2NDC(0.95)
+    hist["e_4TS_noPS", ichan].FindObject("stats").SetY1NDC(0.8)
+    hist["e_4TS_noPS", ichan].FindObject("stats").SetY2NDC(0.90)
+    hist["e_4TS_noPS", ichan].Draw()
+    
+
+    textsize = 0.03; legx0 = 0.23; legx1 = 0.68; legy0 = 0.82; legy1 = 0.88
+    leg = ROOT.TLegend(legx0, legy0, legx1, legy1)
+    leg.SetFillColor(0)
+    leg.SetTextSize(textsize)
+    leg.SetColumnSeparation(0.0)
+    leg.SetEntrySeparation(0.1)
+    leg.SetMargin(0.2)
+
+    leg.AddEntry(hist["e_4TS_noPS", ichan], "iphi="+str(iphi)+"  "+"ieta="+str(ieta)+"  "+"depth="+str(depth))
+    leg.Draw()
+        
+    for end in [".pdf", ".gif"]:
+        canv.SaveAs(outdir+cname+"--iphi"+str(iphi).zfill(2)+"_ieta"+str(ieta).zfill(2)+"_depth"+str(depth)+end)
+
+ROOT.gStyle.SetOptStat(0)
+
 
 
 ##################################
