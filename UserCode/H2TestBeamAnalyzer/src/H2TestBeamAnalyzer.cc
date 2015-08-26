@@ -120,6 +120,7 @@ struct TQIE8Info
     double pulse_adc[NUMCHS][NUMTS];
     double ped[NUMCHS];
     double ped_adc[NUMCHS];
+    bool valid[NUMCHS];
 };
 
 struct TQIE11Info
@@ -306,6 +307,7 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeHBHE->Branch("ped", _hbheInfo.ped, "ped[numChs]/D");
     _treeHBHE->Branch("pulse_adc", _hbheInfo.pulse_adc, "pulse_adc[numChs][50]/D");
     _treeHBHE->Branch("ped_adc", _hbheInfo.ped_adc, "ped_adc[numChs]/D");
+    _treeHBHE->Branch("valid", _hbheInfo.valid, "valid[numChs]/O");
 
     _file->cd("HFData");
     _treeHF = new TTree("Events", "Events");
@@ -318,6 +320,7 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeHF->Branch("pulse_adc", _hfInfo.pulse_adc, "pulse_adc[numChs][50]/D");
     _treeHF->Branch("ped", _hfInfo.ped, "ped[numChs]/D");
     _treeHF->Branch("ped_adc", _hfInfo.ped_adc, "ped_adc[numChs]/D");
+    _treeHF->Branch("valid", _hfInfo.valid, "valid[numChs]/O");
 
     _file->cd("QIE11Data");
     _treeQIE11 = new TTree("Events", "Events");
@@ -601,6 +604,8 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
         _hbheInfo.ped[numChs] = ped_fc/3.;
         _hbheInfo.ped_adc[numChs] = ped_adc/3.;
         
+        _hbheInfo.valid[numChs] = digi->validate();
+        
         if (_verbosity>1)
         {
             cout << "### Digi->Data:" << endl;
@@ -675,6 +680,8 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
         
         _hfInfo.ped[numChs] = ped_fc/3.;
         _hfInfo.ped_adc[numChs] = ped_adc/3.;
+        
+        _hfInfo.valid[numChs] = digi->validate();
 
         if (_verbosity>1)
         {
