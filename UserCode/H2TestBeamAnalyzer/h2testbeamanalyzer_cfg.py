@@ -68,7 +68,9 @@ process.hcalAnalyzer = cms.EDAnalyzer('H2TestBeamAnalyzer',
         Gain = cms.untracked.double(1)
 )
 
-process.hcalADCHists = cms.EDAnalyzer('adcHists')
+process.hcalADCHists = cms.EDAnalyzer('adcHists',
+        gain = cms.untracked.double(1)
+)
 
 #
 #   For Debugging: Create a Pool Output Module
