@@ -496,7 +496,7 @@ for ievt in xrange(start, start + nevts_to_run):
     # Fill histograms
     ########################
     for iwc in wcList:
-        if has[iwc] and vec["x"+iwc].size(): 
+        if has[iwc] and vec["x"+refchamb].size() and vec["y"+refchamb].size(): 
             x = adjust["x", iwc, runnum]*vec["x"+iwc].at(0)
             y = adjust["y", iwc, runnum]*vec["y"+iwc].at(0)
             hist["x"+iwc+"_v_y"+iwc].Fill(x, y)   # x vs y within WC
@@ -525,7 +525,7 @@ for ievt in xrange(start, start + nevts_to_run):
     # Check if beam is within edges of sample
     isIn = {}
     for ichan in chanlist:
-	if vec["x"+iwc].size():	
+	if vec["x"+refchamb].size() and vec["y"+refchamb].size():
         	xL = edges[ichan, runnum][0]
         	xH = edges[ichan, runnum][1]
         	yL = edges[ichan, runnum][2]
@@ -706,7 +706,7 @@ for ievt in xrange(start, start + nevts_to_run):
             x_25=0
             y_25=0
             # Fill plot of wire chamber position for events with sufficient energy
-            if esum[ichan, "4TS_PS"]>25. and vec["x"+iwc].size():
+            if esum[ichan, "4TS_PS"]>25. and vec["x"+refchamb].size() and vec["y"+refchamb].size():
                 x = adjust["x", refchamb, runnum]*vec["x"+refchamb].at(0)
                 y = adjust["y", refchamb, runnum]*vec["y"+refchamb].at(0)
                 hist["e_wcC"  , ichan].Fill(x,y)
@@ -716,7 +716,7 @@ for ievt in xrange(start, start + nevts_to_run):
                 y_25 = adjust["y", refchamb, runnum]*vec["y"+refchamb].at(0)
             
             # Fill plot of wire chamber position for all events added by Abdollah
-            if esum[ichan, "4TS_PS"]>-100000 and vec["x"+iwc].size():  # Fill all events
+            if esum[ichan, "4TS_PS"]>-100000 and vec["x"+refchamb].size() and vec["y"+refchamb].size(): # Fill all events
                 x = adjust["x", refchamb, runnum]*vec["x"+refchamb].at(0)
                 y = adjust["y", refchamb, runnum]*vec["y"+refchamb].at(0)
                 hist["e_wcC_noTScut"  , ichan].Fill(x,y)
