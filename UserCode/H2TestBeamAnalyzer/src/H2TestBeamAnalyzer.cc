@@ -545,6 +545,9 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     for (HBHEDigiCollection::const_iterator digi=hbheDigiCollection->begin();
          digi!=hbheDigiCollection->end(); ++digi)
     {
+        if (numChs >= NUMCHS) {
+          throw cms::Exception("BufferOverflow") << "HBHEData buffer overflow (maximum capacity NUMCHS = " << NUMCHS << ")";
+        }
         
         int iphi = digi->id().iphi();
         int ieta = digi->id().ieta();
@@ -622,7 +625,10 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     for (HFDigiCollection::const_iterator digi=hfDigiCollection->begin();
                         digi!=hfDigiCollection->end(); ++digi)
     {
-
+        if (numChs >= NUMCHS) {
+          throw cms::Exception("BufferOverflow") << "HFData buffer overflow (maximum capacity NUMCHS = " << NUMCHS << ")";
+        }
+        
         int iphi = digi->id().iphi();
         int ieta = digi->id().ieta();
         int depth = digi->id().depth();
@@ -711,7 +717,11 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     Converter Convertadc2fC(gain_);
 
     const QIE11DigiCollection& qie11dc=*(qie11DigiCollection);
-
+    
+    if (qie11dc.size() > NUMCHS) {
+      throw cms::Exception("BufferOverflow") << "QIE11Data buffer overflow (maximum capacity NUMCHS = " << NUMCHS << ")";
+    }
+    
     for (int j=0; j < qie11dc.size(); j++){
         
         if (_verbosity>0){
