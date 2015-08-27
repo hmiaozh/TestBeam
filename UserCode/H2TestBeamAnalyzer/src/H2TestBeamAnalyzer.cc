@@ -292,7 +292,7 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _tree->Branch("cBoxChannel", _calibInfo.cBoxChannel, "cBoxChannel[numChs]/I");
     _tree->Branch("cBoxString", &_calibInfo.cBoxString);
     _tree->Branch("nTS", _calibInfo.nTS, "nTS[numChs]/I");
-    _tree->Branch("pulse", _calibInfo.pulse, "pulse[numChs][50]/D");
+    _tree->Branch("pulse", _calibInfo.pulse, TString::Format("pulse[numChs][%d]/D", NUMTS));
 */
 
     _file->cd("HBHEData");
@@ -302,9 +302,9 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeHBHE->Branch("iphi", _hbheInfo.iphi, "iphi[numChs]/I");
     _treeHBHE->Branch("ieta", _hbheInfo.ieta, "ieta[numChs]/I");
     _treeHBHE->Branch("depth", _hbheInfo.depth, "depth[numChs]/I");
-    _treeHBHE->Branch("pulse", _hbheInfo.pulse, "pulse[numChs][50]/D");
+    _treeHBHE->Branch("pulse", _hbheInfo.pulse, TString::Format("pulse[numChs][%d]/D", NUMTS));
     _treeHBHE->Branch("ped", _hbheInfo.ped, "ped[numChs]/D");
-    _treeHBHE->Branch("pulse_adc", _hbheInfo.pulse_adc, "pulse_adc[numChs][50]/D");
+    _treeHBHE->Branch("pulse_adc", _hbheInfo.pulse_adc, TString::Format("pulse_adc[numChs][%d]/D", NUMTS));
     _treeHBHE->Branch("ped_adc", _hbheInfo.ped_adc, "ped_adc[numChs]/D");
     _treeHBHE->Branch("valid", _hbheInfo.valid, "valid[numChs]/O");
 
@@ -315,8 +315,8 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeHF->Branch("iphi", _hfInfo.iphi, "iphi[numChs]/I");
     _treeHF->Branch("ieta", _hfInfo.ieta, "ieta[numChs]/I");
     _treeHF->Branch("depth", _hfInfo.depth, "depth[numChs]/I");
-    _treeHF->Branch("pulse", _hfInfo.pulse, "pulse[numChs][50]/D");
-    _treeHF->Branch("pulse_adc", _hfInfo.pulse_adc, "pulse_adc[numChs][50]/D");
+    _treeHF->Branch("pulse", _hfInfo.pulse, TString::Format("pulse[numChs][%d]/D", NUMTS));
+    _treeHF->Branch("pulse_adc", _hfInfo.pulse_adc, TString::Format("pulse_adc[numChs][%d]/D", NUMTS));
     _treeHF->Branch("ped", _hfInfo.ped, "ped[numChs]/D");
     _treeHF->Branch("ped_adc", _hfInfo.ped_adc, "ped_adc[numChs]/D");
     _treeHF->Branch("valid", _hfInfo.valid, "valid[numChs]/O");
@@ -328,13 +328,13 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeQIE11->Branch("iphi", _qie11Info.iphi, "iphi[numChs]/I");
     _treeQIE11->Branch("ieta", _qie11Info.ieta, "ieta[numChs]/I");
     _treeQIE11->Branch("depth", _qie11Info.depth, "depth[numChs]/I");
-    _treeQIE11->Branch("pulse", _qie11Info.pulse, "pulse[numChs][50]/D");
+    _treeQIE11->Branch("pulse", _qie11Info.pulse, TString::Format("pulse[numChs][%d]/D", NUMTS));
     _treeQIE11->Branch("ped", _qie11Info.ped, "ped[numChs]/D");
-    _treeQIE11->Branch("pulse_adc", _qie11Info.pulse_adc, "pulse_adc[numChs][50]/D");
+    _treeQIE11->Branch("pulse_adc", _qie11Info.pulse_adc, TString::Format("pulse_adc[numChs][%d]/D", NUMTS));
     _treeQIE11->Branch("ped_adc", _qie11Info.ped_adc, "ped_adc[numChs]/D");
     _treeQIE11->Branch("capid_error", _qie11Info.capid_error, "capid_error[numChs]/O");
     _treeQIE11->Branch("link_error", _qie11Info.link_error, "link_error[numChs]/O");
-    _treeQIE11->Branch("soi", _qie11Info.soi, "soi[numChs][50]/O");
+    _treeQIE11->Branch("soi", _qie11Info.soi, TString::Format("soi[numChs][%d]/O", NUMTS));
 
     _file->cd("Triggers");
     _treeTriggers = new TTree("Events", "Events");
