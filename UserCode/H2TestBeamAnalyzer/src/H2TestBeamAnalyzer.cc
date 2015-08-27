@@ -554,6 +554,10 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
         int depth = digi->id().depth();
         int nTS = digi->size();
         
+        if (nTS > NUMTS) {
+          throw cms::Exception("BufferOverflow") << "HBHEData time samples buffer overflow (maximum capacity NUMTS = " << NUMTS << ")";
+        }
+        
         if (_verbosity>1)
         {
             int fiberChanId = digi->elecId().fiberChanId();
@@ -633,7 +637,11 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
         int ieta = digi->id().ieta();
         int depth = digi->id().depth();
         int nTS = digi->size();
-
+        
+        if (nTS > NUMTS) {
+          throw cms::Exception("BufferOverflow") << "HFData time samples buffer overflow (maximum capacity NUMTS = " << NUMTS << ")";
+        }
+        
         if (_verbosity>1)
         {
             int fiberChanId = digi->elecId().fiberChanId();
@@ -720,6 +728,10 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     
     if (qie11dc.size() > NUMCHS) {
       throw cms::Exception("BufferOverflow") << "QIE11Data buffer overflow (maximum capacity NUMCHS = " << NUMCHS << ")";
+    }
+    
+    if (qie11dc.samples() > NUMTS) {
+      throw cms::Exception("BufferOverflow") << "QIE11Data time samples buffer overflow (maximum capacity NUMTS = " << NUMTS << ")";
     }
     
     for (int j=0; j < qie11dc.size(); j++){
