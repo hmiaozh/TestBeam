@@ -82,7 +82,6 @@ using namespace std;
 
 #define NUMCHS 300 
 #define NUMTS 50
-#define NUMCHSTS NUMCHS*NUMTS
 
 #define NUMADCS 128
 
