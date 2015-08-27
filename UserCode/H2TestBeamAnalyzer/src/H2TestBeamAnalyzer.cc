@@ -100,12 +100,12 @@ double adc2fC[NUMADCS]={
 struct TCalibLedInfo
 {
     int numChs;
-    int iphi[50];
-    int ieta[50];
-    int cBoxChannel[50];
+    int iphi[NUMCHS];
+    int ieta[NUMCHS];
+    int cBoxChannel[NUMCHS];
     vector<string> cBoxString;
-    int nTS[50];
-    double pulse[50][10];
+    int nTS[NUMCHS];
+    double pulse[NUMCHS][NUMTS];
 };
 
 struct TQIE8Info
@@ -292,7 +292,7 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _tree->Branch("cBoxChannel", _calibInfo.cBoxChannel, "cBoxChannel[numChs]/I");
     _tree->Branch("cBoxString", &_calibInfo.cBoxString);
     _tree->Branch("nTS", _calibInfo.nTS, "nTS[numChs]/I");
-    _tree->Branch("pulse", _calibInfo.pulse, "pulse[numChs][10]/D");
+    _tree->Branch("pulse", _calibInfo.pulse, "pulse[numChs][50]/D");
 */
 
     _file->cd("HBHEData");
