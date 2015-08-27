@@ -341,7 +341,7 @@ void adcHists::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 // ------------ method called once each job just before starting event loop  ------------
 void adcHists::beginJob()
 {
-    for(double& binEdge : edges10) binsQIE11.push_back(binEdge*gain_);
+    for(double& binEdge : edges10) binsQIE11.push_back(binEdge/gain_);
     for(double& binEdge : edges8)  binsQIE8.push_back(binEdge);
 }
 
