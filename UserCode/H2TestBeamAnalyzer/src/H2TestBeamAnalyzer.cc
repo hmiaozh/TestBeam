@@ -373,7 +373,7 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     _triggers.beam       = trigData->wasBeamTrigger();
     _triggers.fakeTrg    = trigData->wasFakeTrigger();
     _triggers.inSpillTrg = trigData->wasInSpill();
-    _triggers.str        = trigData->runNumberSequenceId();
+    //_triggers.str        = trigData->runNumberSequenceId();
     
     //
     //  Extract Event Position

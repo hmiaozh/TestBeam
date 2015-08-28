@@ -1,5 +1,5 @@
-#include <vector>
-#include <string>
+//#include <vector>
+//#include <string>
 
 #define NUMCHS 300
 #define NUMTS 50
@@ -10,7 +10,7 @@ struct TCalibLedInfo
     int iphi[NUMCHS];
     int ieta[NUMCHS];
     int cBoxChannel[NUMCHS];
-    std::vector<std::string> cBoxString;
+    //std::vector<std::string> cBoxString;
     int nTS[NUMCHS];
     double pulse[NUMCHS][NUMTS];
 };
@@ -54,7 +54,7 @@ struct H2Triggers
     int led;
     int laser;
     int beam;
-    std::string str;
+    //std::string str;
 
     //
     //  Added for completeness
