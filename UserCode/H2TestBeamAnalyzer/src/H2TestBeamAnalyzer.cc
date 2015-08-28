@@ -64,6 +64,7 @@
 #include "RecoTBCalo/HcalTBObjectUnpacker/interface/HcalTBSlowDataUnpacker.h"
 
 #include "ADC_Conversion.h"
+#include "format.h"
 
 #include "TH1D.h"
 #include "TH2D.h"
@@ -80,9 +81,6 @@
 
 using namespace std;
 
-#define NUMCHS 300 
-#define NUMTS 50
-
 #define NUMADCS 128
 
 double adc2fC[NUMADCS]={
@@ -97,89 +95,6 @@ double adc2fC[NUMADCS]={
     3109.5,3234.5,3359.5,3484.5,3609.5,3797.,4047.,4297.,4547.,4797.,5047.,
     5297.,5609.5,5984.5,6359.5,6734.5,7172.,7672.,8172.,8734.5,9359.5,9984.5};
 
-struct TCalibLedInfo
-{
-    int numChs;
-    int iphi[NUMCHS];
-    int ieta[NUMCHS];
-    int cBoxChannel[NUMCHS];
-    vector<string> cBoxString;
-    int nTS[NUMCHS];
-    double pulse[NUMCHS][NUMTS];
-};
-
-struct TQIE8Info
-{
-    int numChs;
-    int numTS;
-    int iphi[NUMCHS];
-    int ieta[NUMCHS];
-    int depth[NUMCHS];
-    double pulse[NUMCHS][NUMTS];
-    double pulse_adc[NUMCHS][NUMTS];
-    double ped[NUMCHS];
-    double ped_adc[NUMCHS];
-    bool valid[NUMCHS];
-};
-
-struct TQIE11Info
-{
-    int numChs;
-    int numTS;
-    int iphi[NUMCHS];
-    int ieta[NUMCHS];
-    int depth[NUMCHS];
-    double pulse[NUMCHS][NUMTS];
-    double ped[NUMCHS];
-    double pulse_adc[NUMCHS][NUMTS];
-    double ped_adc[NUMCHS];
-    bool capid_error[NUMCHS];
-    bool link_error[NUMCHS];
-    bool soi[NUMCHS][NUMTS];
-};
-
-
-
-
-struct H2Triggers
-{
-    //
-    //  Standard Triggers
-    //
-    int ped;
-    int led;
-    int laser;
-    int beam;
-    string str;
-
-    //
-    //  Added for completeness
-    //
-    int fakeTrg;
-    int inSpillTrg;
-};
-
-struct H2BeamCounters
-{
-    double cer1adc;
-    double cer2adc;
-    double cer3adc;
-    double s1adc;
-    double s2adc;
-    double s3adc;
-    double s4adc;
-};
-
-struct H2Timing
-{
-    int s1Count;
-    int s2Count;
-    int s3Count;
-    int s4Count;
-
-    double triggerTime;
-    double ttcL1Atime;
-};
 
 //
 // class declaration
