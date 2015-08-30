@@ -2,7 +2,7 @@
 //#include <string>
 
 #define NUMCHS 300
-#define NUMTS 50
+#define NUMTS 10
 
 struct TCalibLedInfo
 {

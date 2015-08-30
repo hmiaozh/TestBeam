@@ -232,7 +232,7 @@ vname["qie11"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse", "ped", "p
 vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC"]
 
 MAXDIGIS = 300
-MAXTS = 50
+MAXTS = 10
 # Treat pulse and pulse_adc like 1D array of length MAXDIGIS*MAXTS
 
 ROOT.gROOT.ProcessLine("struct hbhe_struct {Int_t numChs; Int_t numTS; Int_t iphi[%(dg)d]; Int_t ieta[%(dg)d]; Int_t depth[%(dg)d]; Double_t pulse[%(dg)d * %(ts)d]; Double_t pulse_adc[%(dg)d * %(ts)d]; Double_t ped[%(dg)d]; Double_t ped_adc[%(dg)d];};" % {"dg": MAXDIGIS, "ts": MAXTS})
