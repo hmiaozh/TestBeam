@@ -231,18 +231,21 @@ vname["qie11"] = ["numChs", "numTS", "iphi", "ieta", "depth", "pulse", "ped", "p
 #vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC", "xD", "yD", "xE", "yE"]
 vname["wc"] = ["xA", "yA", "xB", "yB", "xC", "yC"]
 
+MAXDIGIS = 300
+MAXTS = 50
+# Treat pulse and pulse_adc like 1D array of length MAXDIGIS*MAXTS
 
-ROOT.gROOT.ProcessLine("struct hbhe_struct {Int_t numChs; Int_t numTS; Int_t iphi[300]; Int_t ieta[300]; Int_t depth[300]; Double_t pulse[15000]; Double_t pulse_adc[15000]; Double_t ped[300]; Double_t ped_adc[300];};")
+ROOT.gROOT.ProcessLine("struct hbhe_struct {Int_t numChs; Int_t numTS; Int_t iphi[%(dg)d]; Int_t ieta[%(dg)d]; Int_t depth[%(dg)d]; Double_t pulse[%(dg)d * %(ts)d]; Double_t pulse_adc[%(dg)d * %(ts)d]; Double_t ped[%(dg)d]; Double_t ped_adc[%(dg)d];};" % {"dg": MAXDIGIS, "ts": MAXTS})
 shbhe = ROOT.hbhe_struct()
 for ivname in vname["hbhe"]:
     ntp["hbhe"].SetBranchAddress(ivname, ROOT.AddressOf(shbhe, ivname))
 
-ROOT.gROOT.ProcessLine("struct hf_struct {Int_t numChs; Int_t numTS; Int_t iphi[300]; Int_t ieta[300]; Int_t depth[300]; Double_t pulse[15000];  Double_t pulse_adc[15000]; Double_t ped[300]; Double_t ped_adc[300];};")  # Treat pulse like 1D array of length 300*50
+ROOT.gROOT.ProcessLine("struct hf_struct {Int_t numChs; Int_t numTS; Int_t iphi[%(dg)d]; Int_t ieta[%(dg)d]; Int_t depth[%(dg)d]; Double_t pulse[%(dg)d * %(ts)d];  Double_t pulse_adc[%(dg)d * %(ts)d]; Double_t ped[%(dg)d]; Double_t ped_adc[%(dg)d];};" % {"dg": MAXDIGIS, "ts": MAXTS})
 shf = ROOT.hf_struct()
 for ivname in vname["hf"]:
     ntp["hf"].SetBranchAddress(ivname, ROOT.AddressOf(shf, ivname))
 
-ROOT.gROOT.ProcessLine("struct qie11_struct {Int_t numChs; Int_t numTS; Int_t iphi[300]; Int_t ieta[300]; Int_t depth[300]; Double_t pulse[15000]; Double_t ped[300]; Double_t pulse_adc[15000]; Double_t ped_adc[300]; bool capid_error[300]; bool link_error[300]; bool soi[15000];};")  # Treat pulse like 1D array of length 300*50
+ROOT.gROOT.ProcessLine("struct qie11_struct {Int_t numChs; Int_t numTS; Int_t iphi[%(dg)d]; Int_t ieta[%(dg)d]; Int_t depth[%(dg)d]; Double_t pulse[%(dg)d * %(ts)d]; Double_t ped[%(dg)d]; Double_t pulse_adc[%(dg)d * %(ts)d]; Double_t ped_adc[%(dg)d]; bool capid_error[%(dg)d]; bool link_error[%(dg)d]; bool soi[%(dg)d * %(ts)d];};" % {"dg": MAXDIGIS, "ts": MAXTS})
 sqie11 = ROOT.qie11_struct()
 for ivname in vname["qie11"]:
     ntp["qie11"].SetBranchAddress(ivname, ROOT.AddressOf(sqie11, ivname))
@@ -597,11 +600,11 @@ for ievt in xrange(start, start + nevts_to_run):
     clean = True
     #for rchan in fchan.itervalues():
     #    for its in range(2): #for now, only check lowest two ts (0-1)
-    #        if fread[rchan].pulse[rchan*50+its] > 90:
+    #        if fread[rchan].pulse[rchan*MAXTS+its] > 90:
     #            clean = False
     #            break
     #    #for its in range(8,10): #for now, only check highest two ts (8-9)
-    #    #    if fread[rchan].pulse[rchan*50+its] > 90: 
+    #    #    if fread[rchan].pulse[rchan*MAXTS+its] > 90: 
     #    #        clean = False
     #    #        break
     #if not clean: continue
@@ -609,7 +612,7 @@ for ievt in xrange(start, start + nevts_to_run):
     # Skip events with anomalous energy
     #for rchan in fchan.itervalues():
     #    for its in range(10):  #ts (0-9)
-    #        if fread[rchan].pulse[rchan*50+its] > 1500:
+    #        if fread[rchan].pulse[rchan*MAXTS+its] > 1500:
     #            clean = False
     #            break
     #if not clean: continue
@@ -629,10 +632,10 @@ for ievt in xrange(start, start + nevts_to_run):
         nts = fread[(ieta,iphi,depth)].numTS
         for its in xrange(nts):
             if adc:
-                charge[ichan,its] = fread[(ieta,iphi,depth)].pulse_adc[rchan*50+its]  #[row][col] -> [row*n_cols + col]
+                charge[ichan,its] = fread[(ieta,iphi,depth)].pulse_adc[rchan*MAXTS+its]  #[row][col] -> [row*n_cols + col]
                 energy[ichan,its] = charge[ichan,its]
             else:
-                charge[ichan,its] = fread[(ieta,iphi,depth)].pulse[rchan*50+its]  #[row][col] -> [row*n_cols + col]
+                charge[ichan,its] = fread[(ieta,iphi,depth)].pulse[rchan*MAXTS+its]  #[row][col] -> [row*n_cols + col]
                 energy[ichan,its] = charge[ichan,its]*calib[ichan]
 
         if verbose:
