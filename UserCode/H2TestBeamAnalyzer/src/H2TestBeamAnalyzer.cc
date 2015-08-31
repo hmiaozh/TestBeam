@@ -80,24 +80,19 @@
 #include <sstream>
 
 using namespace std;
+using namespace edm;
 
 //
 // class declaration
 //
-
 class H2TestBeamAnalyzer : public edm::EDAnalyzer 
 {
 public:
     explicit H2TestBeamAnalyzer(const edm::ParameterSet&);
     ~H2TestBeamAnalyzer();
 
-    static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
-
 private:
-    virtual void beginJob() ;
     virtual void analyze(const edm::Event&, const edm::EventSetup&);
-    void getData(const edm::Event&, const edm::EventSetup&);
-    virtual void endJob() ;
 
     TFile *_file;
     TTree *_treeHBHE;
@@ -107,7 +102,6 @@ private:
     TTree *_treeWC;
     TTree *_treeBC;
     TTree *_treeTiming;
-
 
     string _outFileName;
     int _verbosity;
@@ -128,11 +122,6 @@ private:
     TH1D *y[5];
     TH1D *s1, *s2, *s3, *s4;
 
-    virtual void beginRun(edm::Run const&, edm::EventSetup const&);
-    virtual void endRun(edm::Run const&, edm::EventSetup const&);
-    virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-    virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-
     edm::EDGetTokenT<HBHEDigiCollection> tok_HBHEDigiCollection_;
     edm::EDGetTokenT<HFDigiCollection> tok_HFDigiCollection_;
     edm::EDGetTokenT<HODigiCollection> tok_HODigiCollection_;
@@ -145,14 +134,6 @@ private:
 };
 
 //
-// constants, enums and typedefs
-//
-
-//
-// static data member definitions
-//
-
-//
 // constructors and destructor
 //
 H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
@@ -160,7 +141,6 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _verbosity(iConfig.getUntrackedParameter<int>("Verbosity")),
     gain_(iConfig.getUntrackedParameter<double>("Gain"))
 {
-
     tok_HBHEDigiCollection_ = consumes<HBHEDigiCollection>(edm::InputTag("hcalDigis"));
     tok_HFDigiCollection_ = consumes<HFDigiCollection>(edm::InputTag("hcalDigis"));
     tok_HODigiCollection_ = consumes<HODigiCollection>(edm::InputTag("hcalDigis"));
@@ -292,10 +272,8 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeBC->Branch("s4adc", &_BCData.s4adc, "s4adc/D");
 }
 
-
 H2TestBeamAnalyzer::~H2TestBeamAnalyzer()
 {
- 
    // do anything here that needs to be done at desctruction time
    // (e.g. close files, deallocate resources etc.)
 
@@ -319,11 +297,9 @@ H2TestBeamAnalyzer::~H2TestBeamAnalyzer()
     _file->Close();
 }
 
-void H2TestBeamAnalyzer::getData(const edm::Event &iEvent, 
-                const edm::EventSetup &iSetup)
+// ------------ method called for each event  ------------
+void H2TestBeamAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-    using namespace edm;
-
     //
     //  Extracting All the Collections containing useful Info
     //
@@ -724,43 +700,6 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     _treeTiming->Fill();
 
     return;
-}
-
-
-//
-// member functions
-//
-
-// ------------ method called for each event  ------------
-void H2TestBeamAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
-{
-   using namespace edm;
-   getData(iEvent, iSetup);
-}
-
-
-// ------------ method called once each job just before starting event loop  ------------
-// ------------ method called once each job just after ending the event loop  ------------
-// ------------ method called when starting to processes a run  ------------
-// ------------ method called when ending the processing of a run  ------------
-// ------------ method called when starting to processes a luminosity block  ------------
-// ------------ method called when ending the processing of a luminosity block  ------------
-void H2TestBeamAnalyzer::beginJob() {}
-void H2TestBeamAnalyzer::endJob() {}
-void H2TestBeamAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&) {}
-void H2TestBeamAnalyzer::endRun(edm::Run const&, edm::EventSetup const&) {}
-void H2TestBeamAnalyzer::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) {}
-void H2TestBeamAnalyzer::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) {}
-
-
-// ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
-void H2TestBeamAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descriptions)
-{
-  //The following says we do not know what parameters are allowed so do no validation
-  // Please change this to state exactly what you do use, even if it is no parameters
-  edm::ParameterSetDescription desc;
-  desc.setUnknown();
-  descriptions.addDefault(desc);
 }
 
 //define this as a plug-in
