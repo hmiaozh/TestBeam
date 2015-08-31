@@ -628,7 +628,7 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     
     if (_verbosity>0) std::cout << "Trying to access the qie collection" << std::endl;
     
-    Converter Convertadc2fC(gain_);
+    static const Converter Convertadc2fC(gain_);
 
     const QIE11DigiCollection& qie11dc=*(qie11DigiCollection);
     
