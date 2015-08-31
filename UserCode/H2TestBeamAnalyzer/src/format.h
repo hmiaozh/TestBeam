@@ -22,10 +22,10 @@ struct TQIE8Info
     int iphi[NUMCHS];
     int ieta[NUMCHS];
     int depth[NUMCHS];
-    double pulse[NUMCHS][NUMTS];
-    double pulse_adc[NUMCHS][NUMTS];
-    double ped[NUMCHS];
-    double ped_adc[NUMCHS];
+    float pulse[NUMCHS][NUMTS];
+    unsigned char pulse_adc[NUMCHS][NUMTS];
+    float ped[NUMCHS];
+    float ped_adc[NUMCHS];
     bool valid[NUMCHS];
 };
 
@@ -36,10 +36,10 @@ struct TQIE11Info
     int iphi[NUMCHS];
     int ieta[NUMCHS];
     int depth[NUMCHS];
-    double pulse[NUMCHS][NUMTS];
-    double ped[NUMCHS];
-    double pulse_adc[NUMCHS][NUMTS];
-    double ped_adc[NUMCHS];
+    float pulse[NUMCHS][NUMTS];
+    float ped[NUMCHS];
+    unsigned char pulse_adc[NUMCHS][NUMTS];
+    float ped_adc[NUMCHS];
     bool capid_error[NUMCHS];
     bool link_error[NUMCHS];
     bool soi[NUMCHS][NUMTS];

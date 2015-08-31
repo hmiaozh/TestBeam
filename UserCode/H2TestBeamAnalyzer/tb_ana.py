@@ -235,17 +235,17 @@ MAXDIGIS = 300
 MAXTS = 10
 # Treat pulse and pulse_adc like 1D array of length MAXDIGIS*MAXTS
 
-ROOT.gROOT.ProcessLine("struct hbhe_struct {Int_t numChs; Int_t numTS; Int_t iphi[%(dg)d]; Int_t ieta[%(dg)d]; Int_t depth[%(dg)d]; Double_t pulse[%(dg)d * %(ts)d]; Double_t pulse_adc[%(dg)d * %(ts)d]; Double_t ped[%(dg)d]; Double_t ped_adc[%(dg)d];};" % {"dg": MAXDIGIS, "ts": MAXTS})
+ROOT.gROOT.ProcessLine("struct hbhe_struct {Int_t numChs; Int_t numTS; Int_t iphi[%(dg)d]; Int_t ieta[%(dg)d]; Int_t depth[%(dg)d]; Float_t pulse[%(dg)d * %(ts)d]; UChar_t pulse_adc[%(dg)d * %(ts)d]; Float_t ped[%(dg)d]; Float_t ped_adc[%(dg)d];};" % {"dg": MAXDIGIS, "ts": MAXTS})
 shbhe = ROOT.hbhe_struct()
 for ivname in vname["hbhe"]:
     ntp["hbhe"].SetBranchAddress(ivname, ROOT.AddressOf(shbhe, ivname))
 
-ROOT.gROOT.ProcessLine("struct hf_struct {Int_t numChs; Int_t numTS; Int_t iphi[%(dg)d]; Int_t ieta[%(dg)d]; Int_t depth[%(dg)d]; Double_t pulse[%(dg)d * %(ts)d];  Double_t pulse_adc[%(dg)d * %(ts)d]; Double_t ped[%(dg)d]; Double_t ped_adc[%(dg)d];};" % {"dg": MAXDIGIS, "ts": MAXTS})
+ROOT.gROOT.ProcessLine("struct hf_struct {Int_t numChs; Int_t numTS; Int_t iphi[%(dg)d]; Int_t ieta[%(dg)d]; Int_t depth[%(dg)d]; Float_t pulse[%(dg)d * %(ts)d];  UChar_t pulse_adc[%(dg)d * %(ts)d]; Float_t ped[%(dg)d]; Float_t ped_adc[%(dg)d];};" % {"dg": MAXDIGIS, "ts": MAXTS})
 shf = ROOT.hf_struct()
 for ivname in vname["hf"]:
     ntp["hf"].SetBranchAddress(ivname, ROOT.AddressOf(shf, ivname))
 
-ROOT.gROOT.ProcessLine("struct qie11_struct {Int_t numChs; Int_t numTS; Int_t iphi[%(dg)d]; Int_t ieta[%(dg)d]; Int_t depth[%(dg)d]; Double_t pulse[%(dg)d * %(ts)d]; Double_t ped[%(dg)d]; Double_t pulse_adc[%(dg)d * %(ts)d]; Double_t ped_adc[%(dg)d]; bool capid_error[%(dg)d]; bool link_error[%(dg)d]; bool soi[%(dg)d * %(ts)d];};" % {"dg": MAXDIGIS, "ts": MAXTS})
+ROOT.gROOT.ProcessLine("struct qie11_struct {Int_t numChs; Int_t numTS; Int_t iphi[%(dg)d]; Int_t ieta[%(dg)d]; Int_t depth[%(dg)d]; Float_t pulse[%(dg)d * %(ts)d]; Float_t ped[%(dg)d]; UChar_t pulse_adc[%(dg)d * %(ts)d]; Float_t ped_adc[%(dg)d]; bool capid_error[%(dg)d]; bool link_error[%(dg)d]; bool soi[%(dg)d * %(ts)d];};" % {"dg": MAXDIGIS, "ts": MAXTS})
 sqie11 = ROOT.qie11_struct()
 for ivname in vname["qie11"]:
     ntp["qie11"].SetBranchAddress(ivname, ROOT.AddressOf(sqie11, ivname))

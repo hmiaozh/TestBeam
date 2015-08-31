@@ -202,10 +202,10 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeHBHE->Branch("iphi", _hbheInfo.iphi, "iphi[numChs]/I");
     _treeHBHE->Branch("ieta", _hbheInfo.ieta, "ieta[numChs]/I");
     _treeHBHE->Branch("depth", _hbheInfo.depth, "depth[numChs]/I");
-    _treeHBHE->Branch("pulse", _hbheInfo.pulse, TString::Format("pulse[numChs][%d]/D", NUMTS));
-    _treeHBHE->Branch("ped", _hbheInfo.ped, "ped[numChs]/D");
-    _treeHBHE->Branch("pulse_adc", _hbheInfo.pulse_adc, TString::Format("pulse_adc[numChs][%d]/D", NUMTS));
-    _treeHBHE->Branch("ped_adc", _hbheInfo.ped_adc, "ped_adc[numChs]/D");
+    _treeHBHE->Branch("pulse", _hbheInfo.pulse, TString::Format("pulse[numChs][%d]/F", NUMTS));
+    _treeHBHE->Branch("ped", _hbheInfo.ped, "ped[numChs]/F");
+    _treeHBHE->Branch("pulse_adc", _hbheInfo.pulse_adc, TString::Format("pulse_adc[numChs][%d]/b", NUMTS));
+    _treeHBHE->Branch("ped_adc", _hbheInfo.ped_adc, "ped_adc[numChs]/F");
     _treeHBHE->Branch("valid", _hbheInfo.valid, "valid[numChs]/O");
 
     _file->cd("HFData");
@@ -215,10 +215,10 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeHF->Branch("iphi", _hfInfo.iphi, "iphi[numChs]/I");
     _treeHF->Branch("ieta", _hfInfo.ieta, "ieta[numChs]/I");
     _treeHF->Branch("depth", _hfInfo.depth, "depth[numChs]/I");
-    _treeHF->Branch("pulse", _hfInfo.pulse, TString::Format("pulse[numChs][%d]/D", NUMTS));
-    _treeHF->Branch("pulse_adc", _hfInfo.pulse_adc, TString::Format("pulse_adc[numChs][%d]/D", NUMTS));
-    _treeHF->Branch("ped", _hfInfo.ped, "ped[numChs]/D");
-    _treeHF->Branch("ped_adc", _hfInfo.ped_adc, "ped_adc[numChs]/D");
+    _treeHF->Branch("pulse", _hfInfo.pulse, TString::Format("pulse[numChs][%d]/F", NUMTS));
+    _treeHF->Branch("pulse_adc", _hfInfo.pulse_adc, TString::Format("pulse_adc[numChs][%d]/b", NUMTS));
+    _treeHF->Branch("ped", _hfInfo.ped, "ped[numChs]/F");
+    _treeHF->Branch("ped_adc", _hfInfo.ped_adc, "ped_adc[numChs]/F");
     _treeHF->Branch("valid", _hfInfo.valid, "valid[numChs]/O");
 
     _file->cd("QIE11Data");
@@ -228,10 +228,10 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeQIE11->Branch("iphi", _qie11Info.iphi, "iphi[numChs]/I");
     _treeQIE11->Branch("ieta", _qie11Info.ieta, "ieta[numChs]/I");
     _treeQIE11->Branch("depth", _qie11Info.depth, "depth[numChs]/I");
-    _treeQIE11->Branch("pulse", _qie11Info.pulse, TString::Format("pulse[numChs][%d]/D", NUMTS));
-    _treeQIE11->Branch("ped", _qie11Info.ped, "ped[numChs]/D");
-    _treeQIE11->Branch("pulse_adc", _qie11Info.pulse_adc, TString::Format("pulse_adc[numChs][%d]/D", NUMTS));
-    _treeQIE11->Branch("ped_adc", _qie11Info.ped_adc, "ped_adc[numChs]/D");
+    _treeQIE11->Branch("pulse", _qie11Info.pulse, TString::Format("pulse[numChs][%d]/F", NUMTS));
+    _treeQIE11->Branch("ped", _qie11Info.ped, "ped[numChs]/F");
+    _treeQIE11->Branch("pulse_adc", _qie11Info.pulse_adc, TString::Format("pulse_adc[numChs][%d]/b", NUMTS));
+    _treeQIE11->Branch("ped_adc", _qie11Info.ped_adc, "ped_adc[numChs]/F");
     _treeQIE11->Branch("capid_error", _qie11Info.capid_error, "capid_error[numChs]/O");
     _treeQIE11->Branch("link_error", _qie11Info.link_error, "link_error[numChs]/O");
     _treeQIE11->Branch("soi", _qie11Info.soi, TString::Format("soi[numChs][%d]/O", NUMTS));
@@ -498,8 +498,8 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
         for (int iTS=0; iTS<nTS; iTS++)
         {
             const HcalQIESample& sample = digi->sample(iTS);
-            const unsigned char adc = sample.adc() & 0xff;
-            const double fC = sample.nominal_fC();
+            const unsigned char adc = sample.adc();
+            const float fC = sample.nominal_fC();
             
             _hbheInfo.pulse[numChs][iTS] = fC;
             _hbheInfo.pulse_adc[numChs][iTS] = adc;
@@ -585,8 +585,8 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
         for (int iTS=0; iTS<nTS; iTS++)
         {
             const HcalQIESample& sample = digi->sample(iTS);
-            const unsigned char adc = sample.adc() & 0xff;
-            const double fC = sample.nominal_fC();
+            const unsigned char adc = sample.adc();
+            const float fC = sample.nominal_fC();
             
             _hfInfo.pulse[numChs][iTS] = fC;
             _hfInfo.pulse_adc[numChs][iTS] = adc;
@@ -672,13 +672,13 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
 
         for(int i=0; i<nTS; ++i)
         {
-            int adc = qie11dc[j][i].adc();
+            const unsigned char adc = qie11dc[j][i].adc();
             int tdc = qie11dc[j][i].tdc();
             int capid = qie11dc[j][i].capid();
             int soi = qie11dc[j][i].soi();
             
             // store pulse information
-            float charge = Convertadc2fC.linearize(adc);
+            const float charge = Convertadc2fC.linearize(adc);
             _qie11Info.pulse[j][i] = charge;
             _qie11Info.pulse_adc[j][i] = adc;
             _qie11Info.soi[j][i] = soi;
