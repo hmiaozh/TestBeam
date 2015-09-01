@@ -5,14 +5,14 @@ import subprocess
 import optparse
 import re
 
-from runlists import getEmapFromRun
+from runlists import getEmapFromRun, getShuntFromRun
 
 parser = optparse.OptionParser("usage: %prog <input filename> [options]")
 
 parser.add_option('-v', dest="verbosity", default="0", help="Verbosity level for cmsRun (integer >= 0)")
 parser.add_option('-n', dest="nevents", default="-1", help="Number of events to process.")
 parser.add_option('-m', '-e', dest="emap", default=None, help="EMAP file")
-parser.add_option('-s', dest="shunt", default="1.0", help="QIE 11 shunt setting (float, default = 1.0)")
+parser.add_option('-s', dest="shunt", default=None, help="QIE 11 shunt setting (float, default = 1.0)")
 parser.add_option('-a', dest="adcHistOnly", action="store_true", default=False, help="Only run adcHists analyzer")
 
 options, args = parser.parse_args()
@@ -41,6 +41,14 @@ else:
     emapFile = prefix + getEmapFromRun(int(runNumber))
     print "No EMAP Specified.  Using EMAP ",emapFile
 
+shunt = 1.0
+if options.emap:
+    shunt = options.shunt
+    print "Using shunt: ",shunt
+else:
+    shunt = getShuntFromRun(int(runNumber))
+    print "No shunt Specified.  Using shunt ",shunt
+
 numEvents = 0
 if options.nevents.isdigit():
    numEvents = int(options.nevents)
@@ -53,7 +61,7 @@ setVerbosity = 0
 if options.verbosity.isdigit(): setVerbosity = options.verbosity
 print "Using verbosity level",setVerbosity
  
-command = ["cmsRun","h2-tb-analyzer-run.py",inputFile,emapFile,runNumber,str(numEvents),str(setVerbosity),options.shunt,str(int(options.adcHistOnly))]
+command = ["cmsRun","h2-tb-analyzer-run.py",inputFile,emapFile,runNumber,str(numEvents),str(setVerbosity),str(shunt),str(int(options.adcHistOnly))]
 print "Executing \"%s\"" % " ".join(command) 
 subprocess.call(command)
 
