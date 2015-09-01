@@ -85,9 +85,9 @@ public:
         }
     }
 
-    float linearize(char adc)
+    float linearize(const unsigned char adc) const
     {
-        return fc[adc&0xFF];
+        return fc[adc];
     }
 
 };

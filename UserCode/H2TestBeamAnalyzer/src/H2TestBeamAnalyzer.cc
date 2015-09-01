@@ -64,6 +64,7 @@
 #include "RecoTBCalo/HcalTBObjectUnpacker/interface/HcalTBSlowDataUnpacker.h"
 
 #include "ADC_Conversion.h"
+#include "format.h"
 
 #include "TH1D.h"
 #include "TH2D.h"
@@ -79,126 +80,19 @@
 #include <sstream>
 
 using namespace std;
-
-#define NUMCHS 300 
-#define NUMTS 50
-#define NUMCHSTS NUMCHS*NUMTS
-
-#define NUMADCS 128
-
-double adc2fC[NUMADCS]={
-    -0.5,0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5,9.5, 10.5,11.5,12.5,
-    13.5,15.,17.,19.,21.,23.,25.,27.,29.5,32.5,35.5,38.5,42.,46.,50.,54.5,59.5,
-    64.5,59.5,64.5,69.5,74.5,79.5,84.5,89.5,94.5,99.5,104.5,109.5,114.5,119.5,
-    124.5,129.5,137.,147.,157.,167.,177.,187.,197.,209.5,224.5,239.5,254.5,272.,
-    292.,312.,334.5,359.5,384.5,359.5,384.5,409.5,434.5,459.5,484.5,509.5,534.5,
-    559.5,584.5,609.5,634.5,659.5,684.5,709.5,747.,797.,847.,897.,947.,997.,
-    1047.,1109.5,1184.5,1259.5,1334.5,1422.,1522.,1622.,1734.5,1859.5,1984.5,
-    1859.5,1984.5,2109.5,2234.5,2359.5,2484.5,2609.5,2734.5,2859.5,2984.5,
-    3109.5,3234.5,3359.5,3484.5,3609.5,3797.,4047.,4297.,4547.,4797.,5047.,
-    5297.,5609.5,5984.5,6359.5,6734.5,7172.,7672.,8172.,8734.5,9359.5,9984.5};
-
-struct TCalibLedInfo
-{
-    int numChs;
-    int iphi[50];
-    int ieta[50];
-    int cBoxChannel[50];
-    vector<string> cBoxString;
-    int nTS[50];
-    double pulse[50][10];
-};
-
-struct TQIE8Info
-{
-    int numChs;
-    int numTS;
-    int iphi[NUMCHS];
-    int ieta[NUMCHS];
-    int depth[NUMCHS];
-    double pulse[NUMCHS][NUMTS];
-    double pulse_adc[NUMCHS][NUMTS];
-    double ped[NUMCHS];
-    double ped_adc[NUMCHS];
-    bool valid[NUMCHS];
-};
-
-struct TQIE11Info
-{
-    int numChs;
-    int numTS;
-    int iphi[NUMCHS];
-    int ieta[NUMCHS];
-    int depth[NUMCHS];
-    double pulse[NUMCHS][NUMTS];
-    double ped[NUMCHS];
-    double pulse_adc[NUMCHS][NUMTS];
-    double ped_adc[NUMCHS];
-    bool capid_error[NUMCHS];
-    bool link_error[NUMCHS];
-    bool soi[NUMCHS][NUMTS];
-};
-
-
-
-
-struct H2Triggers
-{
-    //
-    //  Standard Triggers
-    //
-    int ped;
-    int led;
-    int laser;
-    int beam;
-    string str;
-
-    //
-    //  Added for completeness
-    //
-    int fakeTrg;
-    int inSpillTrg;
-};
-
-struct H2BeamCounters
-{
-    double cer1adc;
-    double cer2adc;
-    double cer3adc;
-    double s1adc;
-    double s2adc;
-    double s3adc;
-    double s4adc;
-};
-
-struct H2Timing
-{
-    int s1Count;
-    int s2Count;
-    int s3Count;
-    int s4Count;
-
-    double triggerTime;
-    double ttcL1Atime;
-};
+using namespace edm;
 
 //
 // class declaration
 //
-
 class H2TestBeamAnalyzer : public edm::EDAnalyzer 
 {
 public:
     explicit H2TestBeamAnalyzer(const edm::ParameterSet&);
     ~H2TestBeamAnalyzer();
 
-    static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
-
 private:
-    virtual void beginJob() ;
     virtual void analyze(const edm::Event&, const edm::EventSetup&);
-    void getData(const edm::Event&, const edm::EventSetup&);
-    virtual void endJob() ;
 
     TFile *_file;
     TTree *_treeHBHE;
@@ -208,7 +102,6 @@ private:
     TTree *_treeWC;
     TTree *_treeBC;
     TTree *_treeTiming;
-
 
     string _outFileName;
     int _verbosity;
@@ -229,11 +122,6 @@ private:
     TH1D *y[5];
     TH1D *s1, *s2, *s3, *s4;
 
-    virtual void beginRun(edm::Run const&, edm::EventSetup const&);
-    virtual void endRun(edm::Run const&, edm::EventSetup const&);
-    virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-    virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-
     edm::EDGetTokenT<HBHEDigiCollection> tok_HBHEDigiCollection_;
     edm::EDGetTokenT<HFDigiCollection> tok_HFDigiCollection_;
     edm::EDGetTokenT<HODigiCollection> tok_HODigiCollection_;
@@ -246,14 +134,6 @@ private:
 };
 
 //
-// constants, enums and typedefs
-//
-
-//
-// static data member definitions
-//
-
-//
 // constructors and destructor
 //
 H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
@@ -261,7 +141,6 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _verbosity(iConfig.getUntrackedParameter<int>("Verbosity")),
     gain_(iConfig.getUntrackedParameter<double>("Gain"))
 {
-
     tok_HBHEDigiCollection_ = consumes<HBHEDigiCollection>(edm::InputTag("hcalDigis"));
     tok_HFDigiCollection_ = consumes<HFDigiCollection>(edm::InputTag("hcalDigis"));
     tok_HODigiCollection_ = consumes<HODigiCollection>(edm::InputTag("hcalDigis"));
@@ -293,7 +172,7 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _tree->Branch("cBoxChannel", _calibInfo.cBoxChannel, "cBoxChannel[numChs]/I");
     _tree->Branch("cBoxString", &_calibInfo.cBoxString);
     _tree->Branch("nTS", _calibInfo.nTS, "nTS[numChs]/I");
-    _tree->Branch("pulse", _calibInfo.pulse, "pulse[numChs][10]/D");
+    _tree->Branch("pulse", _calibInfo.pulse, TString::Format("pulse[numChs][%d]/D", NUMTS));
 */
 
     _file->cd("HBHEData");
@@ -303,10 +182,10 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeHBHE->Branch("iphi", _hbheInfo.iphi, "iphi[numChs]/I");
     _treeHBHE->Branch("ieta", _hbheInfo.ieta, "ieta[numChs]/I");
     _treeHBHE->Branch("depth", _hbheInfo.depth, "depth[numChs]/I");
-    _treeHBHE->Branch("pulse", _hbheInfo.pulse, "pulse[numChs][50]/D");
-    _treeHBHE->Branch("ped", _hbheInfo.ped, "ped[numChs]/D");
-    _treeHBHE->Branch("pulse_adc", _hbheInfo.pulse_adc, "pulse_adc[numChs][50]/D");
-    _treeHBHE->Branch("ped_adc", _hbheInfo.ped_adc, "ped_adc[numChs]/D");
+    _treeHBHE->Branch("pulse", _hbheInfo.pulse, TString::Format("pulse[numChs][%d]/F", NUMTS));
+    _treeHBHE->Branch("ped", _hbheInfo.ped, "ped[numChs]/F");
+    _treeHBHE->Branch("pulse_adc", _hbheInfo.pulse_adc, TString::Format("pulse_adc[numChs][%d]/b", NUMTS));
+    _treeHBHE->Branch("ped_adc", _hbheInfo.ped_adc, "ped_adc[numChs]/F");
     _treeHBHE->Branch("valid", _hbheInfo.valid, "valid[numChs]/O");
 
     _file->cd("HFData");
@@ -316,10 +195,10 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeHF->Branch("iphi", _hfInfo.iphi, "iphi[numChs]/I");
     _treeHF->Branch("ieta", _hfInfo.ieta, "ieta[numChs]/I");
     _treeHF->Branch("depth", _hfInfo.depth, "depth[numChs]/I");
-    _treeHF->Branch("pulse", _hfInfo.pulse, "pulse[numChs][50]/D");
-    _treeHF->Branch("pulse_adc", _hfInfo.pulse_adc, "pulse_adc[numChs][50]/D");
-    _treeHF->Branch("ped", _hfInfo.ped, "ped[numChs]/D");
-    _treeHF->Branch("ped_adc", _hfInfo.ped_adc, "ped_adc[numChs]/D");
+    _treeHF->Branch("pulse", _hfInfo.pulse, TString::Format("pulse[numChs][%d]/F", NUMTS));
+    _treeHF->Branch("pulse_adc", _hfInfo.pulse_adc, TString::Format("pulse_adc[numChs][%d]/b", NUMTS));
+    _treeHF->Branch("ped", _hfInfo.ped, "ped[numChs]/F");
+    _treeHF->Branch("ped_adc", _hfInfo.ped_adc, "ped_adc[numChs]/F");
     _treeHF->Branch("valid", _hfInfo.valid, "valid[numChs]/O");
 
     _file->cd("QIE11Data");
@@ -329,13 +208,13 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeQIE11->Branch("iphi", _qie11Info.iphi, "iphi[numChs]/I");
     _treeQIE11->Branch("ieta", _qie11Info.ieta, "ieta[numChs]/I");
     _treeQIE11->Branch("depth", _qie11Info.depth, "depth[numChs]/I");
-    _treeQIE11->Branch("pulse", _qie11Info.pulse, "pulse[numChs][50]/D");
-    _treeQIE11->Branch("ped", _qie11Info.ped, "ped[numChs]/D");
-    _treeQIE11->Branch("pulse_adc", _qie11Info.pulse_adc, "pulse_adc[numChs][50]/D");
-    _treeQIE11->Branch("ped_adc", _qie11Info.ped_adc, "ped_adc[numChs]/D");
+    _treeQIE11->Branch("pulse", _qie11Info.pulse, TString::Format("pulse[numChs][%d]/F", NUMTS));
+    _treeQIE11->Branch("ped", _qie11Info.ped, "ped[numChs]/F");
+    _treeQIE11->Branch("pulse_adc", _qie11Info.pulse_adc, TString::Format("pulse_adc[numChs][%d]/b", NUMTS));
+    _treeQIE11->Branch("ped_adc", _qie11Info.ped_adc, "ped_adc[numChs]/F");
     _treeQIE11->Branch("capid_error", _qie11Info.capid_error, "capid_error[numChs]/O");
     _treeQIE11->Branch("link_error", _qie11Info.link_error, "link_error[numChs]/O");
-    _treeQIE11->Branch("soi", _qie11Info.soi, "soi[numChs][50]/O");
+    _treeQIE11->Branch("soi", _qie11Info.soi, TString::Format("soi[numChs][%d]/O", NUMTS));
 
     _file->cd("Triggers");
     _treeTriggers = new TTree("Events", "Events");
@@ -393,10 +272,8 @@ H2TestBeamAnalyzer::H2TestBeamAnalyzer(const edm::ParameterSet& iConfig) :
     _treeBC->Branch("s4adc", &_BCData.s4adc, "s4adc/D");
 }
 
-
 H2TestBeamAnalyzer::~H2TestBeamAnalyzer()
 {
- 
    // do anything here that needs to be done at desctruction time
    // (e.g. close files, deallocate resources etc.)
 
@@ -420,11 +297,9 @@ H2TestBeamAnalyzer::~H2TestBeamAnalyzer()
     _file->Close();
 }
 
-void H2TestBeamAnalyzer::getData(const edm::Event &iEvent, 
-                const edm::EventSetup &iSetup)
+// ------------ method called for each event  ------------
+void H2TestBeamAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-    using namespace edm;
-
     //
     //  Extracting All the Collections containing useful Info
     //
@@ -459,7 +334,7 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     _triggers.beam       = trigData->wasBeamTrigger();
     _triggers.fakeTrg    = trigData->wasFakeTrigger();
     _triggers.inSpillTrg = trigData->wasInSpill();
-    _triggers.str        = trigData->runNumberSequenceId();
+    //_triggers.str        = trigData->runNumberSequenceId();
     
     //
     //  Extract Event Position
@@ -546,11 +421,18 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     for (HBHEDigiCollection::const_iterator digi=hbheDigiCollection->begin();
          digi!=hbheDigiCollection->end(); ++digi)
     {
+        if (numChs >= NUMCHS) {
+          throw cms::Exception("BufferOverflow") << "HBHEData buffer overflow (maximum capacity NUMCHS = " << NUMCHS << ")";
+        }
         
         int iphi = digi->id().iphi();
         int ieta = digi->id().ieta();
         int depth = digi->id().depth();
         int nTS = digi->size();
+        
+        if (nTS > NUMTS) {
+          throw cms::Exception("BufferOverflow") << "HBHEData time samples buffer overflow (maximum capacity NUMTS = " << NUMTS << ")";
+        }
         
         if (_verbosity>1)
         {
@@ -591,12 +473,15 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
         
         for (int iTS=0; iTS<nTS; iTS++)
         {
-            const unsigned char adc = digi->sample(iTS).adc() & 0xff;
-            _hbheInfo.pulse[numChs][iTS] = adc2fC[adc];
+            const HcalQIESample& sample = digi->sample(iTS);
+            const unsigned char adc = sample.adc();
+            const float fC = sample.nominal_fC();
+            
+            _hbheInfo.pulse[numChs][iTS] = fC;
             _hbheInfo.pulse_adc[numChs][iTS] = adc;
             if (iTS < 3)
             {
-                ped_fc += adc2fC[adc];
+                ped_fc += fC;
                 ped_adc += adc;
             }
         }
@@ -623,12 +508,19 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     for (HFDigiCollection::const_iterator digi=hfDigiCollection->begin();
                         digi!=hfDigiCollection->end(); ++digi)
     {
-
+        if (numChs >= NUMCHS) {
+          throw cms::Exception("BufferOverflow") << "HFData buffer overflow (maximum capacity NUMCHS = " << NUMCHS << ")";
+        }
+        
         int iphi = digi->id().iphi();
         int ieta = digi->id().ieta();
         int depth = digi->id().depth();
         int nTS = digi->size();
-
+        
+        if (nTS > NUMTS) {
+          throw cms::Exception("BufferOverflow") << "HFData time samples buffer overflow (maximum capacity NUMTS = " << NUMTS << ")";
+        }
+        
         if (_verbosity>1)
         {
             int fiberChanId = digi->elecId().fiberChanId();
@@ -668,12 +560,15 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
 
         for (int iTS=0; iTS<nTS; iTS++)
         {
-            const unsigned char adc = digi->sample(iTS).adc() & 0xff;
-            _hfInfo.pulse[numChs][iTS] = adc2fC[adc];
+            const HcalQIESample& sample = digi->sample(iTS);
+            const unsigned char adc = sample.adc();
+            const float fC = sample.nominal_fC();
+            
+            _hfInfo.pulse[numChs][iTS] = fC;
             _hfInfo.pulse_adc[numChs][iTS] = adc;
             if (iTS < 3)
             {
-                ped_fc += adc2fC[adc];
+                ped_fc += fC;
                 ped_adc += adc;
             }
         }
@@ -709,10 +604,18 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     
     if (_verbosity>0) std::cout << "Trying to access the qie collection" << std::endl;
     
-    Converter Convertadc2fC(gain_);
+    static const Converter Convertadc2fC(gain_);
 
     const QIE11DigiCollection& qie11dc=*(qie11DigiCollection);
-
+    
+    if (qie11dc.size() > NUMCHS) {
+      throw cms::Exception("BufferOverflow") << "QIE11Data buffer overflow (maximum capacity NUMCHS = " << NUMCHS << ")";
+    }
+    
+    if (qie11dc.samples() > NUMTS) {
+      throw cms::Exception("BufferOverflow") << "QIE11Data time samples buffer overflow (maximum capacity NUMTS = " << NUMTS << ")";
+    }
+    
     for (int j=0; j < qie11dc.size(); j++){
         
         if (_verbosity>0){
@@ -745,13 +648,13 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
 
         for(int i=0; i<nTS; ++i)
         {
-            int adc = qie11dc[j][i].adc();
+            const unsigned char adc = qie11dc[j][i].adc();
             int tdc = qie11dc[j][i].tdc();
             int capid = qie11dc[j][i].capid();
             int soi = qie11dc[j][i].soi();
             
             // store pulse information
-            float charge = Convertadc2fC.linearize(adc);
+            const float charge = Convertadc2fC.linearize(adc);
             _qie11Info.pulse[j][i] = charge;
             _qie11Info.pulse_adc[j][i] = adc;
             _qie11Info.soi[j][i] = soi;
@@ -797,43 +700,6 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
     _treeTiming->Fill();
 
     return;
-}
-
-
-//
-// member functions
-//
-
-// ------------ method called for each event  ------------
-void H2TestBeamAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
-{
-   using namespace edm;
-   getData(iEvent, iSetup);
-}
-
-
-// ------------ method called once each job just before starting event loop  ------------
-// ------------ method called once each job just after ending the event loop  ------------
-// ------------ method called when starting to processes a run  ------------
-// ------------ method called when ending the processing of a run  ------------
-// ------------ method called when starting to processes a luminosity block  ------------
-// ------------ method called when ending the processing of a luminosity block  ------------
-void H2TestBeamAnalyzer::beginJob() {}
-void H2TestBeamAnalyzer::endJob() {}
-void H2TestBeamAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&) {}
-void H2TestBeamAnalyzer::endRun(edm::Run const&, edm::EventSetup const&) {}
-void H2TestBeamAnalyzer::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) {}
-void H2TestBeamAnalyzer::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) {}
-
-
-// ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
-void H2TestBeamAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descriptions)
-{
-  //The following says we do not know what parameters are allowed so do no validation
-  // Please change this to state exactly what you do use, even if it is no parameters
-  edm::ParameterSetDescription desc;
-  desc.setUnknown();
-  descriptions.addDefault(desc);
 }
 
 //define this as a plug-in
