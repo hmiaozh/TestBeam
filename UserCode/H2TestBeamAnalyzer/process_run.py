@@ -29,6 +29,7 @@ parser.add_option ('-a', dest="tb_ana", action="store_true", default=False, help
 parser.add_option ('-p', dest="tb_plots", action="store_true", default=False, help="Run only tb_plots.py and other selected options, default is all on.")
 parser.add_option ('-m', dest="makeHtml", action="store_true", default=False, help="Run only makeHtml.py and other selected options, default is all on.")
 parser.add_option ('-s', dest="sync", action="store_true", default=False, help="Only sync and use and other selected options, default is all on.")
+parser.add_option ('-d', dest="adcHists", action="store_true", default=False, help="Run only adcHists analyzer, default is all on")
 parser.add_option ('-n', dest="nevents", default="-1", help="Number of events to process in cmsRun stage.")
 parser.add_option ('-e', dest="emap", default=None, help="Specific EMAP to be used for raw data processing.")
 
@@ -53,6 +54,7 @@ verbose = options.verbose
 #doUndone = options.doUndone
 op_inputLoc = options.inputLoc
 op_cmsRun = options.cmsRun
+op_adcHists = options.adcHists
 op_tb_ana = options.tb_ana
 op_tb_plots = options.tb_plots
 op_makeHtml = options.makeHtml
@@ -78,6 +80,7 @@ if len(sys.argv) == 1:
 # Run all the steps unless one or more steps is specified
 
 do_cmsRun = op_cmsRun
+do_adcHists = op_adcHists
 do_tb_ana = op_tb_ana
 do_tb_plots = op_tb_plots
 do_makeHtml = op_makeHtml
@@ -103,6 +106,15 @@ if do_tb_ana: lastStep = 1
 if do_tb_plots: lastStep = 2
 if do_makeHtml: lastStep = 3
 if do_sync: lastStep = 4
+
+if do_adcHists:
+    firstStep = 0
+    lastStep = 0
+    do_cmsRun = True
+    do_tb_ana = False
+    do_tb_plots = False
+    do_makeHtml = False
+    do_sync = False
 
 if firstStep == 0 and not os.environ.get('CMSSW_BASE'):
     writeout(FATAL,"Please run cmsenv to setup the environment for cmsRun.")
@@ -319,6 +331,8 @@ for fileName in processFileList:
     if do_cmsRun:
         writeout(LEV4,">> Stage 1: Executing C++ Analyzers for Run %s" % runNum)
         command = ["./h2-tb-analyzer.py", "-e", emapFile, "-n", op_nevents, "-s", shuntSetting, raw]
+        if do_adcHists: 
+            command = ["./h2-tb-analyzer.py", "-a", "-e", emapFile, "-n", op_nevents, "-s", shuntSetting, raw]
         writeout(LEV4,">> Executing \"%s\"" % " ".join(command))
         subprocess.call(command)
         
