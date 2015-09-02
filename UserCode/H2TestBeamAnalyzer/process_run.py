@@ -7,6 +7,7 @@ import socket
 import optparse
 import os
 import re
+import fnmatch
 
 from runlists import getEmapFromRun 
 from runlists import getShuntFromRun
@@ -170,7 +171,9 @@ writeout(INFO,"Using temporary run directory: %s" % runDest)
 
 inputLoginInfo = ""
 inputIsRemote = False
-if ':' in inputLoc:
+# "root:" indicates this is an xrootd dir
+isXrootdDir = "root:" in inputLoc
+if ':' in inputLoc and not isXrootdDir:
     inputIsRemote = True     #if the input location has a colon, assume a network location
     inputLoginInfo = inputLoc.split(':')[0]
     inputLoc = inputLoc.split(':')[1]
@@ -183,20 +186,35 @@ inputFileSpec = inputLoc.rstrip('/') + '/' + inputFileFormat[0] + run_glob + inp
 unix_file_list = "ls "
 if firstStep >= 3: unix_file_list = "ls -d " 
 inputCommand = unix_file_list + inputFileSpec
+print inputFileSpec
 writeout(DIAG,"inputCommand = %s" % inputCommand)
 
 # At this point, the following are set: inputLoc, inputLoginInfo, inputIsRemote, inputLoginInfo, inputCommand
 
-if inputIsRemote:
+inputFileList = []
+
+if isXrootdDir:
+    xrdurl = inputLoc.split('//')[1]
+    xrdpath = "/%s"%inputLoc.split('//')[2]
+    ls1 = subprocess.Popen(['xrdfs', xrdurl, 'ls', xrdpath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    ls1.wait()
+    out, err =  ls1.communicate()
+    filepattern = inputFileSpec.split("/")[-1]
+    for iF in out.split():
+        filename = iF.split("/")[-1]
+        if fnmatch.fnmatch(filename, filepattern):
+            inputFileList.append("%s/%s"%(inputLoc, filename))
+elif inputIsRemote:
     ls1 = subprocess.Popen(['ssh', inputLoginInfo, inputCommand], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     ls1.wait()
     out, err =  ls1.communicate()
+    inputFileList = out.split()
 else:
-    ls1 = subprocess.Popen(inputCommand, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)    
+    ls1 = subprocess.Popen(inputCommand, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     ls1.wait()
     out, err =  ls1.communicate()
+    inputFileList = out.split()
 
-inputFileList = out.split()
 inputFileList.sort(reverse=True)
 
 if not inputFileList: 

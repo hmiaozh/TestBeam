@@ -31,7 +31,7 @@ if DEBUG_OPTIONS:
 process = cms.Process("H2TestBeam")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport.reportEvery = 100
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(numEvents) )
 
