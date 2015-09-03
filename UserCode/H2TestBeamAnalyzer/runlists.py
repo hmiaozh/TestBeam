@@ -359,6 +359,37 @@ runTable_muons_specialODU_forPhase2[8976] = (10450, 30800, 100000, "14", "150m",
 
 runTable_muons_specialODU_forPhase2[8981] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
 runTable_muons_specialODU_forPhase2[8982] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[8983] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[8984] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[8985] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[8987] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[8988] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[8989] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[8990] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[8991] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[8992] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[8993] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[8994] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[8995] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[8996] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[8997] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[8998] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[8999] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[9000] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[9001] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[9002] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[9003] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[9004] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[9005] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[9006] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[9007] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[9008] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[9009] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[9010] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[9011] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[9012] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[9013] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
+runTable_muons_specialODU_forPhase2[9014] = (10450, 30800, 100000, "14", "150m", "1", EMAP_specialODU) # no HPD, no CM
 
 
 ######################################
