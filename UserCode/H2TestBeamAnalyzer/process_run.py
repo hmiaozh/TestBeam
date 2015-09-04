@@ -118,7 +118,7 @@ if do_adcHists:
     do_sync = False
 
 if firstStep == 0 and not os.environ.get('CMSSW_BASE'):
-    writeout(FATAL,"Please run cmsenv to setup the environment for cmsRun.")
+    writeout(FATAL,"Please type 'cmsenv' to setup the environment for cmsRun.")
     sys.exit(1)
 
 filePrefixList = ["HTB_","ana_h2_tb_run","ana_tb_out_run","tb_plots_run","tb_plots_run","tb_plots_run"]
@@ -183,10 +183,8 @@ if runs[0] != '*': run_glob = '*' + runs  #'*' helps with leading zeroes
 if firstStep >= 1: run_glob = run_glob + '_*'
 inputFileSpec = inputLoc.rstrip('/') + '/' + inputFileFormat[0] + run_glob + inputFileFormat[1]
 
-unix_file_list = "ls "
-if firstStep >= 3: unix_file_list = "ls -d " 
+unix_file_list = "ls -d "
 inputCommand = unix_file_list + inputFileSpec
-print inputFileSpec
 writeout(DIAG,"inputCommand = %s" % inputCommand)
 
 # At this point, the following are set: inputLoc, inputLoginInfo, inputIsRemote, inputLoginInfo, inputCommand
@@ -197,7 +195,6 @@ if isXrootdDir:
     xrdurl = inputLoc.split('//')[1]
     xrdpath = "/%s"%inputLoc.split('//')[2]
     ls1 = subprocess.Popen(['xrdfs', xrdurl, 'ls', xrdpath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    ls1.wait()
     out, err =  ls1.communicate()
     filepattern = inputFileSpec.split("/")[-1]
     for iF in out.split():
@@ -206,12 +203,10 @@ if isXrootdDir:
             inputFileList.append("%s/%s"%(inputLoc, filename))
 elif inputIsRemote:
     ls1 = subprocess.Popen(['ssh', inputLoginInfo, inputCommand], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    ls1.wait()
     out, err =  ls1.communicate()
     inputFileList = out.split()
 else:
     ls1 = subprocess.Popen(inputCommand, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    ls1.wait()
     out, err =  ls1.communicate()
     inputFileList = out.split()
 
@@ -265,11 +260,9 @@ else:
 
     if outputIsRemote:
         ls2 = subprocess.Popen(['ssh', outputLoginInfo, outputCommand], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        ls2.wait()
         out, err =  ls2.communicate()
     else:
         ls2 = subprocess.Popen(outputCommand, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)    
-        ls2.wait()
         out, err =  ls2.communicate()
 
     outputFiles = out.split()
@@ -332,7 +325,7 @@ for fileName in processFileList:
     emapFileShort = emapFile.rsplit('.',1)[0].rsplit('/')[-1]    
     
     # Generate the chanmap file
-    subprocess.call(["./emap_to_tb_chanmap.py",emapFile])
+    subprocess.check_call(["./emap_to_tb_chanmap.py",emapFile])
 
     # We need to get the QIE11 shunt setting for various steps in the analysis process
     shuntSetting = str(getShuntFromRun(int(runNum)))
@@ -343,16 +336,16 @@ for fileName in processFileList:
     if inputIsRemote:
         rsyncPath = inputLoginInfo + ':' + fileName
         writeout(INFO, "Transfering %s to %s" % (rsyncPath, runDest))
-        subprocess.call(["rsync", "-av", rsyncPath, runDest])
+        subprocess.check_call(["rsync", "-av", rsyncPath, runDest])
         raw = fileName.rsplit('/',1)[-1]
             
     if do_cmsRun:
         writeout(LEV4,">> Stage 1: Executing C++ Analyzers for Run %s" % runNum)
-        command = ["./h2-tb-analyzer.py", "-e", emapFile, "-n", op_nevents, "-s", shuntSetting, raw]
+        command = ["python", "-u", "h2-tb-analyzer.py", "-e", emapFile, "-n", op_nevents, "-s", shuntSetting, raw]
         if do_adcHists: 
-            command = ["./h2-tb-analyzer.py", "-a", "-e", emapFile, "-n", op_nevents, "-s", shuntSetting, raw]
+            command = ["python", "-u", "h2-tb-analyzer.py", "-a", "-e", emapFile, "-n", op_nevents, "-s", shuntSetting, raw]
         writeout(LEV4,">> Executing \"%s\"" % " ".join(command))
-        subprocess.call(command)
+        subprocess.check_call(command)
         
     ana = filePrefixList[1] + runNum + '_' + emapFileShort + fileSuffixList[1]
     ana2 = filePrefixList[2] + runNum + '_' + emapFileShort + fileSuffixList[2]
@@ -360,25 +353,27 @@ for fileName in processFileList:
 
     if do_tb_ana:
         writeout(LEV4,">> Stage 2: Running Analyzer (tb_ana) for Run %s" % runNum)
-        subprocess.call(["rm", "-f", ana2])
-        command = ["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum)),"-e",emapFileShort,"--shunt",shuntSetting]
+        subprocess.check_call(["rm", "-f", ana2])
+        command = ["python", "-u", "tb_ana.py", "--i", ana, "--o", ana2 + ".tmp", "--r", str(int(runNum)),"-e",emapFileShort,"--shunt",shuntSetting]
         writeout(LEV4,">> Executing \"%s\"" % " ".join(command))
-        subprocess.call(command)
-        #subprocess.call(["rm", "-rf", plotsDir])
+        subprocess.check_call(command)
+        os.rename(ana2 + ".tmp", ana2)
+        #subprocess.check_call(["rm", "-rf", plotsDir])
     if do_tb_plots:
         writeout(LEV4,">> Stage 3: Generating Plots Directory %s" % plotsDir)
-        subprocess.call(["rm","-rf",plotsDir])
-        command = ["./tb_plots.py", "--i", ana2, "--o", plotsDir, "--r", str(int(runNum)),"-e",emapFileShort]
+        subprocess.check_call(["rm","-rf",plotsDir])
+        command = ["python", "-u", "tb_plots.py", "--i", ana2, "--o", plotsDir + ".tmp", "--r", str(int(runNum)),"-e",emapFileShort]
         writeout(LEV4,">> Executing \"%s\"" % " ".join(command)) 
-        subprocess.call(command)
+        subprocess.check_call(command)
+        os.rename(plotsDir + ".tmp", plotsDir)
     if do_makeHtml:
         writeout(LEV4,">> Stage 4: Generating HTML in Plots Directory %s" % plotsDir)
-        command = ["./makeHtml.py", plotsDir]
+        command = ["python", "-u", "makeHtml.py", plotsDir]
         writeout(LEV4,">> Executing \"%s\"" % " ".join(command)) 
-        subprocess.call(command)
+        subprocess.check_call(command)
         command = ["./makeMenu.sh", plotsDir]
         writeout(LEV4,">> Executing \"%s\"" % " ".join(command)) 
-        subprocess.call(command)
+        subprocess.check_call(command)
     if do_sync:
         writeout(LEV4,">> Stage 5: Copying Plots Directory %s to %s" % (plotsDir, outputDirectory))
         if outputIsRemote:
@@ -387,81 +382,4 @@ for fileName in processFileList:
             outputDestination = outputDirectory
         command = ["rsync", "-a", "--delete", plotsDir, outputDestination]
         writeout(LEV4,">> Executing \"%s\"" % " ".join(command))            
-        subprocess.call(command)
-
-# quit()
-
-
-#fileList = processFileList
-#
-#for fileName in fileList:
-#    name = fileName[12:]
-#    runNum = fileName[16:-5]
-#    if len(runNum) == 6:
-#        print "Getting run number %s" % runNum
-#        rsyncPath = "daq@cmshcaltb02:%s" % fileName
-#        if verbose:
-#            subprocess.call(["rsync", "-av", rsyncPath, runDest])
-#        else:
-#            subprocess.call(["rsync", "-aq", rsyncPath, runDest])
-#        symLinkPath = runDest + '/' + name
-#        if runDest != '.':
-#            link = subprocess.Popen(["ln", "-s", symLinkPath, "."], stdout=open(os.devnull, 'wb'), stderr=subprocess.PIPE)
-#            out, err = link.communicate()
-#            if err[:2] == "ln":
-#                if force:
-#                    print "Warning, run %s has already been staged for processing. -f used, proceeding anyway..." % runNum
-#                else:
-#                    print "Warning, run %s has already been staged for processing, skipping." % runNum
-#                    fileList.remove(fileName)
-############################
-##Run analysis
-#for fileName in fileList:
-#    name = fileName[12:]
-#    runNum = fileName[16:-5]
-#    #Check if file is an HTB*.root file
-#    if len(name) == 15 and name[:3] == "HTB" and name[-5:] == ".root":
-#        if do_cmsRun:
-#            if verbose:
-#                subprocess.call(["cmsRun", "h2testbeamanalyzer_cfg_verbose.py", runNum])
-#            elif 1:
-#                subprocess.call(["cmsRun", "h2testbeamanalyzer_cfg.py", runNum], stdout=open(os.devnull, 'wb'))
-#            else:
-#                subprocess.call(["cmsRun", "h2testbeamanalyzer_cfg.py", runNum])
-#        ana = "ana_h2_tb_run%s.root" % runNum
-#        ana2 = "ana_tb_out_run%s.root" % str(int(runNum))
-#        plotsDir = "tb_plots_run%s" % str(int(runNum))
-#        if mute:
-#            if do_tb_ana:
-#                subprocess.call(["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum))], stdout=open(os.devnull, 'wb'))
-#                subprocess.call(["rm", "-rf", plotsDir], stdout=open(os.devnull, 'wb'))
-#            if do_tb_plots:
-#                print "Generating plots for run " + runNum
-#                subprocess.call(["./tb_plots.py", "--i", ana2, "--o", plotsDir, "--r", str(int(runNum))], stdout=open(os.devnull, 'wb'))
-#            if do_makeHtml:
-#                print "Generating html for run " + runNum
-#                subprocess.call(["./makeHtml.py", plotsDir], st2dout=open(os.devnull, 'wb'))
-#            #if do_sync:
-#            #    print "Moving results of run " + runNum
-#            #   subprocess.call(["rsync", "-aq", "--delete", plotsDir, outputLoc], stdout=open(os.devnull, 'wb'))
-#        else:
-#            if do_tb_ana:
-#                subprocess.call(["./tb_ana.py", "--i", ana, "--o", ana2, "--r", str(int(runNum))])
-#                subprocess.call(["rm", "-rf", plotsDir])
-#            if do_tb_plots:
-#                print "Generating plots for run " + runNum
-#                subprocess.call(["./tb_plots.py", "--i", ana2, "--o", plotsDir, "--r", str(int(runNum))])
-#            if do_makeHtml:
-#                print "Generating html for run " + runNum
-#                subprocess.call(["./makeHtml.py", plotsDir])
-#                subprocess.call(["./makeMenu.sh", plotsDir])
-#            #if do_sync:
-#            #    print "Moving results of run " + runNum
-#            #    subprocess.call(["rsync", "-av", "--delete", plotsDir, outputLoc])
-#        subprocess.call(["rm", name])
-#        if delete:
-#            subprocess.call(["rm", ana])
-#            subprocess.call(["rm", ana2])
-#            subprocess.call(["rm", "-rf", plotsDir])
-#        if do_sync:
-#            print "Finished processing run %s. Results at http://cmshcalweb01.cern.ch/hcalTB/Analysis/%s" % (runNum, plotsDir)
+        subprocess.check_call(command)
