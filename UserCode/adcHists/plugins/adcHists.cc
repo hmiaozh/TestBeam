@@ -24,6 +24,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <iostream>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -335,13 +336,19 @@ void adcHists::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     {
 	std::stringstream hnumRef;
 	hnumRef << ieta << "_" << 5 << "_" << 2;
+	float& tref = times[hnumRef.str()];
 	
 	for(int depth = 1; depth <= 6; ++depth)
 	{
 	    std::stringstream hnum;
 	    hnum << ieta << "_" << 5 << "_" << depth;
 
-	    fillHist(hists, "timeDiff_" + hnumRef.str(), times[hnum.str()] - times[hnumRef.str()], 100, -25, 25);
+	    float& t    = times[hnum.str()];
+
+	    float dt = t - tref;
+	    if(t < 0 || tref < 0) dt = -999.9;
+
+	    fillHist(hists, "timeDiff_" + hnum.str(), dt, 100, -25, 25);
 	}
     }
 
@@ -464,10 +471,7 @@ void adcHists::endJob()
 
     for(auto& hist : hists)
     {
-	for(int i = 1; i <= hist.second->GetNbinsX(); i++)
-	{
-	    hist.second->SetBinContent(i, hist.second->GetBinContent(i)/hist.second->GetBinWidth(i));
-	}
+	hist.second->Scale(1.0, "width");
     }
 }
 
