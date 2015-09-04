@@ -446,6 +446,7 @@ for ichan in chanlist:
     #hist["e_4TS_noPS", ichan].GetXaxis().SetRangeUser(1,use_max)
     hist["e_4TS_noPS", ichan].SetStats(True)
     hist["e_4TS_noPS", ichan].Scale(1,"width")
+    hist["e_4TS_noPS", ichan].SetMaximum(10*hist["e_4TS_noPS", ichan].GetMaximum())
     hist["e_4TS_noPS", ichan].Draw()
     pad.Update()
     hist["e_4TS_noPS", ichan].FindObject("stats").SetX1NDC(0.7)
@@ -501,6 +502,7 @@ for ichan in chanlist:
     #hist["e_4TS_PS", ichan].GetXaxis().SetRangeUser(1,use_max)
     hist["e_4TS_PS", ichan].SetStats(True)
     hist["e_4TS_PS", ichan].Scale(1,"width")
+    hist["e_4TS_PS", ichan].SetMaximum(10*hist["e_4TS_PS", ichan].GetMaximum())
     hist["e_4TS_PS", ichan].Draw()
     pad.Update()
     hist["e_4TS_PS", ichan].FindObject("stats").SetX1NDC(0.7)
@@ -727,6 +729,7 @@ for ichan in chanlist:
 
     if ("linkerror", ichan) in hist:
         setHist(hist["linkerror", ichan], "Link Error", "# Events", 0, 0, 1.3)
+        hist["linkerror", ichan].SetMaximum(1.2*hist["linkerror", ichan].GetMaximum())
         hist["linkerror", ichan].Draw()
         pad.Update()
 
