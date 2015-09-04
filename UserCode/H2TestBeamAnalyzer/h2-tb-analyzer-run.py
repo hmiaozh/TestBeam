@@ -57,7 +57,7 @@ process.tbunpack = cms.EDProducer("HcalTBObjectUnpacker",
 
 process.hcalDigis = cms.EDProducer("HcalRawToDigi",
 #       UnpackHF = cms.untracked.bool(True),
-        ### Falg to enable unpacking of TTP channels(default = false)
+        ### Flag to enable unpacking of TTP channels(default = false)
         ### UnpackTTP = cms.untracked.bool(True),
         FilterDataQuality = cms.bool(False),
         InputLabel = cms.InputTag('source'),
@@ -73,7 +73,7 @@ process.hcalDigis.FEDs = cms.untracked.vint32(700,928)
 emapFileShort = emapFile.rsplit('.',1)[0].rsplit('/')[-1]
 
 process.hcalAnalyzer = cms.EDAnalyzer('H2TestBeamAnalyzer',
-        OutFileName = cms.untracked.string('ana_h2_tb_run'+runNumber+'_'+emapFileShort+'.root'),
+        OutFileName = cms.untracked.string('ana_h2_tb_run'+runNumber+'_'+emapFileShort+'_processing.root'),
         Verbosity = cms.untracked.int32(verbosityLevel),
         Gain = cms.untracked.double(shuntSetting)
 )

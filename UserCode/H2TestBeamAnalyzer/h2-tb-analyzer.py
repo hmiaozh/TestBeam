@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 import sys
 import subprocess
 import optparse
@@ -63,5 +64,9 @@ print "Using verbosity level",setVerbosity
  
 command = ["cmsRun","h2-tb-analyzer-run.py",inputFile,emapFile,runNumber,str(numEvents),str(setVerbosity),str(shunt),str(int(options.adcHistOnly))]
 print "Executing \"%s\"" % " ".join(command) 
-subprocess.call(command)
+subprocess.check_call(command)
+
+print "Finished!  Finalizing output file..."
+emapFileShort = emapFile.rsplit('.',1)[0].rsplit('/')[-1]
+os.rename("ana_h2_tb_run"+runNumber+"_"+emapFileShort+"_processing.root","ana_h2_tb_run"+runNumber+"_"+emapFileShort+".root")
 
