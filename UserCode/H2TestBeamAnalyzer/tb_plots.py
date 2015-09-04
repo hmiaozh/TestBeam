@@ -368,11 +368,16 @@ for ichan in chanlist:
 for etaphi in etaphipairs.keys():
 
     number_of_depths = len(etaphipairs[etaphi])
-    textsize = 0.028; legx0 = 0.18; legx1 = 0.58; legy0 = 0.895-0.015*number_of_depths; legy1 = 0.895+0.015*number_of_depths
+    textsize = 0.028 if number_of_depths < 8 else 0.025
+    legx0 = 0.18
+    legx1 = 0.58 if number_of_depths < 8 else 0.93
+    legy0 = 0.895-0.015*number_of_depths if number_of_depths < 8 else 0.86-0.015*number_of_depths/2
+    legy1 = 0.895+0.015*number_of_depths if number_of_depths < 8 else 0.86+0.015*number_of_depths/2
     leg = ROOT.TLegend(legx0, legy0, legx1, legy1)
     leg.SetFillColor(0)
     leg.SetTextSize(textsize)
-    #leg.SetNColumns(2)
+    if number_of_depths >= 8:
+        leg.SetNColumns(2)
     leg.SetColumnSeparation(0.03)
     leg.SetEntrySeparation(0.05)
     leg.SetMargin(0.2)
@@ -392,7 +397,8 @@ for etaphi in etaphipairs.keys():
         ichan = chanmap[(ieta,iphi,depth)]
                 
         setHist(hist["avgpulse", ichan], "Time sample", "Charge (fC)", 0, (0.,2400.), 1.3, depth_color_table[depth])
-        hist["avgpulse", ichan].SetMaximum(1.20 * maxy)
+        buff = 1 if number_of_depths < 8 else 1.15
+        hist["avgpulse", ichan].SetMaximum(1.20 * maxy * buff)
         hist["avgpulse", ichan].GetXaxis().SetNdivisions(10,1)
         hist["avgpulse", ichan].GetXaxis().SetLabelSize(0.035)
         hist["avgpulse", ichan].GetYaxis().SetLabelSize(0.035)
