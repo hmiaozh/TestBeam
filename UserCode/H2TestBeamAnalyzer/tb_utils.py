@@ -1,5 +1,3 @@
-from tb_chanmap import *
-
 def setPadPasMargin(pad, rightMargin=0.05):
     pad.SetFrameFillStyle(1001)
     pad.SetTicks()
@@ -109,34 +107,49 @@ def getText(ip, ip2, E_base_phase=0):
         #outText.append("phase = "+str(out_phase[E_base_phase])+" ns")
     return outText
 
+runList = xrange(7779, 9018)
 
-
-# Valid ieta, iphi and depth
-
-all_ieta = [k[0] for k in chanmap.keys() if type(k) is not int]
-all_iphi = [k[1] for k in chanmap.keys() if type(k) is not int]
-all_depth = [k[2] for k in chanmap.keys() if type(k) is not int]
-
-ieta_set = set(all_ieta)
-iphi_set = set(all_iphi)
-depth_set = set(all_depth)
-
-valid_ieta = sorted(list(ieta_set))
-valid_iphi =  sorted(list(iphi_set))
-valid_depth = sorted(list(depth_set))
-#valid_ieta = xrange(16,27)
-#valid_iphi = [3,4,5,6,8,9,10,11,13,14,15,16]
-#valid_depth = xrange(1,9)
-
+valid_ieta = []
+valid_iphi = []
+valid_depth = []
 calib = {}
-for channum in chanlist:
-    calib[channum] = 1.
-
-runList = xrange(7779,9018)
-
 chanType = {}
-for channum in chanlist:
-    chanType[channum,runList[0]] = "Channel "+str(channum)
+edges = {}
+pecal = {}
+
+
+def initialize_chanmap_vars(chanmap, chanlist):
+    
+    all_ieta = [k[0] for k in chanmap.keys() if type(k) is not int]
+    all_iphi = [k[1] for k in chanmap.keys() if type(k) is not int]
+    all_depth = [k[2] for k in chanmap.keys() if type(k) is not int]
+    
+    ieta_set = set(all_ieta)
+    iphi_set = set(all_iphi)
+    depth_set = set(all_depth)
+    
+    global valid_ieta
+    global valid_iphi
+    global valid_depth
+    
+    valid_ieta = sorted(list(ieta_set))
+    valid_iphi =  sorted(list(iphi_set))
+    valid_depth = sorted(list(depth_set))
+
+    for channum in chanlist:
+        calib[channum] = 1.
+
+    for channum in chanlist:
+        chanType[channum,runList[0]] = "Channel "+str(channum)
+
+    for channum in chanlist:
+        for rnum in runList:
+            edges[channum,rnum] = [-80.    , 80.,     -80. ,     80.]
+
+    for channum in chanlist:
+        pecal[channum] = [13.33, 35.19, 57.06, 164.45]
+
+
 
 #chanType[4 , 7522] = "20x20cm SCSN-81 (PdB)"
 #chanType[5 , 7522] = "T3 2x10cm"
@@ -146,11 +159,6 @@ for channum in chanlist:
 #chanType[18, 7522] = "HE 10x10cm SCSN-81 (JF)"
 #chanType[23, 7522] = "T5 CSL 2x10cm"
 #chanType[22, 7522] = "2x10cm SCSN-81"
-
-edges = {}
-for channum in chanlist:
-    for rnum in runList:
-       edges[channum,rnum] = [-80.    , 80.,     -80. ,     80.]
 
 #edges = {}         #     x-,  x+,        y-,      y+
 #edges[4 , 7526] = [-80.    , 80.,     -80. ,     80.]  #"20x20cm SCSN-81 (PdB)"
@@ -163,6 +171,3 @@ for channum in chanlist:
 #edges[23, 7526] = [15.-80. , 15., -1.      , -1.+15.]  #"mix 7 LS"
 
 # ped,   1pe,   2pe,    chi2
-pecal = {}
-for channum in chanlist:
-    pecal[channum] = [13.33, 35.19, 57.06, 164.45]

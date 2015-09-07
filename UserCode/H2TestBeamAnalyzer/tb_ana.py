@@ -112,21 +112,27 @@ if runnum is None:
     print "You did not provide a run number! Exiting."
     sys.exit()
 
-# Import appropriate channel mapping
+
+# The following is needed to get the chanmap and associated
+# variables from a tb_chanmap_* file, where the filename
+# is known only at runtime.  This could be improved.
+
 chanmapFile = "tb_chanmap"
 if emapFile:
     emapFileShort = emapFile.rsplit('.',1)[0].rsplit('/')[-1]
     chanmapFile = "tb_chanmap_"+emapFileShort
-__import__(chanmapFile)
+chanmapModule = __import__(chanmapFile, globals(), locals(), [], -1)
+chanmap = chanmapModule.chanmap
+chanlist = chanmapModule.chanlist
+from tb_utils import initialize_chanmap_vars
+initialize_chanmap_vars(chanmap, chanlist)
+from tb_utils import *
 
 # Scale bin edges according to shunt value
 edges10_np = numpy.array(edges10_list)
 edges10_np = edges10_np/shunt
 
 edges10 = array.array('d', edges10_np)
-
-from tb_utils import *
-
 
 #######################
 #  Set ROOT options  
@@ -368,7 +374,7 @@ for iphi in valid_iphi:
     hist["e_4TS_etadepth",iphi] = ROOT.TProfile2D("Energy_Avg_phi"+str(iphi),"Average Energy per event in each ieta,depth for iphi "+str(iphi), 
                                                   (valid_ieta[-1] - valid_ieta[0])+3, valid_ieta[0]-1.5, valid_ieta[-1]+1.5, 
                                                   (valid_depth[-1] - valid_depth[0])+3, valid_depth[0]-1.5, valid_depth[-1]+1.5)
-    
+
     
 #Plot average 4TS energy sum (z-axis) in plane of track coords from WC C
 for ichan in chanlist:
