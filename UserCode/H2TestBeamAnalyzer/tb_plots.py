@@ -47,13 +47,23 @@ if infile is None:
     print "You did not provide an input file! Exiting"
     sys.exit(1)
 
-# Import appropriate channel mapping
+# The following is needed to get the chanmap and associated
+# variables from a tb_chanmap_* file, where the filename
+# is known only at runtime.  This could be improved.
+
 chanmapFile = "tb_chanmap"
 if emapFile:
     emapFileShort = emapFile.rsplit('.',1)[0].rsplit('/')[-1]
     chanmapFile = "tb_chanmap_"+emapFileShort
-__import__(chanmapFile)
+chanmapModule = __import__(chanmapFile, globals(), locals(), [], -1)
+chanmap = chanmapModule.chanmap
+chanlist = chanmapModule.chanlist
+from tb_utils import initialize_chanmap_vars
+initialize_chanmap_vars(chanmap, chanlist)
 from tb_utils import *
+
+
+
 
 if outdir is not None:
     outdir += "/"
@@ -283,17 +293,17 @@ for depth in valid_depth:
     hist["occupancy_event_etaphi",depth].Draw("COLZ ")
 
     for end in [".pdf", ".gif"]:
-        canv.SaveAs(outdir+cname+"--depth"+str(depth)+end)
+        canv.SaveAs(outdir+cname+"--depth"+str(depth).zfill(2)+end)
 
 ##################################
 # Plot Average energy in eta-phi
 ##################################
 cname = "b_energy_etaphi"
 #ROOT.gStyle.SetOptTitle(1)
-canv = ROOT.TCanvas(cname, cname, 800, 800)
+canv = ROOT.TCanvas(cname, cname, 900, 800)
 pad = canv.GetPad(0)
-setPadPasMargin(pad,0.13)
-#pad.SetTopMargin(0.2)
+setPadPasMargin(pad,0.18)
+pad.SetLeftMargin(0.12)
 
 maxz = 10.
 for depth in valid_depth:
@@ -315,14 +325,14 @@ for depth in valid_depth:
     hist["e_4TS_etaphi",depth].Draw("COLZ ")
 
     for end in [".pdf", ".gif"]:
-        canv.SaveAs(outdir+cname+"--depth"+str(depth)+end)
+        canv.SaveAs(outdir+cname+"--depth"+str(depth).zfill(2)+end)
 
 cname = "b_energy_etadepth"
 #ROOT.gStyle.SetOptTitle(1)
-canv = ROOT.TCanvas(cname, cname, 800, 800)
+canv = ROOT.TCanvas(cname, cname, 900, 800)
 pad = canv.GetPad(0)
-setPadPasMargin(pad,0.13)
-#pad.SetTopMargin(0.2)
+setPadPasMargin(pad,0.18)
+pad.SetLeftMargin(0.12)
 
 maxz = 10.
 for iphi in valid_iphi:
@@ -468,7 +478,7 @@ for ichan in chanlist:
     leg.Draw()
         
     for end in [".pdf", ".gif"]:
-        canv.SaveAs(outdir+cname+"--iphi"+str(iphi).zfill(2)+"_ieta"+str(ieta).zfill(2)+"_depth"+str(depth)+end)
+        canv.SaveAs(outdir+cname+"--iphi"+str(iphi).zfill(2)+"_ieta"+str(ieta).zfill(2)+"_depth"+str(depth).zfill(2)+end)
 
 ROOT.gStyle.SetOptStat(0)
 
@@ -524,7 +534,7 @@ for ichan in chanlist:
     leg.Draw()
         
     for end in [".pdf", ".gif"]:
-        canv.SaveAs(outdir+cname+"--iphi"+str(iphi).zfill(2)+"_ieta"+str(ieta).zfill(2)+"_depth"+str(depth)+end)
+        canv.SaveAs(outdir+cname+"--iphi"+str(iphi).zfill(2)+"_ieta"+str(ieta).zfill(2)+"_depth"+str(depth).zfill(2)+end)
 
 ROOT.gStyle.SetOptStat(0)
 
@@ -549,7 +559,7 @@ for ichan in chanlist:
     ieta = chanmap[ichan][0]
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
-    label = "iphi" + str(iphi).zfill(2) + "_ieta" + str(ieta).zfill(2) + "_depth" + str(depth)
+    label = "iphi" + str(iphi).zfill(2) + "_ieta" + str(ieta).zfill(2) + "_depth" + str(depth).zfill(2)
     cname = "e_energy_wcC--"+label
     canv = ROOT.TCanvas(cname, cname, 400, 424)
     pad = canv.GetPad(0)
@@ -591,7 +601,7 @@ for ichan in chanlist:
     ieta = chanmap[ichan][0]
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
-    label = "iphi" + str(iphi).zfill(2) + "_ieta" + str(ieta).zfill(2) + "_depth" + str(depth)
+    label = "iphi" + str(iphi).zfill(2) + "_ieta" + str(ieta).zfill(2) + "_depth" + str(depth).zfill(2)
     cname = "e_energy_wcC_noTScut--"+label
     canv = ROOT.TCanvas(cname, cname, 400, 424)
     pad = canv.GetPad(0)
@@ -631,7 +641,7 @@ for ichan in chanlist:
     ieta = chanmap[ichan][0]
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
-    label = "iphi" + str(iphi).zfill(2) + "_ieta" + str(ieta).zfill(2) + "_depth" + str(depth)
+    label = "iphi" + str(iphi).zfill(2) + "_ieta" + str(ieta).zfill(2) + "_depth" + str(depth).zfill(2)
     cname = "e_energy_wcC_efficiency--"+label
     canv = ROOT.TCanvas(cname, cname, 400, 424)
     pad = canv.GetPad(0)
@@ -745,5 +755,5 @@ for ichan in chanlist:
         leg.Draw()
         
         for end in [".pdf", ".gif"]:
-            canv.SaveAs(outdir+cname+"--iphi"+str(iphi).zfill(2)+"_ieta"+str(ieta).zfill(2)+"_depth"+str(depth)+end)
+            canv.SaveAs(outdir+cname+"--iphi"+str(iphi).zfill(2)+"_ieta"+str(ieta).zfill(2)+"_depth"+str(depth).zfill(2)+end)
 
