@@ -79,7 +79,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -136,7 +136,7 @@ class GhostInfo : public fastjet::PseudoJet::UserInfoBase{
     int m_type;
 };
 
-class JetFlavourClustering : public edm::EDProducer {
+class JetFlavourClustering : public edm::stream::EDProducer<> {
    public:
       explicit JetFlavourClustering(const edm::ParameterSet&);
       ~JetFlavourClustering();
@@ -144,15 +144,8 @@ class JetFlavourClustering : public edm::EDProducer {
       static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
    private:
-      virtual void beginJob() ;
       virtual void produce(edm::Event&, const edm::EventSetup&);
-      virtual void endJob() ;
-
-      virtual void beginRun(edm::Run&, edm::EventSetup const&);
-      virtual void endRun(edm::Run&, edm::EventSetup const&);
-      virtual void beginLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
-      virtual void endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
-
+  
       void insertGhosts(const edm::Handle<reco::GenParticleRefVector>& particles,
                         const double ghostRescaling,
                         const bool isHadron, const bool isbHadron, const bool isParton, const bool isLepton,
@@ -182,12 +175,12 @@ class JetFlavourClustering : public edm::EDProducer {
 
       // ----------member data ---------------------------
       const edm::EDGetTokenT<edm::View<reco::Jet> >      jetsToken_;        // Input jet collection
-      const edm::EDGetTokenT<edm::View<reco::Jet> >      groomedJetsToken_; // Input groomed jet collection
-      const edm::EDGetTokenT<edm::View<reco::Jet> >      subjetsToken_;     // Input subjet collection
+      edm::EDGetTokenT<edm::View<reco::Jet> >      groomedJetsToken_; // Input groomed jet collection
+      edm::EDGetTokenT<edm::View<reco::Jet> >      subjetsToken_;     // Input subjet collection
       const edm::EDGetTokenT<reco::GenParticleRefVector> bHadronsToken_;    // Input b hadron collection
       const edm::EDGetTokenT<reco::GenParticleRefVector> cHadronsToken_;    // Input c hadron collection
       const edm::EDGetTokenT<reco::GenParticleRefVector> partonsToken_;     // Input parton collection
-      const edm::EDGetTokenT<reco::GenParticleRefVector> leptonsToken_;     // Input lepton collection
+      edm::EDGetTokenT<reco::GenParticleRefVector> leptonsToken_;     // Input lepton collection
 
       const std::string   jetAlgorithm_;
       const double        rParam_;
@@ -212,12 +205,9 @@ class JetFlavourClustering : public edm::EDProducer {
 JetFlavourClustering::JetFlavourClustering(const edm::ParameterSet& iConfig) :
 
    jetsToken_(consumes<edm::View<reco::Jet> >( iConfig.getParameter<edm::InputTag>("jets")) ),
-   groomedJetsToken_(mayConsume<edm::View<reco::Jet> >( iConfig.exists("groomedJets") ? iConfig.getParameter<edm::InputTag>("groomedJets") : edm::InputTag() )),
-   subjetsToken_(mayConsume<edm::View<reco::Jet> >( iConfig.exists("subjets") ? iConfig.getParameter<edm::InputTag>("subjets") : edm::InputTag() )),
    bHadronsToken_(consumes<reco::GenParticleRefVector>( iConfig.getParameter<edm::InputTag>("bHadrons") )),
    cHadronsToken_(consumes<reco::GenParticleRefVector>( iConfig.getParameter<edm::InputTag>("cHadrons") )),
    partonsToken_(consumes<reco::GenParticleRefVector>( iConfig.getParameter<edm::InputTag>("partons") )),
-   leptonsToken_(mayConsume<reco::GenParticleRefVector>( iConfig.exists("leptons") ? iConfig.getParameter<edm::InputTag>("leptons") : edm::InputTag() )),
    jetAlgorithm_(iConfig.getParameter<std::string>("jetAlgorithm")),
    rParam_(iConfig.getParameter<double>("rParam")),
    jetPtMin_(0.), // hardcoded to 0. since we simply want to recluster all input jets which already had some PtMin applied
@@ -242,6 +232,15 @@ JetFlavourClustering::JetFlavourClustering(const edm::ParameterSet& iConfig) :
      fjJetDefinition_= JetDefPtr( new fastjet::JetDefinition(fastjet::antikt_algorithm, rParam_) );
    else
      throw cms::Exception("InvalidJetAlgorithm") << "Jet clustering algorithm is invalid: " << jetAlgorithm_ << ", use CambridgeAachen | Kt | AntiKt" << std::endl;
+
+   if (useSubjets_) {
+     groomedJetsToken_=consumes<edm::View<reco::Jet> >(iConfig.getParameter<edm::InputTag>("groomedJets"));
+     subjetsToken_=consumes<edm::View<reco::Jet> >(iConfig.getParameter<edm::InputTag>("subjets"));
+   }
+   if ( useLeptons_ ) {
+     leptonsToken_=consumes<reco::GenParticleRefVector>( iConfig.getParameter<edm::InputTag>("leptons") );
+   }
+
 }
 
 
@@ -707,41 +706,6 @@ JetFlavourClustering::assignToSubjets(const reco::GenParticleRefVector& clustere
 
      assignedParticles.at(closestSubjetIdx).push_back( *it );
    }
-}
-
-// ------------ method called once each job just before starting event loop  ------------
-void
-JetFlavourClustering::beginJob()
-{
-}
-
-// ------------ method called once each job just after ending the event loop  ------------
-void
-JetFlavourClustering::endJob() {
-}
-
-// ------------ method called when starting to processes a run  ------------
-void
-JetFlavourClustering::beginRun(edm::Run&, edm::EventSetup const&)
-{
-}
-
-// ------------ method called when ending the processing of a run  ------------
-void
-JetFlavourClustering::endRun(edm::Run&, edm::EventSetup const&)
-{
-}
-
-// ------------ method called when starting to processes a luminosity block  ------------
-void
-JetFlavourClustering::beginLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&)
-{
-}
-
-// ------------ method called when ending the processing of a luminosity block  ------------
-void
-JetFlavourClustering::endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&)
-{
 }
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
