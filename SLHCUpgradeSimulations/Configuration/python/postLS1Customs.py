@@ -4,6 +4,10 @@ from RecoTracker.Configuration.customiseForRunI import customiseForRunI
 
 def customisePostLS1_Common(process):
 
+    # deal with L1 Emulation separately
+    from L1Trigger.L1TCommon.customsPostLS1 import customiseSimL1EmulatorForStage1
+    process = customiseSimL1EmulatorForStage1(process)
+
     # deal with CSC separately
     from SLHCUpgradeSimulations.Configuration.muonCustoms import customise_csc_PostLS1
     process = customise_csc_PostLS1(process)
@@ -41,10 +45,6 @@ def customisePostLS1_Common(process):
 
 def customisePostLS1(process):
 
-    # deal with L1 Emulation separately
-    from L1Trigger.L1TCommon.customsPostLS1 import customiseSimL1EmulatorForPostLS1_25ns
-    process = customiseSimL1EmulatorForPostLS1_25ns(process)
-
     # common customisation
     process = customisePostLS1_Common(process)
 
@@ -59,10 +59,6 @@ def customisePostLS1(process):
 
 def customisePostLS1_lowPU(process):
 
-    # deal with L1 Emulation separately
-    from L1Trigger.L1TCommon.customsPostLS1 import customiseSimL1EmulatorForPostLS1_lowPU
-    process = customiseSimL1EmulatorForPostLS1_lowPU(process)
-
     # common customisations
     process = customisePostLS1_Common(process)
 
@@ -74,10 +70,6 @@ def customisePostLS1_lowPU(process):
 
 
 def customisePostLS1_50ns(process):
-
-    # deal with L1 Emulation separately
-    from L1Trigger.L1TCommon.customsPostLS1 import customiseSimL1EmulatorForPostLS1_50ns
-    process = customiseSimL1EmulatorForPostLS1_50ns(process)
 
     # common customisations
     process = customisePostLS1_Common(process)
@@ -91,12 +83,16 @@ def customisePostLS1_50ns(process):
 
 def customisePostLS1_HI(process):
 
-    # deal with L1 Emulation separately
-    from L1Trigger.L1TCommon.customsPostLS1 import customiseSimL1EmulatorForPostLS1_HI
-    process = customiseSimL1EmulatorForPostLS1_HI(process)
-
     # common customisation
     process = customisePostLS1_Common(process)
+
+    # HI Specific additional customizations:
+    from L1Trigger.L1TCommon.customsPostLS1 import customiseSimL1EmulatorForPostLS1_Additional_HI
+    process = customiseSimL1EmulatorForPostLS1_Additional_HI(process)
+
+    # HI L1Menu:
+    #from L1Trigger.Configuration.customise_overwriteL1Menu import L1Menu_CollisionsHeavyIons2015_v0
+    #process = L1Menu_CollisionsHeavyIons2015_v0(process)
 
     return process
 
@@ -161,6 +157,29 @@ def customise_Sim(process):
     process.g4SimHits.HFShowerLibrary.FileName = 'SimG4CMS/Calo/data/HFShowerLibrary_npmt_noatt_eta4_16en_v3.root'
     return process
 
+def customise_New_HCAL(process):
+    if hasattr(process,'mix') and hasattr(process.mix,'digitizers'):
+        if hasattr(process.mix.digitizers,'hcal'):
+            process.mix.digitizers.hcal.minFCToDelay=5.
+        if hasattr(process.mix.digitizers,'hcal') and hasattr(process.mix.digitizers.hcal,'hf1'):
+            process.mix.digitizers.hcal.hf1.samplingFactor = cms.double(0.67)
+        if hasattr(process.mix.digitizers,'hcal') and hasattr(process.mix.digitizers.hcal,'hf2'):
+            process.mix.digitizers.hcal.hf2.samplingFactor = cms.double(0.67)
+
+    if hasattr(process,'mixData'):
+        if hasattr(process.mix.digitizers,'hcal'):
+            process.mixData.digitizers.hcal.minFCToDelay=5.
+        if hasattr(process.mixData,'hf1'):
+            process.mixData.hf1.samplingFactor = cms.double(0.67)
+        if hasattr(process.mixData,'hf2'):
+            process.mixData.hf2.samplingFactor = cms.double(0.67)
+
+        if hasattr(process,'hltHbhereco'):
+            process.hltHbhereco.timeSlewPars = cms.vdouble( 12.2999, -2.19142, 0, 12.2999, -2.19142, 0, 12.2999, -2.19142, 0 )
+            process.hltHbhereco.respCorrM3   = cms.double( 0.95 )
+
+    return process
+        
 
 def customise_Digi_Common(process):
     process = digiEventContent(process)
