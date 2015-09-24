@@ -50,7 +50,7 @@ private:
     energysum() {e25=e50=e100=e250=0.0;}
   };
 
-  static const int nType = 25;
+  static const int nType = 14;
 
   MonitorElement *meHcalHitEta_[nType];
   MonitorElement *meHcalHitTimeEta_[nType];
@@ -59,21 +59,21 @@ private:
   MonitorElement *meHcalEnergyl100_[nType];
   MonitorElement *meHcalEnergyl250_[nType];
   
-  MonitorElement *meEnergy_HB;
-  MonitorElement *meEnergy_HE;
-  MonitorElement *meEnergy_HO;
-  MonitorElement *meEnergy_HF;
+  //  MonitorElement *meEnergy_HB;
+  //MonitorElement *meEnergy_HE;
+  //MonitorElement *meEnergy_HO;
+  //MonitorElement *meEnergy_HF;
 
 
-  MonitorElement *metime_HB;
-  MonitorElement *metime_HE;
-  MonitorElement *metime_HO;
-  MonitorElement *metime_HF;
+  //MonitorElement *metime_HB;
+  //MonitorElement *metime_HE;
+  //MonitorElement *metime_HO;
+  //MonitorElement *metime_HF;
 
-  MonitorElement *metime_enweighted_HB;
-  MonitorElement *metime_enweighted_HE;
-  MonitorElement *metime_enweighted_HO;
-  MonitorElement *metime_enweighted_HF;
+  //MonitorElement *metime_enweighted_HB;
+  //MonitorElement *metime_enweighted_HE;
+  //MonitorElement *metime_enweighted_HO;
+  //MonitorElement *metime_enweighted_HF;
   
 };
 
