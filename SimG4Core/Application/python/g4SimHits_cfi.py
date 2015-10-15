@@ -55,6 +55,8 @@ g4SimHits = cms.EDProducer("OscarMTProducer",
         Resolution = cms.untracked.int32(10000),
         RegionFlag = cms.untracked.bool(True),  # if true - selection by G4Region name
         gdmlFlag = cms.untracked.bool(True),  # if true - dump gdml file
+        PVname = cms.string(''),
+        LVname = cms.string(''),
         NodeNames = cms.vstring('World')
     ),
     G4Commands = cms.vstring(),
@@ -62,7 +64,7 @@ g4SimHits = cms.EDProducer("OscarMTProducer",
     FileNameGDML = cms.untracked.string(''),
     FileNameRegions = cms.untracked.string(''),
     Watchers = cms.VPSet(),
-    HepMCProductLabel = cms.InputTag("generator"),
+    HepMCProductLabel = cms.InputTag("generatorSmeared"),
     theLHCTlinkTag = cms.InputTag("LHCTransport"),
     CustomUIsession = cms.untracked.PSet(
         Type = cms.untracked.string("MessageLogger"), # MessageLoggerThreadPrefix, FilePerThread; the non-default ones are meant only for MT debugging
@@ -141,8 +143,8 @@ g4SimHits = cms.EDProducer("OscarMTProducer",
     ),
     Generator = cms.PSet(
         HectorEtaCut,
-        # string HepMCProductLabel = "VtxSmeared"
-        HepMCProductLabel = cms.string('generator'),
+        # string HepMCProductLabel = "generatorSmeared"
+        HepMCProductLabel = cms.string('generatorSmeared'),
         ApplyPCuts = cms.bool(True),
         ApplyPtransCut = cms.bool(False),
         MinPCut = cms.double(0.04), ## the cut is in GeV 
