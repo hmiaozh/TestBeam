@@ -114,7 +114,8 @@ def getDataSets( dsFlags = {'RelValMinBias_13__':'MinBias'},
 # This is a dictionary of flags to pull out the datasets of interest mapped to the desired name from the hcal script
 dsMCFlags = {'RelValTTbar_13__':'TTbar', 'RelValQCD_Pt_80_120_13__':'QCD', 'RelValQCD_Pt_3000_3500_13__':'HighPtQCD', 'RelValMinBias_13__':'MinBias'}
 #dsDATAFlags = {'191226__Jet__':'Jet', '149011__MinimumBias__':'MinBias'}
-dsDATAFlags = {'191226__Jet__':'Jet', '208307__MinimumBias__':'MinBias'}
+#dsDATAFlags = {'191226__Jet__':'Jet', '208307__MinimumBias__':'MinBias'}
+dsDATAFlags = {'254790__JetHT__':'JetHT', '254790__ZeroBias__':'ZeroBias'}
 # filename prefix 
 #fnPrefix = "DQM_V0001_R000000001"
 #MinBiasPrefix = "DQM_V0001_R000149011"
