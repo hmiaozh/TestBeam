@@ -431,7 +431,7 @@ for etaphi in etaphipairs.keys():
 ##################################
 # Plot Energy Spectra with no Pedestal Subtraction
 ##################################
-cname = "d_energy_noPS"
+cname = "d_charge_noPS"
 ROOT.gStyle.SetOptStat(1110)
 canv = ROOT.TCanvas(cname, cname, 400, 424)
 pad = canv.GetPad(0)
@@ -444,7 +444,7 @@ for ichan in chanlist:
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
 
-    setHist(hist["e_4TS_noPS", ichan], "Energy No Ped Subtract (uncalibrated) ", "# Events / fC", 0, 0, 1.3, pstyle[22, "col"])
+    setHist(hist["e_4TS_noPS", ichan], "Charge (No Ped Subtraction) (fC) ", "# Events / fC", 0, 0, 1.3, pstyle[22, "col"])
     #hist["energy", ichan].GetXaxis().SetNdivisions(10,1)
     #max_x_bin = hist["e_4TS_noPS", ichan].FindLastBinAbove(0)
     #use_max = 1000
@@ -487,7 +487,7 @@ ROOT.gStyle.SetOptStat(0)
 ##################################
 # Plot Energy Spectra
 ##################################
-cname = "d_energy"
+cname = "d_charge"
 ROOT.gStyle.SetOptStat(1110)
 canv = ROOT.TCanvas(cname, cname, 400, 424)
 pad = canv.GetPad(0)
@@ -500,7 +500,7 @@ for ichan in chanlist:
     iphi = chanmap[ichan][1]
     depth = chanmap[ichan][2]
 
-    setHist(hist["e_4TS_PS", ichan], "Energy (uncalibrated)", "# Events / fC", 0, 0, 1.3, pstyle[22, "col"])
+    setHist(hist["e_4TS_PS", ichan], "Charge (fC)", "# Events / fC", 0, 0, 1.3, pstyle[22, "col"])
     #hist["energy", ichan].GetXaxis().SetNdivisions(10,1)
     #max_x_bin = hist["e_4TS_PS", ichan].FindLastBinAbove(0)
     #use_max = 1000
@@ -727,33 +727,33 @@ for ichan in chanlist:
 ##################################
 # Link Error
 ##################################
-cname = "f_link_error"
-canv = ROOT.TCanvas(cname, cname, 400, 424)
-pad = canv.GetPad(0)
-setPadPasMargin(pad)
-
-for ichan in chanlist:
-    ieta = chanmap[ichan][0]
-    iphi = chanmap[ichan][1]
-    depth = chanmap[ichan][2]
-
-    if ("linkerror", ichan) in hist:
-        setHist(hist["linkerror", ichan], "Link Error", "# Events", 0, 0, 1.3)
-        hist["linkerror", ichan].SetMaximum(1.2*hist["linkerror", ichan].GetMaximum())
-        hist["linkerror", ichan].Draw()
-        pad.Update()
-
-        textsize = 0.03; legx0 = 0.23; legx1 = 0.68; legy0 = 0.82; legy1 = 0.88
-        leg = ROOT.TLegend(legx0, legy0, legx1, legy1)
-        leg.SetFillColor(0)
-        leg.SetTextSize(textsize)
-        leg.SetColumnSeparation(0.0)
-        leg.SetEntrySeparation(0.1)
-        leg.SetMargin(0.2)
-
-        leg.AddEntry(hist["linkerror", ichan], "iphi="+str(iphi)+"  "+"ieta="+str(ieta)+"  "+"depth="+str(depth))
-        leg.Draw()
-        
-        for end in [".pdf", ".gif"]:
-            canv.SaveAs(outdir+cname+"--iphi"+str(iphi).zfill(2)+"_ieta"+str(ieta).zfill(2)+"_depth"+str(depth).zfill(2)+end)
-
+#cname = "f_link_error"
+#canv = ROOT.TCanvas(cname, cname, 400, 424)
+#pad = canv.GetPad(0)
+#setPadPasMargin(pad)
+#
+#for ichan in chanlist:
+#    ieta = chanmap[ichan][0]
+#    iphi = chanmap[ichan][1]
+#    depth = chanmap[ichan][2]
+#
+#    if ("linkerror", ichan) in hist:
+#        setHist(hist["linkerror", ichan], "Link Error", "# Events", 0, 0, 1.3)
+#        hist["linkerror", ichan].SetMaximum(1.2*hist["linkerror", ichan].GetMaximum())
+#        hist["linkerror", ichan].Draw()
+#        pad.Update()
+#
+#        textsize = 0.03; legx0 = 0.23; legx1 = 0.68; legy0 = 0.82; legy1 = 0.88
+#        leg = ROOT.TLegend(legx0, legy0, legx1, legy1)
+#        leg.SetFillColor(0)
+#        leg.SetTextSize(textsize)
+#        leg.SetColumnSeparation(0.0)
+#        leg.SetEntrySeparation(0.1)
+#        leg.SetMargin(0.2)
+#
+#        leg.AddEntry(hist["linkerror", ichan], "iphi="+str(iphi)+"  "+"ieta="+str(ieta)+"  "+"depth="+str(depth))
+#        leg.Draw()
+#        
+#        for end in [".pdf", ".gif"]:
+#            canv.SaveAs(outdir+cname+"--iphi"+str(iphi).zfill(2)+"_ieta"+str(ieta).zfill(2)+"_depth"+str(depth).zfill(2)+end)
+#
