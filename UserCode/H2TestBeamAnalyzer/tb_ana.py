@@ -683,7 +683,7 @@ for ievt in xrange(start, start + nevts_to_run):
 
     showerE = 0.  # shower energy
     showerChans = []  # channels in which to sum shower energy
-    for ieta in range(17,20):
+    for ieta in range(18,21):
         for idep in range(2,7):
             showerChans.append((ieta, 5, idep))
             
@@ -712,7 +712,7 @@ for ievt in xrange(start, start + nevts_to_run):
             print "charge: ", ",".join([str(charge[ichan,its]) for its in xrange(nts)])
 
         # Pedestals are stored in the output for h2testbeamanalyzer
-        #ped_ts_list = [0,1,2]   #time samples in which to sum charge for pedestals (0-2)    
+        #ped_ts_list = [1,2]   #time samples in which to sum charge for pedestals (1-2)    
         #ped_esum = 0.
         #for its in ped_ts_list:   
         #    ped_esum += energy[ichan,its]
@@ -740,6 +740,7 @@ for ievt in xrange(start, start + nevts_to_run):
         
         # fill pid vars
         if (ieta,iphi,depth) in showerChans:
+            #print "(ieta,iphi,depth,energy) =",ieta,iphi,depth,esum[ichan, "4TS_PS"]    #JRD
             showerE += esum[ichan, "4TS_PS"]
             
         if ieta == 19 and iphi == 5 and depth in range(2,7):
@@ -843,14 +844,20 @@ for ievt in xrange(start, start + nevts_to_run):
     if nPass >= 4: isMuon = True
 
     #electron
-    if not isMuon and e19_5[2]/showerE > 0.9: isElectron = True
+    e19_5_2_frac = 0.
+    if showerE > 0.:
+	 e19_5_2_frac = e19_5[2]/showerE
+    else:
+	print "Strange, showerE is <=0 for this event!"
+
+    if not isMuon and e19_5_2_frac > 0.9: isElectron = True
 
     if isMuon       : hist["pid"].Fill(1)
     elif isElectron : hist["pid"].Fill(2)
     else            : hist["pid"].Fill(3)
 
     hist["nPass"].Fill(nPass)
-    hist["frac19_5_2"].Fill(e19_5[2]/showerE)
+    hist["frac19_5_2"].Fill(e19_5_2_frac)
 
 ###Sort the histograms
 SortedHist = outtfile.mkdir("SortedHist")
