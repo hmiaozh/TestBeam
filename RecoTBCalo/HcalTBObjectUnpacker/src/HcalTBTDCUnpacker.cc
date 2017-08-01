@@ -5,17 +5,17 @@
 // Timing channels
 static const int lcTriggerTime     = 104;
 static const int lcTTCL1ATime      = 101;
-static const int lcBeamCoincidence = 3;
-static const int lcLaserFlash      = 4;
-static const int lcQIEPhase        = 5;
+static const int lcBeamCoincidence = 42;
+static const int lcLaserFlash      = 43;
+static const int lcQIEPhase        = 44;
 
-static const int lcMuon1           = 90;
-static const int lcMuon2           = 91;
-static const int lcMuon3           = 92;
+static const int lcMuon1           = 52;
+static const int lcMuon2           = 53;
+static const int lcMuon3           = 54;
 static const int lcScint1          = 107;
 static const int lcScint2          = 110;
-static const int lcScint3          = 95;
-static const int lcScint4          = 96;
+static const int lcScint3          = 111;
+static const int lcScint4          = 112;
 static const int lcBeamHalo1       = 50;
 static const int lcBeamHalo2       = 51;
 static const int lcBeamHalo3       = 55;
