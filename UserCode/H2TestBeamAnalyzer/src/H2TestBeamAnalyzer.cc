@@ -755,7 +755,10 @@ void H2TestBeamAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
                mark_bad = 1;
                mark_adc = adc;
                mark_tdc = tdc;
-               std::cout << "Mark TS "<<EventNumber<<":"<<i<<" bad, code="<<mark_bad<<", adc=" << mark_adc << ", tdc=" << mark_tdc << std::endl;
+
+            if (_verbosity>0)
+                std::cout << "Mark TS "<<EventNumber<<":"<<i<<" bad, code="<<mark_bad<<", adc=" << mark_adc << ", tdc=" << mark_tdc << std::endl;
+
             }
 
             // compute ped from TS 1&2
