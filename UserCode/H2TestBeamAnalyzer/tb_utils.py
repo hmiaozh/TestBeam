@@ -136,8 +136,6 @@ def initialize_chanmap_vars(chanmap, chanlist):
     valid_iphi =  sorted(list(iphi_set))
     valid_depth = sorted(list(depth_set))
 
-    print 'valid_depth',valid_depth
-
     for channum in chanlist:
         calib[channum] = 1.
 
