@@ -851,8 +851,8 @@ for ievt in xrange(start, start + nevts_to_run):
     e19_5_2_frac = 0.
     if showerE > 0.:
 	 e19_5_2_frac = e19_5[2]/showerE
-    else:
-	print "Strange, showerE is <=0 for this event!"
+    elif not showerE:
+	print "Strange, showerE is = 0 for this event!"
 
     if not isMuon and e19_5_2_frac > 0.9: isElectron = True
 
