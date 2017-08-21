@@ -8,24 +8,44 @@
 
   //TFile *f = new TFile("goodData/sortedByTDC_all.root","read");
 //  TFile *f = new TFile("/afs/cern.ch/work/j/jlawhorn/public/CMSSW_9_0_3/src/PulseShapes/goodData/sortedByTDC.root","read");
-  TFile *f = new TFile("sampletest/tb_bin4new_pionshun1_test3.root","read");
+  TFile *f = new TFile("sampletest/tb_bin3new_pionshun1.root","read");
 
   
-  //vector<TProfile*> v_p3;
+  vector<TProfile*> v_p5;
   vector<TProfile*> v_p4;
   for (int i=0; i<50; i++) {
     char pname[10];
-    //sprintf(pname,"p3_%i",i);
-    //v_p3.push_back((TProfile*)f->Get(pname));
+    char ppname[10];
+    sprintf(ppname,"p5_%i",i);
+    v_p5.push_back((TProfile*)f->Get(ppname));
     sprintf(pname,"p4_%i",i);
     v_p4.push_back((TProfile*)f->Get(pname));
 
   } 
 
-  TFile *outputfile = new TFile("sampletest/Pulse_bin4new_pionshun1_test3.root","recreate");
+  TFile *outputfile = new TFile("sampletest/Pulse_bin3new_pionshun1_norm50.root","recreate");
 
   TH1D *dall = new TH1D("diff","differenced pulse shape",500,0,250);
   TH1D *gall = new TH1D("raw","TDC-ordered pulse fractions",500,0,250);
+
+  TProfile *norm_tdc5 = new TProfile("norm_tdc5","norm_tdc5",10,-0.5,9.5,"s");
+
+//  for(int i=0; i<5; i++){
+//    norm_tdc5->Fill(i,0);
+//  }
+
+  double leakage = (v_p4.at(0)->GetBinContent(9+1))/50.;
+//  double sf = (v_p4.at(0)->GetBinContent(4+1))/(v_p5.at(0)->GetBinContent(5+1));
+//  for(int i=5; i<10; i++){
+//    double hi = (v_p5.at(0)->GetBinContent(i+1))*sf;
+//    norm_tdc5->Fill(i,hi);
+//  }
+
+  for(int i=0; i<50; i++){
+    double sf = 1.0 - leakage * (double)i;
+    v_p4.at(i)->Scale(sf);
+  }
+
 
   for (int i=0; i<50; i++) {
 
@@ -42,9 +62,11 @@
 
   }
 
+//  v_p4.at(49)->Scale(sf);
+
   for (int i=1; i<500; i++) {
     double temp=gall->GetBinContent(i+1)-gall->GetBinContent(i);
-    if (i+1-51>1) temp+=dall->GetBinContent(i+1-51);
+    if (i+1-50>0) temp+=dall->GetBinContent(i+1-50);
     dall->SetBinContent(i+1,temp);
   }
 
