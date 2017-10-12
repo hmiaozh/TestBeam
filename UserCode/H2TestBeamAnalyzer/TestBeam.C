@@ -20,13 +20,18 @@
 
 #endif
 
-void TestBeam(TString outfile="sampletest/tb_bin4new_pionshun1.root") {
+double sigmaSiPMQIE10(double ifC) {
+  if(ifC < 200) return (0.7416 + 0.0358*ifC)/3.;
+  return (15.225  + 0.0268*ifC + 9e-8*ifC*ifC)/3.;
+}
 
 
-//  TFile *f= new TFile("ana_h2_tb_run003178_EMAP-22JUL2017_Phase1_RM1RM2_Phase2_RM3.root");
+void TestBeamdebug(TString outfile="sampletest/tb_ele_sc_bin3.root") {
+
+
   TChain *chain = new TChain("QIE11Data/Events");
-//  TTree *chain = (TTree*) f->Get("QIE11Data/Events");
-
+/*
+//pion
 	chain->AddFile("ana_h2_tb_run003195_EMAP-22JUL2017_Phase1_RM1RM2_Phase2_RM3_processing.root");
 	chain->AddFile("ana_h2_tb_run003187_EMAP-22JUL2017_Phase1_RM1RM2_Phase2_RM3_processing.root");
   	chain->AddFile("ana_h2_tb_run003201_EMAP-22JUL2017_Phase1_RM1RM2_Phase2_RM3_processing.root");
@@ -43,6 +48,25 @@ void TestBeam(TString outfile="sampletest/tb_bin4new_pionshun1.root") {
         chain->AddFile("ana_h2_tb_run003179_EMAP-22JUL2017_Phase1_RM1RM2_Phase2_RM3_processing.root");
         chain->AddFile("ana_h2_tb_run003322_EMAP-22JUL2017_Phase1_RM1RM2_Phase2_RM3_processing.root");
 
+//muon
+	chain->AddFile("ana_h2_tb_run003234_EMAP-22JUL2017_Phase1_RM1RM2_Phase2_RM3_processing.root");
+	chain->AddFile("ana_h2_tb_run003232_EMAP-22JUL2017_Phase1_RM1RM2_Phase2_RM3_processing.root");
+	chain->AddFile("ana_h2_tb_run003230_EMAP-22JUL2017_Phase1_RM1RM2_Phase2_RM3_processing.root");
+	chain->AddFile("ana_h2_tb_run003228_EMAP-22JUL2017_Phase1_RM1RM2_Phase2_RM3_processing.root");
+	chain->AddFile("ana_h2_tb_run003226_EMAP-22JUL2017_Phase1_RM1RM2_Phase2_RM3_processing.root");
+	chain->AddFile("ana_h2_tb_run003224_EMAP-22JUL2017_Phase1_RM1RM2_Phase2_RM3_processing.root");
+*/
+//electron
+  chain->AddFile("ana_h2_tb_run003298.root"); //300
+  chain->AddFile("ana_h2_tb_run003269.root"); //120
+  chain->AddFile("ana_h2_tb_run003302.root"); //200
+  chain->AddFile("ana_h2_tb_run003371.root"); //200
+  chain->AddFile("ana_h2_tb_run003372.root"); //200
+  chain->AddFile("ana_h2_tb_run003377.root"); //200
+  chain->AddFile("ana_h2_tb_run003290.root"); //250
+  chain->AddFile("ana_h2_tb_run003291.root"); //250
+  chain->AddFile("ana_h2_tb_run003295.root"); //250
+  chain->AddFile("ana_h2_tb_run003297.root"); //250
 
   Int_t numChs = 0;
 
@@ -80,13 +104,12 @@ void TestBeam(TString outfile="sampletest/tb_bin4new_pionshun1.root") {
   for (int i=0; i<50; i++) {
     char pname[10];
     sprintf(pname,"p4_%i",i);
-    v_p4.push_back(new TProfile(pname,pname,10,-0.5,9.5,"s"));
+    v_p4.push_back(new TProfile(pname,pname,10,-0.5,9.5,"e")); v_p4[i]->Sumw2();
     sprintf(pname,"p3_%i",i);
-    v_p3.push_back(new TProfile(pname,pname,10,-0.5,9.5,"s"));
+    v_p3.push_back(new TProfile(pname,pname,10,-0.5,9.5,"e")); v_p3[i]->Sumw2();
     sprintf(pname,"p5_%i",i);
-    v_p5.push_back(new TProfile(pname,pname,10,-0.5,9.5,"s"));
+    v_p5.push_back(new TProfile(pname,pname,10,-0.5,9.5,"e")); v_p5[i]->Sumw2();
   }
-
 
 
   for (UInt_t k=0; k<chain->GetEntries(); k++) {
@@ -95,11 +118,6 @@ void TestBeam(TString outfile="sampletest/tb_bin4new_pionshun1.root") {
 
     if (k%1000000==0) cout << 100*k/float(chain->GetEntries()) << endl;
 
-/*	for (UInt_t i=0; i<numChs; i++) {	
-	  cout << "recHitIeta "<< DigiIEta[i] << endl;
-	  cout << "recHitTDC "<< DigiTDC[i][4] << endl;
-	}
-*/
 
 
 //    if (DigiIEta->size()==0) continue;
@@ -109,10 +127,14 @@ void TestBeam(TString outfile="sampletest/tb_bin4new_pionshun1.root") {
 
 
       double sumFC=0;
+      double errSumFC=0;
       for (int j=0; j<10; j++) {
 	sumFC+=DigiFC[i][j];
+	errSumFC+=sigmaSiPMQIE10(DigiFC[i][j])*sigmaSiPMQIE10(DigiFC[i][j]);
       }
       sumFC = sumFC - 10*DigiPed[i];
+      errSumFC += 10*sigmaSiPMQIE10(DigiPed[i])*sigmaSiPMQIE10(DigiPed[i]);  //err^2
+//      errSumFC=sqrt(errSumFC);
 
       if(DigiIEta[i] == 19 && DigiIPhi[i] == 5){
 
@@ -124,30 +146,38 @@ void TestBeam(TString outfile="sampletest/tb_bin4new_pionshun1.root") {
 
       }
 
-//      cout << "Q10: " << sumFC << endl;
-//      if (sumFC<72500 || sumFC > 125000) continue;
-      if (sumFC<125000) continue;
+//      if (sumFC<316 || sumFC > 3160) continue;
+      if (sumFC<200000) continue;
 
+      if(DigiDepth[i] != 2 || DigiIEta[i] != 19 || DigiIPhi[i] != 5) continue;
 
 
       if (DigiTDC[i][4]<60) {	
 	int tdc_time=DigiTDC[i][4];
 	for (int j=0; j<10; j++) {
-	  v_p4.at(tdc_time)->Fill(j,(DigiFC[i][j]-DigiPed[i])/sumFC);
-	  //v_p4.at(tdc_time)->Fill(j,DigiFC->at(i).at(j));
+	  double val = (DigiFC[i][j] - DigiPed[i])/sumFC;
+          double erru = sigmaSiPMQIE10(DigiFC[i][j])*sigmaSiPMQIE10(DigiFC[i][j]) + sigmaSiPMQIE10(DigiPed[i])*sigmaSiPMQIE10(DigiPed[i]);
+          double err = sqrt( erru/(sumFC*sumFC) + ( errSumFC * (DigiFC[i][j] - DigiPed[i]) * (DigiFC[i][j] - DigiPed[i]) )/(sumFC*sumFC*sumFC*sumFC) );
+          v_p4.at(tdc_time)->Fill(j,val, err);
 	}
       }
       else if (DigiTDC[i][4]==62 && DigiTDC[i][3]<60) {
 	int tdc_time=DigiTDC[i][3];
         for (uint j=0; j<10; j++) {
-          v_p3.at(tdc_time)->Fill(j,(DigiFC[i][j]-DigiPed[i])/sumFC);
+	  double val = (DigiFC[i][j] - DigiPed[i])/sumFC;
+	  double erru = sigmaSiPMQIE10(DigiFC[i][j])*sigmaSiPMQIE10(DigiFC[i][j]) + sigmaSiPMQIE10(DigiPed[i])*sigmaSiPMQIE10(DigiPed[i]);
+          double err = sqrt( erru/(sumFC*sumFC) + ( errSumFC * (DigiFC[i][j] - DigiPed[i]) * (DigiFC[i][j] - DigiPed[i]) )/(sumFC*sumFC*sumFC*sumFC) );
+          v_p3.at(tdc_time)->Fill(j,val, err);
 	}
 	
       }
       else if (DigiTDC[i][5]<60) {
         int tdc_time=DigiTDC[i][5];
 	for (uint j=0; j<10; j++) {
-          v_p5.at(tdc_time)->Fill(j,(DigiFC[i][j]-DigiPed[i])/sumFC);
+	  double val = (DigiFC[i][j] - DigiPed[i])/sumFC;
+          double erru = sigmaSiPMQIE10(DigiFC[i][j])*sigmaSiPMQIE10(DigiFC[i][j]) + sigmaSiPMQIE10(DigiPed[i])*sigmaSiPMQIE10(DigiPed[i]);
+          double err = sqrt( erru/(sumFC*sumFC) + ( errSumFC * (DigiFC[i][j] - DigiPed[i]) * (DigiFC[i][j] - DigiPed[i]) )/(sumFC*sumFC*sumFC*sumFC) );
+          v_p5.at(tdc_time)->Fill(j,val, err);
         }
       }
 
